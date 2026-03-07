@@ -1706,9 +1706,12 @@ const PAGE_TITLES = {
 };
 
 function showPage(id, el, isMobile = false) {
+  const pageEl = document.getElementById('page-' + id);
+  if (!pageEl) { console.warn('Page not found: page-' + id); return; }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
+  pageEl.classList.add('active');
+  const titleEl = document.getElementById('page-title');
+  if (titleEl) titleEl.textContent = PAGE_TITLES[id] || id;
 
   if (!isMobile) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1718,14 +1721,23 @@ function showPage(id, el, isMobile = false) {
     if (el) el.classList.add('active');
   }
 
-  // Close sidebar on mobile
   if (window.innerWidth <= 768) {
-    document.getElementById('sidebar').classList.remove('open');
+    const sb = document.getElementById('sidebar');
+    if (sb) sb.classList.remove('open');
   }
 
-  // Page-specific renders
-  if (id === 'dashboard') { renderDashboard(); }
-  if (id === 'reports') { generateProductReport(); generateCustomerPendingReport(); generateTuitionReport(); }
+  // Built-in page renders
+  if (id === 'dashboard')    { renderDashboard(); }
+  if (id === 'reports')      { generateProductReport(); generateCustomerPendingReport(); generateTuitionReport(); }
+
+  // New intelligence & CRM modules
+  if (id === 'inventory')     { setTimeout(renderInventoryIntel, 80); }
+  if (id === 'smartprofit')   { setTimeout(renderSmartProfit, 80); }
+  if (id === 'demand')        { setTimeout(renderDemandPrediction, 80); }
+  if (id === 'autoreport')    { setTimeout(generateDailyReport, 80); }
+  if (id === 'custreminders') { setTimeout(renderCustomerReminders, 80); }
+  if (id === 'bulkwa')        { setTimeout(renderBulkWhatsApp, 80); }
+  if (id === 'profittarget')  { setTimeout(renderProfitTarget, 80); }
 }
 
 function toggleSidebar() {
@@ -5024,18 +5036,7 @@ function saveProfitTarget() {
   showToast('✅ Target saved for ' + month + '!', 'success');
 }
 
-// ── Hook into showPage to trigger renders ──
-const _origShowPage = showPage;
-function showPage(id, el, isMobile) {
-  _origShowPage(id, el, isMobile);
-  if (id === 'inventory')     setTimeout(renderInventoryIntel, 100);
-  if (id === 'smartprofit')   setTimeout(renderSmartProfit, 100);
-  if (id === 'demand')        setTimeout(renderDemandPrediction, 100);
-  if (id === 'autoreport')    setTimeout(generateDailyReport, 100);
-  if (id === 'custreminders') setTimeout(renderCustomerReminders, 100);
-  if (id === 'bulkwa')        setTimeout(renderBulkWhatsApp, 100);
-  if (id === 'profittarget')  setTimeout(renderProfitTarget, 100);
-}
+// showPage extended in original function above
 
 // ── Also update reminders on sale save ──
 const _origSaveSale = typeof saveSale === 'function' ? saveSale : null;

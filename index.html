@@ -1339,6 +1339,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <p style="font-size:0.78rem;color:var(--text-dim);margin-top:2px">Syncs automatically 3 seconds after every save (when connected)</p>
         <p id="last-sync-time" style="font-size:0.75rem;color:var(--text-dim);margin-top:4px"></p>
       </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
+        <strong style="color:var(--accent4)">📦 Auto Backups (Saved on Device)</strong>
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-top:2px">Last 5 backups stored on this device. Restore or download any time.</p>
+        <div id="backup-status-list" style="margin-top:8px;border:1px solid var(--border);border-radius:8px;overflow:hidden"></div>
+      </div>
     </div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="exportAllData()">⬇️ Export JSON Backup</button>
@@ -1536,6 +1541,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!DB.settings.appsScriptUrl) {
     document.getElementById('sheets-banner').style.display = 'flex';
   }
+  // Auto backup on every app open (3 second delay)
+  setTimeout(autoJsonBackup, 3000);
 });
 
 // ─── PERSISTENCE ──────────────────────────────────────
@@ -1561,7 +1568,8 @@ function saveData() {
 
   // 3. Auto JSON backup every 10 saves
   _saveCount = (_saveCount || 0) + 1;
-  if (_saveCount >= 10 && DB.settings.autoBackup) {
+  // Auto backup every 5 saves — always on (no checkbox needed)
+  if (_saveCount >= 5) {
     _saveCount = 0;
     autoJsonBackup();
   }
@@ -1582,7 +1590,7 @@ async function autoSyncToSheets() {
   try {
     const res = await fetch(DB.settings.appsScriptUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' }, // Apps Script needs text/plain for CORS
       body: JSON.stringify({
         action: 'syncAll',
         sales:      DB.sales,
@@ -1594,16 +1602,33 @@ async function autoSyncToSheets() {
         staff:      DB.staff
       })
     });
-    const data = await res.json();
-    if (data && data.status === 'ok') {
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn('Sheets HTTP error:', res.status, errText);
+      if (indicator) { indicator.textContent = '⚠️ Sheets ' + res.status; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
+      _isSyncing = false; return;
+    }
+    let data;
+    try { data = await res.json(); } catch(je) {
+      console.warn('Sheets response not JSON:', je);
+      if (indicator) { indicator.textContent = '⚠️ Bad response'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      _isSyncing = false; return;
+    }
+    if (data && (data.status === 'ok' || data.result === 'success')) {
       if (indicator) { indicator.textContent = '✅ Synced'; setTimeout(() => { indicator.style.display = 'none'; }, 2500); }
       DB.settings.lastSync = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
     } else {
-      if (indicator) { indicator.textContent = '⚠️ Sync failed'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      if (indicator) { indicator.textContent = '⚠️ Sync issue'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      console.warn('Sheets sync response:', data);
     }
   } catch(e) {
-    if (indicator) { indicator.textContent = '❌ Offline'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+    if (e.name === 'TypeError' && e.message.includes('fetch')) {
+      if (indicator) { indicator.textContent = '📵 Offline'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+    } else {
+      if (indicator) { indicator.textContent = '❌ Error'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      console.error('Sheets sync error:', e);
+    }
   }
   _isSyncing = false;
 }
@@ -1738,6 +1763,7 @@ function showPage(id, el, isMobile = false) {
   if (id === 'custreminders') { setTimeout(renderCustomerReminders, 80); }
   if (id === 'bulkwa')        { setTimeout(renderBulkWhatsApp, 80); }
   if (id === 'profittarget')  { setTimeout(renderProfitTarget, 80); }
+  if (id === 'settings')      { setTimeout(renderBackupStatus, 80); }
 }
 
 function toggleSidebar() {
@@ -3954,20 +3980,77 @@ function checkSheetsConnection() {
 
 // ── Auto JSON Backup (silent, browser download) ──
 function autoJsonBackup() {
+  // Save to localStorage (works on Android PWA — no download needed)
+  // Keeps last 5 backups with timestamps
   try {
-    const biz = DB.settings.bizName || 'MeenatchiTraders';
+    const snap = JSON.stringify(DB);
+    const key = 'mt_backup_' + new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    localStorage.setItem(key, snap);
+    // Keep only last 5 backups
+    const allKeys = Object.keys(localStorage).filter(k => k.startsWith('mt_backup_')).sort();
+    while (allKeys.length > 5) { localStorage.removeItem(allKeys.shift()); }
+    DB.settings.lastAutoBackup = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+    showToast('✅ Auto backup saved (' + new Date().toLocaleTimeString('en-IN') + ')', 'info');
+    renderBackupStatus();
+  } catch(e) {
+    showToast('⚠️ Backup failed: ' + e.message, 'error');
+  }
+}
+
+function downloadBackup(key) {
+  try {
+    const data = localStorage.getItem(key || STORAGE_KEY);
+    if (!data) { showToast('No backup found!', 'error'); return; }
+    const biz = (DB.settings.bizName || 'MeenatchiTraders').replace(/\s+/g,'-');
     const date = new Date().toISOString().slice(0,10);
-    const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+    const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `${biz.replace(/\s+/g,'-')}-backup-${date}.json`;
+    a.href = url; a.download = biz + '-backup-' + date + '.json';
     a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
+    document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
-    showToast('Auto backup saved!', 'info');
-  } catch(e) {}
+    showToast('Downloaded!', 'success');
+  } catch(e) { showToast('Download failed: ' + e.message, 'error'); }
+}
+
+function renderBackupStatus() {
+  const el = document.getElementById('backup-status-list');
+  if (!el) return;
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('mt_backup_')).sort().reverse();
+  if (!keys.length) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No auto-backups yet. Enable auto backup below.</div>';
+    return;
+  }
+  el.innerHTML = keys.map(k => {
+    const dt = k.replace('mt_backup_','').replace('T',' ').replace(/-/g,m => m === ' ' ? ' ' : ':').slice(0,16);
+    const size = (localStorage.getItem(k).length / 1024).toFixed(1);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:0.82rem;color:var(--text)">📦 Backup — ${dt}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">${size} KB</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="restoreFromBackup('${k}')" style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">↩️ Restore</button>
+        <button onclick="downloadBackup('${k}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">⬇️ Download</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function restoreFromBackup(key) {
+  if (!confirm('Restore this backup? Current data will be replaced!')) return;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) { showToast('Backup not found!', 'error'); return; }
+    const parsed = JSON.parse(raw);
+    DB = { ...DB, ...parsed };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+    loadData();
+    refreshAllViews();
+    showToast('✅ Data restored from backup!', 'success');
+  } catch(e) { showToast('Restore failed: ' + e.message, 'error'); }
 }
 
 function exportAllData() {

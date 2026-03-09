@@ -337,31 +337,31 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   </div>
   <div style="overflow-y:auto;flex:1;padding-bottom:8px">
     <div class="nav-section">Main</div>
-    <div class="nav-item active" onclick="showPage('dashboard',this)">📊 Dashboard</div>
-    <div class="nav-item" onclick="showPage('sales',this)">🛒 Sales Entry</div>
-    <div class="nav-item" onclick="showPage('invoices',this)">📄 Invoices</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
+    <div class="nav-item" onclick="showPage('sales',this)">Sales Entry</div>
+    <div class="nav-item" onclick="showPage('invoices',this)">Invoices</div>
     <div class="nav-section">Stock & Products</div>
-    <div class="nav-item" onclick="showPage('products',this)">📦 Products & Stock</div>
-    <div class="nav-item" onclick="showPage('orders',this)">🚚 Order Tracking</div>
+    <div class="nav-item" onclick="showPage('products',this)">Products & Stock</div>
+    <div class="nav-item" onclick="showPage('orders',this)">Order Tracking</div>
     <div class="nav-section">Customers</div>
-    <div class="nav-item" onclick="showPage('customers',this)">👥 Customer Management</div>
-    <div class="nav-item" onclick="showPage('reminders',this)">💬 WhatsApp Reminders</div>
+    <div class="nav-item" onclick="showPage('customers',this)">Customer Management</div>
+    <div class="nav-item" onclick="showPage('reminders',this)">WhatsApp Reminders</div>
     <div class="nav-section">Businesses</div>
-    <div class="nav-item" onclick="showPage('teashop',this)">☕ Tea & Coffee Shop</div>
-    <div class="nav-item" onclick="showPage('tuition',this)">🎓 Tuition Management</div>
+    <div class="nav-item" onclick="showPage('teashop',this)">Tea & Coffee Shop</div>
+    <div class="nav-item" onclick="showPage('tuition',this)">Tuition Management</div>
     <div class="nav-section">Intelligence</div>
-    <div class="nav-item" onclick="showPage('inventory',this)">🏭 Inventory Intelligence</div>
-    <div class="nav-item" onclick="showPage('smartprofit',this)">💹 Smart Profit</div>
-    <div class="nav-item" onclick="showPage('demand',this)">🔮 Demand Prediction</div>
-    <div class="nav-item" onclick="showPage('autoreport',this)">📋 Auto Business Report</div>
+    <div class="nav-item" onclick="showPage('inventory',this)">Inventory Intelligence</div>
+    <div class="nav-item" onclick="showPage('smartprofit',this)">Smart Profit Dashboard</div>
+    <div class="nav-item" onclick="showPage('demand',this)">Demand Prediction</div>
+    <div class="nav-item" onclick="showPage('autoreport',this)">Auto Business Report</div>
     <div class="nav-section">CRM</div>
-    <div class="nav-item" onclick="showPage('custreminders',this)">🔔 Customer Reminders</div>
-    <div class="nav-item" onclick="showPage('bulkwa',this)">📢 Bulk WhatsApp</div>
-    <div class="nav-item" onclick="showPage('profittarget',this)">🎯 Profit Target</div>
+    <div class="nav-item" onclick="showPage('custrem',this)">Customer Reminders</div>
+    <div class="nav-item" onclick="showPage('bulkwa',this)">Bulk WhatsApp</div>
+    <div class="nav-item" onclick="showPage('profittarget',this)">Profit Target</div>
     <div class="nav-section">Reports</div>
-    <div class="nav-item" onclick="showPage('reports',this)">📈 Reports & Analytics</div>
+    <div class="nav-item" onclick="showPage('reports',this)">Reports & Analytics</div>
     <div class="nav-section">Settings</div>
-    <div class="nav-item" onclick="showPage('settings',this)">⚙️ Settings & Integration</div>
+    <div class="nav-item" onclick="showPage('settings',this)">Settings</div>
   </div>
   <div class="sidebar-footer">Meenatchi Traders © 2026<br><span style="color:var(--accent);font-size:0.65rem">v1.0 — PWA Enabled</span></div>
 </nav>
@@ -386,20 +386,20 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 <!-- ══════════════════ DASHBOARD ══════════════════ -->
 <div class="page active" id="page-dashboard">
   <div class="section-header">
-    <h2>📊 Dashboard</h2>
+    <h2>Dashboard</h2>
     <p id="dashboard-subtitle">Today's summary</p>
   </div>
 
   <div id="sheets-banner" class="connect-banner" style="display:none">
     <div><strong>⚡ Connect Google Sheets</strong><br><p>Link your spreadsheet to sync live data</p></div>
-    <button class="btn btn-primary btn-sm" onclick="showPage('settings',null)">🔗 Connect Now</button>
+    <button class="btn btn-primary btn-sm" onclick="showPage('settings',null)">Connect Now</button>
   </div>
 
   <!-- ── Dashboard Tabs ── -->
   <div class="tabs" style="margin-bottom:16px">
-    <div class="tab active" onclick="switchDashTab('business')" id="dtab-business">🛒 Business</div>
-    <div class="tab" onclick="switchDashTab('tuition')" id="dtab-tuition">🎓 Tuition</div>
-    <div class="tab" onclick="switchDashTab('combined')" id="dtab-combined">📊 Combined</div>
+    <div class="tab active" onclick="switchDashTab('business')" id="dtab-business">Business</div>
+    <div class="tab" onclick="switchDashTab('tuition')" id="dtab-tuition">Tuition</div>
+    <div class="tab" onclick="switchDashTab('combined')" id="dtab-combined">Combined</div>
   </div>
 
   <!-- ══ BUSINESS TAB ══ -->
@@ -415,24 +415,24 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     </div>
     <div class="grid-2">
       <div class="card">
-        <div class="card-header"><span class="card-title">📈 Weekly Sales</span></div>
+        <div class="card-header"><span class="card-title">Weekly Sales</span></div>
         <div class="mini-chart" id="weekly-chart"></div>
         <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);padding:0 4px">
           <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">📦 Product Stock</span></div>
+        <div class="card-header"><span class="card-title">Product Stock</span></div>
         <div id="stock-overview"></div>
       </div>
     </div>
     <div class="grid-2">
       <div class="card">
-        <div class="card-header"><span class="card-title">🔔 Pending Payments</span><button class="btn btn-secondary btn-sm" onclick="showPage('reminders',null)">🔔 Remind</button></div>
+        <div class="card-header"><span class="card-title">Pending Payments</span><button class="btn btn-secondary btn-sm" onclick="showPage('reminders',null)">🔔 Remind</button></div>
         <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Amount</th><th>Days</th></tr></thead><tbody id="pending-table"></tbody></table></div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">📋 Recent Orders</span></div>
+        <div class="card-header"><span class="card-title">Recent Orders</span></div>
         <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Product</th><th>Status</th></tr></thead><tbody id="recent-orders"></tbody></table></div>
       </div>
     </div>
@@ -450,16 +450,16 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     </div>
     <div class="grid-2">
       <div class="card">
-        <div class="card-header"><span class="card-title">⏳ Pending Fee Students</span><button class="btn btn-secondary btn-sm" onclick="showPage('tuition',null)">View All</button></div>
+        <div class="card-header"><span class="card-title">Pending Fee Students</span><button class="btn btn-secondary btn-sm" onclick="showPage('tuition',null)">View All</button></div>
         <div class="table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Pending</th></tr></thead><tbody id="tui-pending-table"></tbody></table></div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">👩‍🏫 Staff Salary Status</span></div>
+        <div class="card-header"><span class="card-title">Staff Salary Status</span></div>
         <div class="table-wrap"><table><thead><tr><th>Staff</th><th>Subject</th><th>Salary</th><th>Paid</th></tr></thead><tbody id="tui-staff-table"></tbody></table></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-header"><span class="card-title">📊 Students by Class</span></div>
+      <div class="card-header"><span class="card-title">Students by Class</span></div>
       <div id="tui-class-breakdown" style="padding:8px"></div>
     </div>
   </div>
@@ -475,7 +475,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="stat-card orange"><div class="icon">🎓</div><div class="label">Tuition</div><div class="value" id="d-comb-tui">₹0</div><div class="sub">Fees collected</div></div>
     </div>
     <div class="card">
-      <div class="card-header"><span class="card-title">💰 Income Breakdown</span></div>
+      <div class="card-header"><span class="card-title">Income Breakdown</span></div>
       <div id="income-breakdown" style="padding:12px"></div>
     </div>
   </div>
@@ -484,12 +484,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ PRODUCTS ══════════════════ -->
 <div class="page" id="page-products">
-  <div class="section-header"><h2>📦 Products & Stock Management</h2><p>Track inventory, costs, and profit per unit</p></div>
+  <div class="section-header"><h2>Products & Stock Management</h2><p>Track inventory, costs, and profit per unit</p></div>
   
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('products','list')">📋 Product List</div>
-    <div class="tab" onclick="switchTab('products','add')">➕ Add Product</div>
-    <div class="tab" onclick="switchTab('products','stock')">📊 Stock Status</div>
+    <div class="tab active" onclick="switchTab('products','list')">Product List</div>
+    <div class="tab" onclick="switchTab('products','add')">Add Product</div>
+    <div class="tab" onclick="switchTab('products','stock')">Stock Status</div>
   </div>
 
   <div class="tab-content active" id="products-list">
@@ -500,12 +500,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <option value="LOW">Low Stock</option>
         <option value="OK">In Stock</option>
       </select>
-      <button class="btn btn-success btn-sm" onclick="switchTab('products','add')" style="white-space:nowrap">➕ Add Product</button>
-      <button class="btn btn-primary btn-sm" onclick="exportTableCSV('prod-table','products')">⬇️ Export</button>
+      <button class="btn btn-success btn-sm" onclick="switchTab('products','add')" style="white-space:nowrap">Add Product</button>
+      <button class="btn btn-primary btn-sm" onclick="exportTableCSV('prod-table','products')">Export</button>
     </div>
     <div class="alert alert-info" style="margin-bottom:12px;font-size:0.8rem">
       💡
-      <span>Click <strong>✏️ Edit</strong> on any product to update its details or add more stock to it.</span>
+      <span>Click <strong>Edit</strong> on any product to update its details or add more stock to it.</span>
     </div>
     <div class="table-wrap">
       <table id="prod-table">
@@ -557,8 +557,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       </div>
 
       <div class="form-actions" style="margin-top:14px">
-        <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">💾 Save Product</button>
-        <button class="btn btn-secondary" onclick="clearProductForm()">✖ Clear</button>
+        <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">Save Product</button>
+        <button class="btn btn-secondary" onclick="clearProductForm()">Clear</button>
       </div>
     </div>
   </div>
@@ -573,12 +573,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ CUSTOMERS ══════════════════ -->
 <div class="page" id="page-customers">
-  <div class="section-header"><h2>👥 Customer Management</h2><p>Manage all customer records and purchase history</p></div>
+  <div class="section-header"><h2>Customer Management</h2><p>Manage all customer records and purchase history</p></div>
   
   <div class="tabs">
     <div class="tab active" onclick="switchTab('customers','list')">📋 All Customers</div>
-    <div class="tab" onclick="switchTab('customers','add')">➕ Add Customer</div>
-    <div class="tab" onclick="switchTab('customers','pending')">⏳ Pending Payments</div>
+    <div class="tab" onclick="switchTab('customers','add')">Add Customer</div>
+    <div class="tab" onclick="switchTab('customers','pending')">Pending Payments</div>
   </div>
 
   <div class="tab-content active" id="customers-list">
@@ -590,7 +590,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <option value="Delivered">Delivered</option>
         <option value="Cancelled">Cancelled</option>
       </select>
-      <button class="btn btn-primary btn-sm" onclick="exportTableCSV('cust-table','customers')">⬇️ Export</button>
+      <button class="btn btn-primary btn-sm" onclick="exportTableCSV('cust-table','customers')">Export</button>
     </div>
     <div class="table-wrap">
       <table id="cust-table">
@@ -616,8 +616,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Notes</label><input type="text" id="c-notes" placeholder="Any special notes..."></div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" id="c-save-btn" onclick="saveCustomer()">💾 Save Customer</button>
-        <button class="btn btn-secondary" onclick="clearCustomerForm()">✖ Clear</button>
+        <button class="btn btn-primary" id="c-save-btn" onclick="saveCustomer()">Save Customer</button>
+        <button class="btn btn-secondary" onclick="clearCustomerForm()">Clear</button>
       </div>
     </div>
   </div>
@@ -648,22 +648,43 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="card-header"><span class="card-title">New Sale</span></div>
       <div class="form-grid">
         <div class="form-group"><label>Date</label><input type="date" id="s-date"></div>
-        <div class="form-group"><label>Customer Name</label><input type="text" id="s-customer" list="customer-list" placeholder="Type or select..."><datalist id="customer-list"></datalist></div>
-        <div class="form-group"><label>Product</label><select id="s-product" onchange="fillUnitPrice()"><option value="">Select Product</option></select></div>
-        <div class="form-group"><label>Quantity</label><input type="number" id="s-qty" min="1" value="1" oninput="calcSaleTotal()"></div>
-        <div class="form-group"><label>Unit Price (₹)</label><input type="number" id="s-price" step="0.01" oninput="calcSaleTotal()"></div>
-        <div class="form-group"><label>Discount (₹)</label><input type="number" id="s-disc" value="0" step="0.01" oninput="calcSaleTotal()"></div>
-        <div class="form-group"><label>Total Amount (₹)</label><input type="number" id="s-total" readonly style="opacity:0.6"></div>
-        <div class="form-group"><label>Amount Received (₹)</label><input type="number" id="s-received" step="0.01" oninput="calcSalePending()"></div>
-        <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="s-pending" readonly style="opacity:0.6"></div>
+        <div class="form-group"><label>Customer Name</label><input type="text" id="s-customer" list="customer-list" placeholder="Type or select..." oninput="autoFillCustomerPhone()"><datalist id="customer-list"></datalist></div>
+        <div class="form-group"><label>Phone Number *</label><input type="tel" id="s-phone" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')"></div>
         <div class="form-group"><label>Payment Mode</label><select id="s-payment"><option>Cash</option><option>UPI</option><option>GPay</option><option>Online</option><option>Credit</option></select></div>
         <div class="form-group"><label>Order Status</label><select id="s-status"><option>Pending</option><option>Processing</option><option>Ready</option><option>Delivered</option></select></div>
+      </div>
+
+      <!-- Multi-product item rows -->
+      <div style="margin:12px 0 6px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.82rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Products</span>
+        <button class="btn btn-primary btn-sm" onclick="addSaleRow()" style="padding:4px 12px;font-size:0.78rem">+ Add Product</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:500px" id="sale-items-table">
+          <thead>
+            <tr style="background:rgba(78,205,196,0.08)">
+              <th style="padding:7px 8px;font-size:0.72rem;color:var(--accent3);text-align:left;text-transform:uppercase;letter-spacing:.5px">Product</th>
+              <th style="padding:7px 6px;font-size:0.72rem;color:var(--accent3);text-align:center;width:60px">Qty</th>
+              <th style="padding:7px 6px;font-size:0.72rem;color:var(--accent3);text-align:right;width:90px">Price ₹</th>
+              <th style="padding:7px 6px;font-size:0.72rem;color:var(--accent3);text-align:right;width:80px">Disc ₹</th>
+              <th style="padding:7px 6px;font-size:0.72rem;color:var(--accent3);text-align:right;width:90px">Total ₹</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="sale-items-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="form-grid" style="margin-top:12px">
+        <div class="form-group"><label>Amount Received (₹)</label><input type="number" id="s-received" step="0.01" oninput="calcSaleSummary()"></div>
+        <div class="form-group"><label>Total Amount (₹)</label><input type="number" id="s-total" readonly style="opacity:0.6;font-weight:700"></div>
+        <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="s-pending" readonly style="opacity:0.6"></div>
         <div class="form-group"><label>Est. Profit (₹)</label><input type="number" id="s-profit" readonly style="opacity:0.6;color:var(--green)"></div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveSale()">➕ Add Sale</button>
-        <button class="btn btn-success" onclick="saveSaleAndInvoice()">📄 Save & Invoice</button>
-        <button class="btn btn-secondary" onclick="clearSaleForm()">✖ Clear</button>
+        <button class="btn btn-primary" onclick="saveSale()">Add Sale</button>
+        <button class="btn btn-success" onclick="saveSaleAndInvoice()">Save + Invoice</button>
+        <button class="btn btn-secondary" onclick="clearSaleForm()">Clear</button>
       </div>
     </div>
     <div class="card">
@@ -676,7 +697,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="card-header"><span class="card-title">📜 Sales History</span>
       <div class="card-actions">
         <input type="date" id="filter-date" onchange="filterSalesByDate()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;color:var(--text);font-size:0.8rem">
-        <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('sales-table','sales')">⬇️ Export</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportTableCSV('sales-table','sales')">Export</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -781,7 +802,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="form-actions" style="flex-wrap:wrap">
         <button class="btn btn-primary" onclick="previewAndSaveInvoice()">👁️ Preview Invoice</button>
         <button class="btn btn-success" onclick="downloadInvoicePDF()">📄 Generate PDF</button>
-        <button class="wa-btn" onclick="shareInvoiceWhatsApp()">💬 Send via WhatsApp</button>
+        <button class="wa-btn" onclick="shareInvoiceWhatsApp()">Send via WhatsApp</button>
         <button class="btn btn-secondary" onclick="clearInvoiceForm()">✖ Clear Form</button>
       </div>
     </div>
@@ -791,7 +812,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="card-header">
         <span class="card-title">🖨️ Invoice Preview</span>
         <div class="card-actions">
-          <button class="btn btn-success btn-sm" onclick="downloadInvoicePDF()">⬇️ Download PDF</button>
+          <button class="btn btn-success btn-sm" onclick="downloadInvoicePDF()">Download PDF</button>
           <button class="wa-btn" style="padding:5px 12px;font-size:0.78rem" onclick="shareInvoiceWhatsApp()">💬 WhatsApp</button>
         </div>
       </div>
@@ -861,7 +882,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ TEA SHOP ══════════════════ -->
 <div class="page" id="page-teashop">
-  <div class="section-header"><h2>☕ Tea & Coffee Shop</h2><p>Track daily operations, ingredients and profit</p></div>
+  <div class="section-header"><h2>Tea & Coffee Shop</h2><p>Track daily operations, ingredients and profit</p></div>
   
   <div class="cards-grid">
     <div class="stat-card gold"><div class="icon">☕</div><div class="label">Cups Today</div><div class="value" id="ts-cups">0</div></div>
@@ -890,7 +911,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="form-group" style="margin-top:12px"><label>Notes / Customer Name</label><input type="text" id="ts-notes" placeholder="Order note or customer..."></div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveTeaEntry()">💾 Save Entry</button>
-        <button class="btn btn-secondary" onclick="clearTeaForm()">✖ Clear</button>
+        <button class="btn btn-secondary" onclick="clearTeaForm()">Clear</button>
       </div>
     </div>
     <div class="card">
@@ -925,7 +946,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ TUITION ══════════════════ -->
 <div class="page" id="page-tuition">
-  <div class="section-header"><h2>🎓 Tuition Management</h2><p>Students, teachers, fees and salary tracking</p></div>
+  <div class="section-header"><h2>Tuition Management</h2><p>Students, teachers, fees and salary tracking</p></div>
   
   <div class="cards-grid">
     <div class="stat-card gold"><div class="icon">🎓</div><div class="label">Total Students</div><div class="value" id="t-students">0</div></div>
@@ -969,7 +990,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveStudent()">💾 Save Student</button>
-        <button class="btn btn-secondary" onclick="clearStudentForm()">✖ Clear</button>
+        <button class="btn btn-secondary" onclick="clearStudentForm()">Clear</button>
       </div>
     </div>
   </div>
@@ -997,7 +1018,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveStaff()">💾 Save Staff</button>
-        <button class="btn btn-secondary" onclick="clearStaffForm()">✖ Clear</button>
+        <button class="btn btn-secondary" onclick="clearStaffForm()">Clear</button>
       </div>
     </div>
   </div>
@@ -1005,7 +1026,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ ORDER TRACKING ══════════════════ -->
 <div class="page" id="page-orders">
-  <div class="section-header"><h2>🚚 Order Tracking</h2><p>Track all orders through the pipeline</p></div>
+  <div class="section-header"><h2>Order Tracking</h2><p>Track all orders through the pipeline</p></div>
   
   <div class="cards-grid">
     <div class="stat-card orange"><div class="icon">⏳</div><div class="label">Pending</div><div class="value" id="ord-pending">0</div></div>
@@ -1040,11 +1061,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ INVENTORY INTELLIGENCE ══════════════════ -->
 <div class="page" id="page-inventory">
-  <div class="section-header"><h2>🏭 Inventory Intelligence</h2><p>Smart stock tracking with reorder predictions</p></div>
+  <div class="section-header"><h2>Inventory Intelligence</h2><p>Smart stock tracking with reorder predictions</p></div>
   <div class="cards-grid" id="inv-intel-cards"></div>
   <div class="grid-2" style="margin-top:16px">
     <div class="card">
-      <div class="card-header"><span class="card-title">📦 Stock Status</span><button class="btn btn-primary btn-sm" onclick="renderInventoryIntel()">🔄 Refresh</button></div>
+      <div class="card-header"><span class="card-title">📦 Stock Status</span><button class="btn btn-primary btn-sm" onclick="renderInventoryIntel()">Refresh</button></div>
       <div id="inv-stock-table"></div>
     </div>
     <div class="card">
@@ -1060,7 +1081,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ SMART PROFIT DASHBOARD ══════════════════ -->
 <div class="page" id="page-smartprofit">
-  <div class="section-header"><h2>💹 Smart Profit Dashboard</h2><p>Deep profit analytics across all products</p></div>
+  <div class="section-header"><h2>Smart Profit Dashboard</h2><p>Deep profit analytics across all products</p></div>
   <div class="cards-grid" id="sp-cards"></div>
   <div class="grid-2" style="margin-top:16px">
     <div class="card">
@@ -1080,10 +1101,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ DEMAND PREDICTION ══════════════════ -->
 <div class="page" id="page-demand">
-  <div class="section-header"><h2>🔮 Demand Prediction</h2><p>AI-style forecast based on last 30 days sales patterns</p></div>
+  <div class="section-header"><h2>Demand Prediction</h2><p>AI-style forecast based on last 30 days sales patterns</p></div>
   <div class="cards-grid" id="dp-summary-cards"></div>
   <div class="card" style="margin-top:16px">
-    <div class="card-header"><span class="card-title">📊 Next Week Predictions</span><button class="btn btn-primary btn-sm" onclick="renderDemandPrediction()">🔄 Recalculate</button></div>
+    <div class="card-header"><span class="card-title">📊 Next Week Predictions</span><button class="btn btn-primary btn-sm" onclick="renderDemandPrediction()">Recalculate</button></div>
     <div id="dp-predictions"></div>
   </div>
   <div class="card" style="margin-top:16px">
@@ -1098,10 +1119,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ AUTO BUSINESS REPORT ══════════════════ -->
 <div class="page" id="page-autoreport">
-  <div class="section-header"><h2>📋 Auto Business Report</h2><p>Daily summary — auto-generated at 9 PM</p></div>
+  <div class="section-header"><h2>Auto Business Report</h2><p>Daily summary — auto-generated at 9 PM</p></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-    <button class="btn btn-primary" onclick="generateDailyReport()">⚡ Generate Now</button>
-    <button class="btn btn-secondary" onclick="shareReportWhatsApp()">💬 Share via WhatsApp</button>
+    <button class="btn btn-primary" onclick="generateDailyReport()">Generate Now</button>
+    <button class="btn btn-secondary" onclick="shareReportWhatsApp()">Share via WhatsApp</button>
     <button class="btn btn-secondary" onclick="exportReportPDF()">⬇️ Download Report</button>
     <input type="date" id="report-date" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;color:var(--text);font-size:0.82rem" onchange="generateDailyReport()">
   </div>
@@ -1109,18 +1130,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 </div>
 
 <!-- ══════════════════ CUSTOMER REMINDERS ══════════════════ -->
-<div class="page" id="page-custreminders">
-  <div class="section-header"><h2>🔔 Customer Reminders</h2><p>Smart reorder reminders based on purchase patterns</p></div>
+<div class="page" id="page-custrem">
+  <div class="section-header"><h2>Customer Reminders</h2><p>Smart reorder reminders based on purchase patterns</p></div>
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('custrem','today')" id="cr-tab-today">🔔 Today's Reminders</div>
-    <div class="tab" onclick="switchTab('custrem','all')">📋 All Reminders</div>
-    <div class="tab" onclick="switchTab('custrem','rules')">⚙️ Product Rules</div>
-    <div class="tab" onclick="switchTab('custrem','history')">📜 Customer History</div>
+    <div class="tab active" onclick="switchTab('custrem','today')" id="cr-tab-today">Today's Reminders</div>
+    <div class="tab" onclick="switchTab('custrem','all')">All Reminders</div>
+    <div class="tab" onclick="switchTab('custrem','rules')">Product Rules</div>
+    <div class="tab" onclick="switchTab('custrem','history')">Customer History</div>
   </div>
   <div class="tab-content active" id="custrem-today">
     <div id="cr-today-cards" class="cards-grid" style="margin-bottom:12px"></div>
     <div class="card">
-      <div class="card-header"><span class="card-title">📅 Due Today & Overdue</span><button class="btn btn-secondary btn-sm" onclick="bulkWhatsAppReminders()">📢 Bulk Send All</button></div>
+      <div class="card-header"><span class="card-title">📅 Due Today & Overdue</span><button class="btn btn-secondary btn-sm" onclick="bulkWhatsAppReminders()">Bulk Send All</button></div>
       <div id="cr-today-table"></div>
     </div>
   </div>
@@ -1139,7 +1160,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
           <div class="form-group"><label>Product Name</label><input type="text" id="cr-rule-product" placeholder="e.g. Tea 100g" list="product-list"></div>
           <div class="form-group"><label>Reminder Interval (Days)</label><input type="number" id="cr-rule-days" placeholder="e.g. 8" min="1"></div>
         </div>
-        <button class="btn btn-primary" onclick="saveProductRule()">💾 Save Rule</button>
+        <button class="btn btn-primary" onclick="saveProductRule()">Save Rule</button>
       </div>
     </div>
   </div>
@@ -1151,22 +1172,22 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ BULK WHATSAPP ══════════════════ -->
 <div class="page" id="page-bulkwa">
-  <div class="section-header"><h2>📢 Bulk WhatsApp</h2><p>Send messages to multiple customers at once</p></div>
+  <div class="section-header"><h2>Bulk WhatsApp</h2><p>Send messages to multiple customers at once</p></div>
   <div class="tabs">
-    <div class="tab active" onclick="switchTab('bulkwa','pending')">⏳ Pending Payments</div>
-    <div class="tab" onclick="switchTab('bulkwa','reminders')">🔔 Due Reminders</div>
-    <div class="tab" onclick="switchTab('bulkwa','custom')">✍️ Custom Message</div>
+    <div class="tab active" onclick="switchTab('bulkwa','pending')">Pending Payments</div>
+    <div class="tab" onclick="switchTab('bulkwa','reminders')">Due Reminders</div>
+    <div class="tab" onclick="switchTab('bulkwa','custom')">Custom Message</div>
   </div>
   <div class="tab-content active" id="bulkwa-pending">
     <div class="card">
       <div class="card-header">
         <span class="card-title">⏳ Customers with Pending Payments</span>
-        <button class="btn btn-primary btn-sm" onclick="selectAllBulk('bulk-pending-list')">☑️ Select All</button>
+        <button class="btn btn-primary btn-sm" onclick="selectAllBulk('bulk-pending-list')">Select All</button>
       </div>
       <div id="bulk-pending-list"></div>
       <div style="margin-top:12px">
         <textarea id="bulk-pending-msg" rows="3" placeholder="Message template..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:0.85rem;resize:vertical">Hi {name}, you have a pending payment of Rs.{amount} at {biz}. Please clear when convenient. Thank you!</textarea>
-        <button class="btn btn-primary" style="margin-top:8px" onclick="sendBulkWhatsApp('pending')">📤 Send to Selected</button>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="sendBulkWhatsApp('pending')">Send to Selected</button>
       </div>
     </div>
   </div>
@@ -1174,12 +1195,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="card">
       <div class="card-header">
         <span class="card-title">🔔 Customers with Due Reminders</span>
-        <button class="btn btn-primary btn-sm" onclick="selectAllBulk('bulk-reminder-list')">☑️ Select All</button>
+        <button class="btn btn-primary btn-sm" onclick="selectAllBulk('bulk-reminder-list')">Select All</button>
       </div>
       <div id="bulk-reminder-list"></div>
       <div style="margin-top:12px">
         <textarea id="bulk-reminder-msg" rows="3" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:0.85rem;resize:vertical">Vanakkam {name}! {product} fresh stock ready. Ungalukku thevai irukka? - {biz}</textarea>
-        <button class="btn btn-primary" style="margin-top:8px" onclick="sendBulkWhatsApp('reminder')">📤 Send to Selected</button>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="sendBulkWhatsApp('reminder')">Send to Selected</button>
       </div>
     </div>
   </div>
@@ -1191,17 +1212,17 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <textarea id="bulk-custom-msg" rows="4" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:0.85rem;resize:vertical">Hi {name}! New arrivals at {biz}. Visit us soon!</textarea>
       </div>
       <div class="card" style="background:rgba(255,255,255,0.03)">
-        <div class="card-header"><span class="card-title">Select Customers</span><button class="btn btn-primary btn-sm" onclick="selectAllBulk('bulk-custom-list')">☑️ All</button></div>
+        <div class="card-header"><span class="card-title">Select Customers</span><button class="btn btn-primary btn-sm" onclick="selectAllBulk('bulk-custom-list')">All</button></div>
         <div id="bulk-custom-list"></div>
       </div>
-      <button class="btn btn-primary" style="margin-top:12px" onclick="sendBulkWhatsApp('custom')">📤 Send to Selected</button>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="sendBulkWhatsApp('custom')">Send to Selected</button>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════ PROFIT TARGET TRACKER ══════════════════ -->
 <div class="page" id="page-profittarget">
-  <div class="section-header"><h2>🎯 Profit Target Tracker</h2><p>Set monthly goals and track your progress</p></div>
+  <div class="section-header"><h2>Profit Target Tracker</h2><p>Set monthly goals and track your progress</p></div>
   <div class="grid-2">
     <div class="card">
       <div class="card-header"><span class="card-title">🎯 Set Monthly Target</span></div>
@@ -1209,7 +1230,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="form-group"><label>Sales Target (₹)</label><input type="number" id="pt-sales-target" placeholder="50000"></div>
       <div class="form-group"><label>Profit Target (₹)</label><input type="number" id="pt-profit-target" placeholder="15000"></div>
       <div class="form-group"><label>Orders Target</label><input type="number" id="pt-orders-target" placeholder="100"></div>
-      <button class="btn btn-primary" onclick="saveProfitTarget()">💾 Save Target</button>
+      <button class="btn btn-primary" onclick="saveProfitTarget()">Save Target</button>
     </div>
     <div class="card">
       <div class="card-header"><span class="card-title">📊 Current Month Progress</span></div>
@@ -1267,7 +1288,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ SETTINGS ══════════════════ -->
 <div class="page" id="page-settings">
-  <div class="section-header"><h2>⚙️ Settings & Integration</h2><p>Connect Google Sheets, configure business info</p></div>
+  <div class="section-header"><h2>Settings</h2><p>Connect Google Sheets, configure business info</p></div>
   
   <div class="grid-2">
     <div class="card">
@@ -1311,18 +1332,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   </div>
 
   <div class="card">
-    <div class="card-header"><span class="card-title">📱 PWA Installation</span></div>
+    <div class="card-header"><span class="card-title">App Installation</span></div>
     <div class="alert alert-info">📱 This app can be installed on your phone as a native app!</div>
     <div style="font-size:0.85rem;color:var(--text-dim);line-height:1.8">
       <strong style="color:var(--text)">Android (Chrome):</strong> Tap ⋮ menu → "Add to Home Screen"<br>
       <strong style="color:var(--text)">iPhone (Safari):</strong> Tap Share icon → "Add to Home Screen"<br>
       <strong style="color:var(--text)">Desktop Chrome:</strong> Click install icon in address bar
     </div>
-    <button id="pwa-install-btn" class="btn btn-primary" style="margin-top:12px;display:none" onclick="installPWA()">⬇️ Install App</button>
+    <button id="pwa-install-btn" class="btn btn-primary" style="margin-top:12px;display:none" onclick="installPWA()">Install App</button>
   </div>
 
   <div class="card">
-    <div class="card-header"><span class="card-title">💾 Data Management & Backup</span></div>
+    <div class="card-header"><span class="card-title">Data Management & Backup</span></div>
     <div style="margin-bottom:14px;padding:12px;background:rgba(78,205,196,0.07);border:1px solid rgba(78,205,196,0.2);border-radius:10px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div>
@@ -1346,16 +1367,16 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       </div>
     </div>
     <div class="form-actions">
-      <button class="btn btn-secondary" onclick="exportAllData()">⬇️ Export JSON Backup</button>
-      <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">⬆️ Import Data</button>
-      <button class="btn btn-primary btn-sm" onclick="manualSyncNow()">🔄 Sync to Sheets Now</button>
+      <button class="btn btn-secondary" onclick="exportAllData()">Export JSON Backup</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import Data</button>
+      <button class="btn btn-primary btn-sm" onclick="manualSyncNow()">Sync to Sheets Now</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
-      <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+      <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-header"><span class="card-title">📖 Google Apps Script Setup Guide</span></div>
+    <div class="card-header"><span class="card-title">Google Apps Script Setup Guide</span></div>
     <div style="font-size:0.82rem;color:var(--text-dim);line-height:2">
       <span class="highlight">Step 1:</span> Open your Google Sheet → Extensions → Apps Script<br>
       <span class="highlight">Step 2:</span> Paste the code from <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px">Code.gs</code> (included in package)<br>
@@ -1543,6 +1564,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // Auto backup on every app open (3 second delay)
   setTimeout(autoJsonBackup, 3000);
+  // Cloud restore: load from Google Sheets on startup (2s delay so UI loads first)
+  setTimeout(loadFromSheets, 2000);
 });
 
 // ─── PERSISTENCE ──────────────────────────────────────
@@ -1577,15 +1600,19 @@ function saveData() {
 
 let _saveCount = 0;
 let _isSyncing = false;
+let _syncTimeout = null;
 
 async function autoSyncToSheets() {
   if (_isSyncing) return;
   if (!DB.settings.appsScriptUrl) return;
   _isSyncing = true;
+  // Safety: force reset after 15s so app never gets stuck
+  if (_syncTimeout) clearTimeout(_syncTimeout);
+  _syncTimeout = setTimeout(() => { _isSyncing = false; }, 15000);
 
   // Show subtle sync indicator
   const indicator = document.getElementById('sync-indicator');
-  if (indicator) { indicator.textContent = '🔄 Syncing...'; indicator.style.display = 'inline'; }
+  if (indicator) { indicator.textContent = 'Syncing...'; indicator.style.display = 'inline'; }
 
   try {
     const res = await fetch(DB.settings.appsScriptUrl, {
@@ -1605,32 +1632,33 @@ async function autoSyncToSheets() {
     if (!res.ok) {
       const errText = await res.text();
       console.warn('Sheets HTTP error:', res.status, errText);
-      if (indicator) { indicator.textContent = '⚠️ Sheets ' + res.status; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
+      if (indicator) { indicator.textContent = 'Error: Sheets ' + res.status; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
       _isSyncing = false; return;
     }
     let data;
     try { data = await res.json(); } catch(je) {
       console.warn('Sheets response not JSON:', je);
-      if (indicator) { indicator.textContent = '⚠️ Bad response'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      if (indicator) { indicator.textContent = 'Sync error'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
       _isSyncing = false; return;
     }
     if (data && (data.status === 'ok' || data.result === 'success')) {
-      if (indicator) { indicator.textContent = '✅ Synced'; setTimeout(() => { indicator.style.display = 'none'; }, 2500); }
+      if (indicator) { indicator.textContent = 'Synced'; setTimeout(() => { indicator.style.display = 'none'; }, 2500); }
       DB.settings.lastSync = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
     } else {
-      if (indicator) { indicator.textContent = '⚠️ Sync issue'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      if (indicator) { indicator.textContent = 'Sync issue'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
       console.warn('Sheets sync response:', data);
     }
   } catch(e) {
     if (e.name === 'TypeError' && e.message.includes('fetch')) {
-      if (indicator) { indicator.textContent = '📵 Offline'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      if (indicator) { indicator.textContent = 'Offline'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
     } else {
-      if (indicator) { indicator.textContent = '❌ Error'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      if (indicator) { indicator.textContent = 'Error'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
       console.error('Sheets sync error:', e);
     }
   }
   _isSyncing = false;
+  if (_syncTimeout) { clearTimeout(_syncTimeout); _syncTimeout = null; }
 }
 
 function loadData() {
@@ -1638,16 +1666,17 @@ function loadData() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Deep merge — always take fresh localStorage data
-      DB.products   = parsed.products   || DB.products;
-      DB.customers  = parsed.customers  || DB.customers;
-      DB.sales      = parsed.sales      || DB.sales;
-      DB.invoices   = parsed.invoices   || DB.invoices;
-      DB.teaEntries = parsed.teaEntries || DB.teaEntries;
-      DB.students   = parsed.students   || DB.students;
-      DB.staff      = parsed.staff      || DB.staff;
-      DB.settings   = { ...DB.settings, ...(parsed.settings || {}) };
+      DB.products       = parsed.products       || DB.products;
+      DB.customers      = parsed.customers      || DB.customers;
+      DB.sales          = parsed.sales          || DB.sales;
+      DB.invoices       = parsed.invoices       || DB.invoices;
+      DB.teaEntries     = parsed.teaEntries     || DB.teaEntries;
+      DB.students       = parsed.students       || DB.students;
+      DB.staff          = parsed.staff          || DB.staff;
+      DB.settings       = { ...DB.settings, ...(parsed.settings || {}) };
       DB.invoiceCounter = parsed.invoiceCounter || DB.invoiceCounter;
+      DB.productRules   = parsed.productRules   || DB.productRules;
+      DB.profitTargets  = parsed.profitTargets  || DB.profitTargets;
       if (!DB.products.length) seedDefaultProducts();
     } else {
       seedDefaultProducts();
@@ -1657,6 +1686,118 @@ function loadData() {
     console.warn('Failed to load data:', e);
     seedDefaultProducts();
   }
+}
+
+// ── Cloud Restore: loads data from Google Sheets on startup ──
+// After app reinstall or new device, this restores all data automatically
+async function loadFromSheets() {
+  const url = DB.settings.appsScriptUrl;
+  if (!url) return;
+  const indicator = document.getElementById('sync-indicator');
+  if (indicator) { indicator.textContent = 'Loading from cloud...'; indicator.style.display = 'inline'; }
+  try {
+    const res = await fetch(url + '?action=loadAll', { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (json.status !== 'ok' || !json.data) {
+      if (indicator) { indicator.textContent = 'Cloud error'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+      return;
+    }
+    const d = json.data;
+    const localEmpty = !DB.sales.length && !DB.products.length;
+    const sheetsHasMore = d.sales && d.sales.length > DB.sales.length;
+    if (localEmpty || sheetsHasMore) {
+      let restored = false;
+      if (d.products   && d.products.length)   { DB.products   = parseSheetProducts(d.products);   restored = true; }
+      if (d.sales      && d.sales.length)       { DB.sales      = parseSheetSales(d.sales);         restored = true; }
+      if (d.customers  && d.customers.length)   { DB.customers  = parseSheetCustomers(d.customers); restored = true; }
+      if (d.invoices   && d.invoices.length)    { DB.invoices   = parseSheetInvoices(d.invoices);   restored = true; }
+      if (d.teaEntries && d.teaEntries.length)  { DB.teaEntries = parseSheetTea(d.teaEntries);      restored = true; }
+      if (d.students   && d.students.length)    { DB.students   = parseSheetStudents(d.students);   restored = true; }
+      if (d.staff      && d.staff.length)       { DB.staff      = parseSheetStaff(d.staff);         restored = true; }
+      if (restored) {
+        const maxInv = DB.invoices.reduce((a,i) => Math.max(a, parseInt(i.invNo)||0), 1000);
+        DB.invoiceCounter = maxInv + 1;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+        refreshAllViews();
+        if (indicator) { indicator.textContent = 'Data restored!'; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
+        showToast('Data restored from Google Sheets!', 'success');
+        return;
+      }
+    }
+    if (indicator) { indicator.textContent = 'Cloud: up to date'; setTimeout(() => { indicator.style.display = 'none'; }, 2000); }
+  } catch(e) {
+    console.warn('Sheets load error:', e);
+    if (indicator) { indicator.textContent = 'Offline - local data loaded'; setTimeout(() => { indicator.style.display = 'none'; }, 3000); }
+  }
+}
+
+// ── Sheet row parsers ──
+function _n(v) { return parseFloat(v) || 0; }
+function _s(v) { return String(v || ''); }
+function parseSheetProducts(rows) {
+  return rows.map(r => ({
+    id: _s(r.ID||r.id), name: _s(r.Name||r.name), category: _s(r.Category||r.category),
+    buyQty: _n(r.BuyQty), buyPrice: _n(r.BuyPrice), shipCost: _n(r.ShipCost),
+    totalCost: _n(r.TotalCost), cpu: _n(r.CPU), sellPrice: _n(r.SellPrice),
+    profitPerUnit: _n(r.ProfitPerUnit), stock: _n(r.Stock), sold: _n(r.Sold),
+    balance: _n(r.Balance), alertAt: _n(r.AlertAt), unit: _s(r.Unit||'packs')
+  })).filter(p => p.name);
+}
+function parseSheetSales(rows) {
+  return rows.map(r => {
+    let items = [];
+    try { items = JSON.parse(_s(r.Items||r.items||'[]')); } catch(e) {}
+    return {
+      id: _s(r.ID||r.id), date: _s(r.Date||r.date), customer: _s(r.Customer||r.customer),
+      phone: _s(r.Phone||r.phone||''), product: _s(r.Product||r.product),
+      items, qty: _n(r.Qty), price: _n(r.Price), disc: _n(r.Discount),
+      total: _n(r.Total), received: _n(r.Received), pending: _n(r.Pending),
+      payment: _s(r.Payment), status: _s(r.Status), profit: _n(r.Profit)
+    };
+  }).filter(r => r.customer);
+}
+function parseSheetCustomers(rows) {
+  return rows.map(r => ({
+    id: _s(r.ID||r.id), name: _s(r.Name||r.name), phone: _s(r.Phone||r.phone||''),
+    addr: _s(r.Address||r.addr||''), product: _s(r.Product||r.product||''),
+    payment: _s(r.Payment||''), total: _n(r.Total), paid: _n(r.Paid),
+    pending: _n(r.Pending), status: _s(r.Status||''), notes: _s(r.Notes||''), date: _s(r.Date||r.date||'')
+  })).filter(r => r.name);
+}
+function parseSheetInvoices(rows) {
+  return rows.map(r => {
+    let items = [];
+    try { items = JSON.parse(_s(r.Items||r.items||'[]')); } catch(e) {}
+    return {
+      id: _s(r.ID||r.id), invNo: _s(r.InvNo||r.invNo), date: _s(r.Date||r.date),
+      customer: _s(r.Customer||r.customer), phone: _s(r.Phone||r.phone||''),
+      ref: _s(r.Ref||r.ref||''), payment: _s(r.Payment||r.payment||''),
+      items, total: _n(r.Total), quote: _s(r.Quote||r.quote||''), status: _s(r.Status||'Generated')
+    };
+  }).filter(r => r.customer);
+}
+function parseSheetTea(rows) {
+  return rows.map(r => ({
+    id: _s(r.ID||r.id), date: _s(r.Date||r.date), cups: _n(r.Cups),
+    sellPrice: _n(r.SellPrice), milk: _n(r.Milk), sugar: _n(r.Sugar),
+    powder: _n(r.Powder), gas: _n(r.Gas), income: _n(r.Income),
+    expense: _n(r.Expense), profit: _n(r.Profit), notes: _s(r.Notes||'')
+  })).filter(r => r.date);
+}
+function parseSheetStudents(rows) {
+  return rows.map(r => ({
+    id: _s(r.ID||r.id), name: _s(r.Name||r.name), class: _s(r.Class||r.class||''),
+    phone: _s(r.Phone||r.phone||''), fees: _n(r.Fees), paid: _n(r.Paid),
+    pending: _n(r.Pending), scholar: _n(r.Scholar||0), joinDate: _s(r.JoinDate||r.joinDate||'')
+  })).filter(r => r.name);
+}
+function parseSheetStaff(rows) {
+  return rows.map(r => ({
+    id: _s(r.ID||r.id), name: _s(r.Name||r.name), subject: _s(r.Subject||r.subject||''),
+    class: _s(r.Class||r.class||''), salary: _n(r.Salary), paid: _n(r.Paid),
+    payDate: _s(r.PayDate||r.payDate||''), phone: _s(r.Phone||r.phone||'')
+  })).filter(r => r.name);
 }
 
 // ── Reload all UI whenever the tab becomes visible again ──
@@ -1725,7 +1866,7 @@ const PAGE_TITLES = {
   smartprofit: '💹 Smart Profit Dashboard',
   demand: '🔮 Demand Prediction',
   autoreport: '📋 Auto Business Report',
-  custreminders: '🔔 Customer Reminders',
+  custrem: '🔔 Customer Reminders',
   bulkwa: '📢 Bulk WhatsApp',
   profittarget: '🎯 Profit Target Tracker'
 };
@@ -1760,7 +1901,7 @@ function showPage(id, el, isMobile = false) {
   if (id === 'smartprofit')   { setTimeout(renderSmartProfit, 80); }
   if (id === 'demand')        { setTimeout(renderDemandPrediction, 80); }
   if (id === 'autoreport')    { setTimeout(generateDailyReport, 80); }
-  if (id === 'custreminders') { setTimeout(renderCustomerReminders, 80); }
+  if (id === 'custrem') { setTimeout(renderCustomerReminders, 80); }
   if (id === 'bulkwa')        { setTimeout(renderBulkWhatsApp, 80); }
   if (id === 'profittarget')  { setTimeout(renderProfitTarget, 80); }
   if (id === 'settings')      { setTimeout(renderBackupStatus, 80); }
@@ -1781,14 +1922,20 @@ function toggleSidebar() {
 
 // ─── TABS ─────────────────────────────────────────────
 function switchTab(page, tab) {
-  const tabs = document.querySelectorAll(`#page-${page} .tab`);
+  const targetId = `${page}-${tab}`;
   const contents = document.querySelectorAll(`#page-${page} .tab-content`);
-  tabs.forEach((t, i) => {
-    const id = `${page}-${tab}`;
-    t.classList.toggle('active', t.textContent.trim().toLowerCase().includes(tab.toLowerCase()) ||
-      (contents[i] && contents[i].id === id));
+  const tabs = document.querySelectorAll(`#page-${page} .tab`);
+  // Match tabs by onclick attribute index to content index
+  contents.forEach((c, i) => {
+    const isActive = c.id === targetId;
+    c.classList.toggle('active', isActive);
+    if (tabs[i]) tabs[i].classList.toggle('active', isActive);
   });
-  contents.forEach(c => c.classList.toggle('active', c.id === `${page}-${tab}`));
+  // Trigger render for specific tabs
+  if (tab === 'rules') setTimeout(renderProductRules, 50);
+  if (tab === 'history') setTimeout(() => renderCustomerHistory(''), 50);
+  if (tab === 'today') setTimeout(renderCustomerReminders, 50);
+  if (tab === 'all') { const rem = buildCustomerReminders(); setTimeout(() => renderCustRemindersAll(rem), 50); }
 }
 
 // ─── DATE HELPERS ─────────────────────────────────────
@@ -2059,7 +2206,7 @@ function saveProduct() {
       unit: v('p-unit') || 'pcs'
     };
     DB.products.push(prod);
-    showToast('✅ Product saved!', 'success');
+    showToast('Product saved!', 'success');
   }
   saveData();
   renderProductTable();
@@ -2131,8 +2278,8 @@ function renderProductTable() {
       <td><strong>${p.balance}</strong></td>
       <td>${isLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
       <td>
-        <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" title="Edit Product" style="margin-right:4px;margin-bottom:2px">✏️ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" title="Delete">🗑️</button>
+        <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" title="Edit Product" style="margin-right:4px;margin-bottom:2px">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" title="Delete">Del</button>
       </td>
     </tr>`;
   }).join('');
@@ -2270,7 +2417,7 @@ function saveCustomer() {
       status: v('c-status'), notes: v('c-notes'), date: today()
     };
     DB.customers.push(cust);
-    showToast('✅ Customer saved!', 'success');
+    showToast('Customer saved!', 'success');
   }
   saveData();
   renderCustomerTable();
@@ -2296,9 +2443,9 @@ function renderCustomerTable() {
     <td class="text-green">${formatCurrency(c.paid)}</td>
     <td class="${c.pending > 0 ? 'text-red' : 'text-green'}">${formatCurrency(c.pending)}</td>
     <td>
-      <button class="btn btn-secondary btn-sm" onclick="editCustomer('${c.id}')" title="Edit Customer" style="margin-right:3px">✏️ Edit</button>
+      <button class="btn btn-secondary btn-sm" onclick="editCustomer('${c.id}')" title="Edit Customer" style="margin-right:3px">Edit</button>
       ${c.pending > 0 ? `<button class="wa-btn" style="padding:3px 8px;font-size:0.7rem;margin-right:3px" onclick="quickRemind('${c.id}')">💬</button>` : ''}
-      <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">🗑️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button>
     </td>
   </tr>`).join('');
 
@@ -2314,7 +2461,7 @@ function renderCustomerTable() {
         <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
         <td>${days}d</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="editCustomer('${c.id}')" style="margin-right:4px">✏️ Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="editCustomer('${c.id}')" style="margin-right:4px">Edit</button>
           <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="quickRemind('${c.id}')">💬 Remind</button>
         </td>
       </tr>`;
@@ -2408,72 +2555,155 @@ function quickRemind(id) {
 }
 
 // ─── SALES ────────────────────────────────────────────
-function fillUnitPrice() {
-  const name = v('s-product');
-  const prod = DB.products.find(p => p.name === name);
-  if (prod) { set2('s-price', prod.sellPrice); calcSaleTotal(); }
+function autoFillCustomerPhone() {
+  const name = v('s-customer').trim().toLowerCase();
+  if (!name) return;
+  const cust = DB.customers.find(c => c.name.toLowerCase() === name);
+  if (cust && cust.phone) set2('s-phone', cust.phone);
 }
 
-function calcSaleTotal() {
-  const qty = +v('s-qty') || 0;
-  const price = +v('s-price') || 0;
-  const disc = +v('s-disc') || 0;
-  const total = (qty * price) - disc;
-  set2('s-total', total.toFixed(2));
+// ── Multi-product sale rows ──
+let _saleRows = [];
 
-  // Profit calc
-  const prod = DB.products.find(p => p.name === v('s-product'));
-  if (prod) set2('s-profit', (qty * prod.profitPerUnit - disc).toFixed(2));
-
-  calcSalePending();
+function addSaleRow(data) {
+  const id = 'sr' + Date.now() + Math.random().toString(36).slice(2,5);
+  _saleRows.push({ id, product: data?.product || '', qty: data?.qty || 1, price: data?.price || 0, disc: data?.disc || 0, total: data?.total || 0 });
+  renderSaleRows();
 }
 
-function calcSalePending() {
-  const total = +v('s-total') || 0;
+function renderSaleRows() {
+  const tbody = document.getElementById('sale-items-tbody');
+  if (!tbody) return;
+  if (!_saleRows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:14px;font-size:0.8rem;color:var(--text-dim)">No products added yet — click "+ Add Product"</td></tr>`;
+    calcSaleSummary(); return;
+  }
+  const opts = DB.products.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  tbody.innerHTML = _saleRows.map(r => `
+    <tr data-srid="${r.id}" style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 6px">
+        <select onchange="onSaleRowProductChange(this,'${r.id}')" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 6px;font-size:0.8rem">
+          <option value="">Select...</option>${opts}
+        </select>
+      </td>
+      <td style="padding:5px 4px"><input type="number" min="1" value="${r.qty}" onchange="onSaleRowInput(this,'${r.id}','qty')" style="width:55px;text-align:center;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 5px;font-size:0.8rem"></td>
+      <td style="padding:5px 4px"><input type="number" step="0.01" value="${r.price}" onchange="onSaleRowInput(this,'${r.id}','price')" style="width:82px;text-align:right;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 5px;font-size:0.8rem"></td>
+      <td style="padding:5px 4px"><input type="number" step="0.01" value="${r.disc}" onchange="onSaleRowInput(this,'${r.id}','disc')" style="width:72px;text-align:right;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 5px;font-size:0.8rem"></td>
+      <td style="padding:5px 4px;text-align:right;font-weight:600;color:var(--accent3);font-size:0.82rem" id="srt-${r.id}">₹${r.total.toFixed(2)}</td>
+      <td style="padding:5px 4px;text-align:center"><button onclick="removeSaleRow('${r.id}')" style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:0.8rem">✕</button></td>
+    </tr>`).join('');
+  // Restore selected products
+  _saleRows.forEach(r => {
+    const row = tbody.querySelector(`tr[data-srid="${r.id}"]`);
+    if (row && r.product) {
+      const sel = row.querySelector('select');
+      if (sel) sel.value = r.product;
+    }
+  });
+  calcSaleSummary();
+}
+
+function onSaleRowProductChange(el, id) {
+  const r = _saleRows.find(x => x.id === id);
+  if (!r) return;
+  r.product = el.value;
+  const prod = DB.products.find(p => p.name === el.value);
+  if (prod) {
+    r.price = prod.sellPrice;
+    r.disc = 0;
+    r.total = r.qty * prod.sellPrice;
+    renderSaleRows();
+  }
+}
+
+function onSaleRowInput(el, id, field) {
+  const r = _saleRows.find(x => x.id === id);
+  if (!r) return;
+  r[field] = parseFloat(el.value) || 0;
+  r.total = Math.max((r.qty * r.price) - r.disc, 0);
+  const totalEl = document.getElementById('srt-' + id);
+  if (totalEl) totalEl.textContent = '₹' + r.total.toFixed(2);
+  calcSaleSummary();
+}
+
+function removeSaleRow(id) {
+  _saleRows = _saleRows.filter(r => r.id !== id);
+  renderSaleRows();
+}
+
+function calcSaleSummary() {
+  const subtotal = _saleRows.reduce((a, r) => a + (r.total || 0), 0);
+  const profit = _saleRows.reduce((a, r) => {
+    const prod = DB.products.find(p => p.name === r.product);
+    return a + (prod ? (r.qty * prod.profitPerUnit) - r.disc : 0);
+  }, 0);
+  set2('s-total', subtotal.toFixed(2));
+  set2('s-profit', profit.toFixed(2));
   const received = +v('s-received') || 0;
-  set2('s-pending', Math.max(total - received, 0).toFixed(2));
+  set2('s-pending', Math.max(subtotal - received, 0).toFixed(2));
 }
 
 function saveSale(andInvoice = false) {
   const customer = v('s-customer');
   if (!customer.trim()) { showToast('Customer name required!', 'error'); return; }
-  const product = v('s-product');
-  if (!product) { showToast('Select a product!', 'error'); return; }
-  const qty = +v('s-qty') || 0;
-  const price = +v('s-price') || 0;
-  const disc = +v('s-disc') || 0;
-  const total = (qty * price) - disc;
+  const phone = v('s-phone').replace(/\D/g,'');
+  if (!phone || phone.length < 10) { showToast('Valid 10-digit phone number required!', 'error'); return; }
+  if (!_saleRows.length) { showToast('Add at least one product!', 'error'); return; }
+  const invalidRow = _saleRows.find(r => !r.product);
+  if (invalidRow) { showToast('Select product for all rows!', 'error'); return; }
+
+  // Stock check
+  for (const r of _saleRows) {
+    const prod = DB.products.find(p => p.name === r.product);
+    if (prod && prod.balance < r.qty) {
+      showToast(`Only ${prod.balance} "${r.product}" in stock!`, 'error'); return;
+    }
+  }
+
+  const total = _saleRows.reduce((a, r) => a + r.total, 0);
+  const profit = _saleRows.reduce((a, r) => {
+    const prod = DB.products.find(p => p.name === r.product);
+    return a + (prod ? (r.qty * prod.profitPerUnit) - r.disc : 0);
+  }, 0);
   const received = +v('s-received') || 0;
   const pending = Math.max(total - received, 0);
 
-  const prod = DB.products.find(p => p.name === product);
-  const profit = prod ? (qty * prod.profitPerUnit - disc) : 0;
-
-  if (prod && prod.balance < qty) { showToast(`⚠️ Only ${prod.balance} in stock!`, 'error'); return; }
+  // For backward compat — store first product in top-level `product` field
+  const firstProduct = _saleRows[0]?.product || '';
+  const saleDate = v('s-date') || today();
 
   const sale = {
-    id: uid(), date: v('s-date') || today(), customer, product,
-    qty, price, disc, total, received, pending,
+    id: uid(), date: saleDate, customer, phone,
+    product: _saleRows.length === 1 ? firstProduct : _saleRows.map(r => r.product).join(', '),
+    items: _saleRows.map(r => ({ product: r.product, qty: r.qty, price: r.price, disc: r.disc, total: r.total })),
+    qty: _saleRows.reduce((a,r) => a + r.qty, 0),
+    price: total / Math.max(_saleRows.reduce((a,r) => a + r.qty, 0), 1),
+    disc: _saleRows.reduce((a,r) => a + r.disc, 0),
+    total, received, pending,
     payment: v('s-payment'), status: v('s-status'), profit
   };
 
   DB.sales.push(sale);
 
-  // Update stock
-  if (prod) {
-    prod.sold = (prod.sold || 0) + qty;
-    prod.balance = Math.max(prod.balance - qty, 0);
-  }
+  // Update stock for each product
+  _saleRows.forEach(r => {
+    const prod = DB.products.find(p => p.name === r.product);
+    if (prod) {
+      prod.sold = (prod.sold || 0) + r.qty;
+      prod.balance = Math.max(prod.balance - r.qty, 0);
+    }
+  });
 
   // Update/create customer record
   let cust = DB.customers.find(c => c.name.toLowerCase() === customer.toLowerCase());
   if (cust) {
     cust.pending = (cust.pending || 0) + pending;
     cust.paid = (cust.paid || 0) + received;
-    cust.product = product;
+    cust.product = firstProduct;
     cust.status = v('s-status');
+    if (phone && !cust.phone) cust.phone = phone;
   } else {
-    DB.customers.push({ id: uid(), name: customer, phone: '', addr: '', product, payment: v('s-payment'), total, paid: received, pending, status: v('s-status'), notes: '', date: v('s-date') });
+    DB.customers.push({ id: uid(), name: customer, phone, addr: '', product: firstProduct, payment: v('s-payment'), total, paid: received, pending, status: v('s-status'), notes: '', date: saleDate });
   }
 
   saveData();
@@ -2483,7 +2713,7 @@ function saveSale(andInvoice = false) {
   renderCustomerTable();
   updateSalesQuickStats();
   updateDailySummary();
-  showToast('✅ Sale recorded!', 'success');
+  showToast(_saleRows.length > 1 ? `Sale saved! ${_saleRows.length} products.` : 'Sale recorded!', 'success');
   clearSaleForm();
   populateCustomerDatalist();
 
@@ -2492,9 +2722,7 @@ function saveSale(andInvoice = false) {
     showPage('invoices', null);
   }
 
-  // Sync to sheets
   if (DB.settings.appsScriptUrl) syncSaleToSheet(sale);
-
   return sale;
 }
 
@@ -2508,9 +2736,9 @@ function renderSalesTable() {
   tbody.innerHTML = sales.map(s => `<tr>
     <td>${formatDate(s.date)}</td>
     <td>${s.customer}</td>
-    <td>${(s.product||'').substr(0,16)}</td>
+    <td>${s.items && s.items.length > 1 ? s.items.length + ' items' : (s.product||'').substr(0,16)}</td>
     <td>${s.qty}</td>
-    <td>${formatCurrency(s.price)}</td>
+    <td>${s.items && s.items.length > 1 ? '—' : formatCurrency(s.price)}</td>
     <td>${s.disc ? formatCurrency(s.disc) : '—'}</td>
     <td class="highlight">${formatCurrency(s.total)}</td>
     <td class="text-green">${formatCurrency(s.received)}</td>
@@ -2520,7 +2748,7 @@ function renderSalesTable() {
     <td class="text-green">${formatCurrency(s.profit)}</td>
     <td>
       <button class="btn btn-secondary btn-sm" onclick="prefillInvoiceAndGo('${s.id}')">📄</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">🗑️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">Del</button>
     </td>
   </tr>`).join('');
 
@@ -2586,6 +2814,8 @@ function filterSalesByDate() {
 }
 
 function clearSaleForm() {
+  _saleRows = [];
+  renderSaleRows();
   ['s-customer','s-qty','s-price','s-disc','s-total','s-received','s-pending','s-profit'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.value = id === 's-qty' ? 1 : id === 's-disc' ? 0 : ''; }
@@ -2795,9 +3025,9 @@ function buildInvoiceHTML(inv) {
     </div>
     ${inv.quote ? `<div class="inv-quote-box">"${inv.quote}"</div>` : ''}
     <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button onclick="downloadInvoicePDF()" style="background:#1a0a2e;color:#f7c948;border:1px solid rgba(247,201,72,0.3);padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">⬇️ Download PDF</button>
-      <button onclick="shareInvoicePDF()" style="background:rgba(247,201,72,0.15);color:#f7c948;border:1px solid rgba(247,201,72,0.3);padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">📤 Share PDF</button>
-      <button onclick="shareInvoiceWhatsApp()" style="background:#25d366;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">💬 WhatsApp Message</button>
+      <button onclick="downloadInvoicePDF()" style="background:#1a0a2e;color:#f7c948;border:1px solid rgba(247,201,72,0.3);padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">Download PDF</button>
+      <button onclick="shareInvoicePDF()" style="background:rgba(247,201,72,0.15);color:#f7c948;border:1px solid rgba(247,201,72,0.3);padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">Share PDF</button>
+      <button onclick="shareInvoiceWhatsApp()" style="background:#25d366;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.82rem">WhatsApp Message</button>
     </div>
     <div class="inv-footer">Generated by Meenatchi Traders Business Manager · Thank you for your business!</div>
   </div>`;
@@ -3189,19 +3419,35 @@ function prefillInvoiceFromSale(s) {
   set2('inv-customer', s.customer);
   set2('inv-date', s.date);
   const c = DB.customers.find(x => x.name.toLowerCase() === s.customer.toLowerCase());
-  if (c) { set2('inv-phone', c.phone); set2('inv-addr', c.addr || ''); }
+  if (c) { set2('inv-phone', c.phone || s.phone || ''); set2('inv-addr', c.addr || ''); }
   const pm = document.getElementById('inv-payment');
   if (pm) pm.value = s.payment || 'Cash';
-  // Add product as first row
-  const prod = DB.products.find(p => p.name === s.product);
-  addInvRow({
-    name: s.product,
-    mrp: prod ? prod.sellPrice : s.price,
-    sell: s.price,
-    disc: s.disc || 0,
-    qty: s.qty,
-    total: s.total
-  });
+
+  // Multi-item sale: add each item as a separate invoice row
+  if (s.items && s.items.length > 0) {
+    s.items.forEach(item => {
+      const prod = DB.products.find(p => p.name === item.product);
+      addInvRow({
+        name: item.product,
+        mrp: prod ? prod.sellPrice : item.price,
+        sell: item.price,
+        disc: item.disc || 0,
+        qty: item.qty,
+        total: item.total
+      });
+    });
+  } else {
+    // Backward compat: old single-product sale
+    const prod = DB.products.find(p => p.name === s.product);
+    addInvRow({
+      name: s.product,
+      mrp: prod ? prod.sellPrice : s.price,
+      sell: s.price,
+      disc: s.disc || 0,
+      qty: s.qty,
+      total: s.total
+    });
+  }
   generateInvoiceNumber();
 }
 
@@ -3227,7 +3473,7 @@ function renderInvoiceHistory() {
           <button class="btn btn-secondary btn-sm" title="Edit" onclick="editInvoice('${inv.id}')">✏️</button>
           <button class="btn btn-secondary btn-sm" title="Duplicate" onclick="duplicateInvoice('${inv.id}')">📋</button>
           <button class="wa-btn" style="padding:4px 8px;font-size:0.72rem" title="WhatsApp" onclick="resendInvoiceWA('${inv.id}')">💬</button>
-          <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteInvoice('${inv.id}')">🗑️</button>
+          <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteInvoice('${inv.id}')">Del</button>
         </div>
       </td>
     </tr>`;
@@ -3355,7 +3601,7 @@ function renderReminders() {
         <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
         <td>${days}d</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="editReminderCustomer('${c.id}')" style="margin-right:4px;margin-bottom:3px">✏️ Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="editReminderCustomer('${c.id}')" style="margin-right:4px;margin-bottom:3px">Edit</button>
           <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="quickRemind('${c.id}')">💬 Send</button>
         </td>
       </tr>`;
@@ -3408,10 +3654,14 @@ function editReminderCustomer(id) {
 function sendAllReminders() {
   const pending = DB.customers.filter(c => c.pending > 0);
   if (!pending.length) { showToast('No pending payments!', 'info'); return; }
-  showToast(`Opening WhatsApp for ${pending.length} customers...`, 'info');
-  pending.forEach((c, i) => {
-    setTimeout(() => quickRemind(c.id), i * 1500);
-  });
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
+  const queue = pending.map(c => {
+    const ph = (c.phone || '').replace(/\D/g,'');
+    const msg = 'Hi ' + c.name + ', you have a pending payment of Rs.' + (c.pending || 0) + ' at ' + biz + '. Please clear when convenient. Thank you!';
+    return { name: c.name, phone: ph, msg };
+  }).filter(q => q.phone.length >= 10);
+  if (!queue.length) { showToast('No phone numbers found! Add phone to customers first.', 'error'); return; }
+  startWAQueue(queue);
 }
 
 function useTemplate(msg) {
@@ -3566,7 +3816,7 @@ function renderTuition() {
       <td class="${s.pending > 0 ? 'text-red' : 'text-green'}">${formatCurrency(s.pending)}</td>
       <td>
         ${s.pending > 0 ? `<button class="wa-btn" style="padding:3px 8px;font-size:0.7rem" onclick="remindStudent('${s.id}')">💬</button>` : ''}
-        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">🗑️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Del</button>
       </td>
     </tr>`).join('') : '<tr><td colspan="7"><div class="empty-state">🎓<p>No students yet</p></div></td></tr>';
   }
@@ -3579,7 +3829,7 @@ function renderTuition() {
       <td>${s.class}</td>
       <td>${formatCurrency(s.salary)}</td>
       <td class="text-green">${formatCurrency(s.paid)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">🗑️</button></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button></td>
     </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state">👨‍🏫<p>No staff added</p></div></td></tr>';
   }
 }
@@ -3637,7 +3887,7 @@ function renderOrders() {
         <button onclick="sendOrderWhatsApp('${s.id}','received')" title="Order Received msg" style="background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.3);color:#25d366;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:3px">💬 Rcvd</button>
         <button onclick="sendOrderWhatsApp('${s.id}','delivered')" title="Order Delivered msg" style="background:rgba(78,205,196,0.15);border:1px solid rgba(78,205,196,0.3);color:var(--accent3);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:3px">📦 Dlvd</button>
         <button onclick="generateOrderInvoice('${s.id}')" title="Generate Invoice" style="background:rgba(247,201,72,0.15);border:1px solid rgba(247,201,72,0.3);color:var(--accent);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:3px">🧾 Inv</button>
-        <button onclick="deleteOrder('${s.id}')" title="Delete Order" style="background:rgba(253,121,168,0.12);border:1px solid rgba(253,121,168,0.2);color:var(--red);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem">🗑️</button>
+        <button onclick="deleteOrder('${s.id}')" title="Delete Order" style="background:rgba(253,121,168,0.12);border:1px solid rgba(253,121,168,0.2);color:var(--red);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem">Del</button>
       </td>
     </tr>`;
   }).join('');
@@ -3764,7 +4014,7 @@ function generateReport(type) {
     const profit = ds.reduce((a,s) => a + s.profit, 0);
     const teaProfit = te.reduce((a,e) => a + e.profit, 0);
     content.innerHTML = `
-      <div class="card-header"><span class="card-title">Daily Report — ${formatDate(date)}</span><button class="btn btn-secondary btn-sm" onclick="printReport('daily-report-content')">🖨️ Print</button></div>
+      <div class="card-header"><span class="card-title">Daily Report — ${formatDate(date)}</span><button class="btn btn-secondary btn-sm" onclick="printReport('daily-report-content')">Print</button></div>
       <div class="quick-stats">
         <div class="quick-stat"><div class="qs-val">${ds.length}</div><div class="qs-label">Sales Orders</div></div>
         <div class="quick-stat"><div class="qs-val">${formatCurrency(income)}</div><div class="qs-label">Total Income</div></div>
@@ -3783,7 +4033,7 @@ function generateReport(type) {
     const profit = ms.reduce((a,s) => a+s.profit, 0);
     const pending = ms.reduce((a,s) => a+s.pending, 0);
     content.innerHTML = `
-      <div class="card-header"><span class="card-title">Monthly Report — ${month}</span><button class="btn btn-secondary btn-sm" onclick="printReport('monthly-report-content')">🖨️ Print</button></div>
+      <div class="card-header"><span class="card-title">Monthly Report — ${month}</span><button class="btn btn-secondary btn-sm" onclick="printReport('monthly-report-content')">Print</button></div>
       <div class="quick-stats">
         <div class="quick-stat"><div class="qs-val">${ms.length}</div><div class="qs-label">Orders</div></div>
         <div class="quick-stat"><div class="qs-val">${formatCurrency(income)}</div><div class="qs-label">Income</div></div>
@@ -3797,7 +4047,7 @@ function generateProductReport() {
   const el = document.getElementById('product-report-content');
   if (!el) return;
   el.innerHTML = `
-    <div class="card-header"><span class="card-title">📦 Product Profit Report</span><button class="btn btn-secondary btn-sm" onclick="exportTableCSV('prod-report-table','product_report')">⬇️ Export</button></div>
+    <div class="card-header"><span class="card-title">📦 Product Profit Report</span><button class="btn btn-secondary btn-sm" onclick="exportTableCSV('prod-report-table','product_report')">Export</button></div>
     <div class="table-wrap"><table id="prod-report-table">
       <thead><tr><th>Product</th><th>Sold Qty</th><th>Revenue</th><th>Profit/Unit</th><th>Total Profit</th><th>Stock Left</th></tr></thead>
       <tbody>${DB.products.map(p => {
@@ -3991,7 +4241,7 @@ function autoJsonBackup() {
     while (allKeys.length > 5) { localStorage.removeItem(allKeys.shift()); }
     DB.settings.lastAutoBackup = new Date().toISOString();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
-    showToast('✅ Auto backup saved (' + new Date().toLocaleTimeString('en-IN') + ')', 'info');
+    showToast('Auto backup saved (' + new Date().toLocaleTimeString('en-IN') + ')', 'info');
     renderBackupStatus();
   } catch(e) {
     showToast('⚠️ Backup failed: ' + e.message, 'error');
@@ -4032,8 +4282,8 @@ function renderBackupStatus() {
         <div style="font-size:0.72rem;color:var(--text-dim)">${size} KB</div>
       </div>
       <div style="display:flex;gap:6px">
-        <button onclick="restoreFromBackup('${k}')" style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">↩️ Restore</button>
-        <button onclick="downloadBackup('${k}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">⬇️ Download</button>
+        <button onclick="restoreFromBackup('${k}')" style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Restore</button>
+        <button onclick="downloadBackup('${k}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Download</button>
       </div>
     </div>`;
   }).join('');
@@ -4049,7 +4299,7 @@ function restoreFromBackup(key) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
     loadData();
     refreshAllViews();
-    showToast('✅ Data restored from backup!', 'success');
+    showToast('Data restored from backup!', 'success');
   } catch(e) { showToast('Restore failed: ' + e.message, 'error'); }
 }
 
@@ -4275,27 +4525,29 @@ function daysDiff(dateStr) {
 
 // ─── BUILD CUSTOMER REMINDERS FROM SALES ──────────────────
 function buildCustomerReminders() {
-  // Group sales by customer+product → get latest purchase date
+  // Group sales by customer+product → get latest purchase date per combination
   const map = {};
   DB.sales.forEach(s => {
-    const key = (s.customer || '') + '||' + (s.product || '');
-    if (!map[key] || s.date > map[key].date) {
-      const cust = DB.customers.find(c => c.name.toLowerCase() === (s.customer||'').toLowerCase());
+    if (!s.customer || !s.product) return;
+    const key = s.customer.toLowerCase().trim() + '||' + s.product.trim();
+    const saleDate = s.date || '';
+    if (!map[key] || saleDate > map[key].lastDate) {
+      const cust = DB.customers.find(c => c.name.toLowerCase() === s.customer.toLowerCase().trim());
+      const phone = s.phone || (cust ? cust.phone : '') || '';
       map[key] = {
         customer: s.customer,
-        phone: cust ? cust.phone : (s.phone || ''),
+        phone: phone,
         product: s.product,
         qty: s.qty,
-        lastDate: s.date,
+        lastDate: saleDate,
         days: getRuleDays(s.product)
       };
     }
   });
-  return Object.values(map).map(r => ({
-    ...r,
-    nextDate: addDays(r.lastDate, r.days),
-    overdueDays: daysDiff(addDays(r.lastDate, r.days))
-  }));
+  return Object.values(map).map(r => {
+    const nextDate = addDays(r.lastDate, r.days);
+    return { ...r, nextDate, overdueDays: daysDiff(nextDate) };
+  });
 }
 
 // ══════════════════════════════════════════════════════════
@@ -4704,7 +4956,7 @@ function generateDailyReport() {
 
       <div style="padding:0 12px 12px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-primary btn-sm" onclick="shareReportWhatsApp()">💬 Share WhatsApp</button>
-        <button class="btn btn-secondary btn-sm" onclick="printReport('auto-report-content')">🖨️ Print</button>
+        <button class="btn btn-secondary btn-sm" onclick="printReport('auto-report-content')">Print</button>
       </div>
     </div>`;
 }
@@ -4846,7 +5098,7 @@ function renderProductRules() {
       <td>${r.days} days</td>
       <td>
         <button onclick="editRule(${i})" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:4px">✏️</button>
-        <button onclick="deleteRule(${i})" style="background:rgba(253,121,168,0.12);color:var(--red);border:1px solid rgba(253,121,168,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">🗑️</button>
+        <button onclick="deleteRule(${i})" style="background:rgba(253,121,168,0.12);color:var(--red);border:1px solid rgba(253,121,168,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Del</button>
       </td>
     </tr>`).join('')}</tbody>
   </table></div>`;
@@ -4865,7 +5117,7 @@ function saveProductRule() {
   renderProductRules();
   document.getElementById('cr-rule-product').value = '';
   document.getElementById('cr-rule-days').value = '';
-  showToast('✅ Rule saved!', 'success');
+  showToast('Rule saved!', 'success');
 }
 
 function editRule(i) {
@@ -4926,15 +5178,13 @@ function bulkWhatsAppReminders() {
   const due = buildCustomerReminders().filter(r => r.overdueDays >= 0 && r.phone);
   if (!due.length) { showToast('No reminders due with phone numbers!', 'info'); return; }
   const biz = DB.settings.bizName || 'Meenatchi Traders';
-  due.forEach((r, i) => {
-    setTimeout(() => {
-      const ph = r.phone.replace(/\D/g,'');
-      const phLink = ph.startsWith('91') ? ph : '91'+ph;
-      const msg = 'Vanakkam ' + r.customer + '! ' + r.product + ' fresh stock ready. Ungalukku thevai irukka? - ' + biz;
-      window.open('https://wa.me/' + phLink + '?text=' + encodeURIComponent(msg), '_blank');
-    }, i * 1500);
-  });
-  showToast('Opening WhatsApp for ' + due.length + ' customers...', 'success');
+  const queue = due.map(r => {
+    const ph = (r.phone || '').replace(/\D/g,'');
+    const msg = 'Vanakkam ' + r.customer + '! ' + r.product + ' fresh stock ready. Ungalukku thevai irukka? - ' + biz;
+    return { name: r.customer, phone: ph, msg };
+  }).filter(q => q.phone.length >= 10);
+  if (!queue.length) { showToast('No phone numbers found!', 'error'); return; }
+  startWAQueue(queue);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -5004,7 +5254,9 @@ function sendBulkWhatsApp(type) {
   if (!selected.length) { showToast('Select at least one customer!', 'error'); return; }
   if (!msgTemplate) { showToast('Enter a message template!', 'error'); return; }
 
-  selected.forEach((cb, i) => {
+  // Build queue of messages
+  const queue = [];
+  selected.forEach((cb) => {
     const name    = cb.dataset.name || '';
     const phone   = (cb.dataset.phone || '').replace(/\D/g,'');
     const amount  = cb.dataset.amount || '';
@@ -5015,10 +5267,109 @@ function sendBulkWhatsApp(type) {
       .replace(/{amount}/g, 'Rs.' + amount)
       .replace(/{product}/g, product)
       .replace(/{biz}/g, biz);
-    const phLink = phone.startsWith('91') ? phone : '91' + phone;
-    setTimeout(() => window.open('https://wa.me/' + phLink + '?text=' + encodeURIComponent(msg), '_blank'), i * 1500);
+    queue.push({ name, phone, msg });
   });
-  showToast('Sending to ' + selected.length + ' customers!', 'success');
+  if (!queue.length) { showToast('No valid phone numbers found!', 'error'); return; }
+  startWAQueue(queue);
+}
+
+// ── Single WhatsApp opener with feedback ──
+function openWhatsApp(phone, msg) {
+  const ph = String(phone || '').replace(/\D/g, '');
+  if (!ph || ph.length < 10) { showToast('No valid phone number!', 'error'); return; }
+  const phLink = ph.startsWith('91') ? ph : '91' + ph;
+  window.open('https://wa.me/' + phLink + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ── WhatsApp Queue System ──
+// Opens one at a time — user clicks "Send Next" after each
+let _waQueue = [];
+let _waQueueIndex = 0;
+
+function startWAQueue(queue) {
+  _waQueue = queue;
+  _waQueueIndex = 0;
+  showWAQueueModal();
+}
+
+function showWAQueueModal() {
+  // Remove old modal if exists
+  const old = document.getElementById('wa-queue-modal');
+  if (old) old.remove();
+
+  const total = _waQueue.length;
+  const done  = _waQueueIndex;
+  const item  = _waQueue[_waQueueIndex];
+
+  if (!item) {
+    // All done
+    const old2 = document.getElementById('wa-queue-modal');
+    if (old2) old2.remove();
+    showToast('All ' + total + ' WhatsApp messages sent!', 'success');
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'wa-queue-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--card);border-radius:16px;padding:28px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid var(--border)">
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px">WhatsApp Queue</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:4px">${item.name}</div>
+      <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px">${item.phone}</div>
+
+      <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;font-size:0.82rem;color:var(--text-dim);margin-bottom:20px;line-height:1.6;max-height:120px;overflow-y:auto">${item.msg.replace(/\n/g,'<br>')}</div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:0.78rem;color:var(--text-dim)">${done + 1} of ${total}</div>
+        <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:0 12px">
+          <div style="width:${Math.round(((done+1)/total)*100)}%;height:100%;background:var(--accent3);border-radius:3px;transition:.3s"></div>
+        </div>
+        <div style="font-size:0.78rem;color:var(--accent3)">${Math.round(((done+1)/total)*100)}%</div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button onclick="openWAAndNext()" style="flex:1;background:var(--green);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem">Open WhatsApp</button>
+        <button onclick="skipWAQueue()" style="background:rgba(255,255,255,0.06);color:var(--text-dim);border:1px solid var(--border);padding:12px 16px;border-radius:10px;cursor:pointer;font-size:0.82rem">Skip</button>
+        <button onclick="closeWAQueue()" style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:1px solid rgba(255,80,80,0.2);padding:12px 16px;border-radius:10px;cursor:pointer;font-size:0.82rem">Stop</button>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text-dim)">After sending in WhatsApp, come back and tap the next customer below</div>
+
+      ${_waQueue.slice(_waQueueIndex + 1, _waQueueIndex + 4).map((q, idx) => `
+        <div style="margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:0.78rem;color:var(--text-dim)">${done + idx + 2}. ${q.name}</div>
+          <div style="font-size:0.72rem;color:var(--text-dim)">${q.phone}</div>
+        </div>`).join('')}
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function openWAAndNext() {
+  const item = _waQueue[_waQueueIndex];
+  if (!item) return;
+  const phLink = item.phone.startsWith('91') ? item.phone : '91' + item.phone;
+  window.open('https://wa.me/' + phLink + '?text=' + encodeURIComponent(item.msg), '_blank');
+  _waQueueIndex++;
+  const old = document.getElementById('wa-queue-modal');
+  if (old) old.remove();
+  // Show next after a short delay so user can send WA first
+  setTimeout(showWAQueueModal, 600);
+}
+
+function skipWAQueue() {
+  _waQueueIndex++;
+  const old = document.getElementById('wa-queue-modal');
+  if (old) old.remove();
+  setTimeout(showWAQueueModal, 200);
+}
+
+function closeWAQueue() {
+  const old = document.getElementById('wa-queue-modal');
+  if (old) old.remove();
+  _waQueue = [];
+  _waQueueIndex = 0;
+  showToast('Stopped. Sent to ' + _waQueueIndex + ' customers.', 'info');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -5116,7 +5467,7 @@ function saveProfitTarget() {
   else DB.profitTargets.push({ month, sales, profit, orders });
   saveData();
   renderProfitTarget();
-  showToast('✅ Target saved for ' + month + '!', 'success');
+  showToast('Target saved for ' + month + '!', 'success');
 }
 
 // showPage extended in original function above

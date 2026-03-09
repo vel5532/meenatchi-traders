@@ -360,6 +360,9 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="nav-item" onclick="showPage('profittarget',this)">Profit Target</div>
     <div class="nav-section">Reports</div>
     <div class="nav-item" onclick="showPage('forecast',this)">🔮 Sales Forecast AI</div>
+    <div class="nav-item" onclick="showPage('suppliers',this)">🚚 Supplier Management</div>
+    <div class="nav-item" onclick="showPage('loyalty',this)">⭐ Loyalty & Referrals</div>
+    <div class="nav-item" onclick="showPage('analytics',this)">📈 Business Analytics</div>
     <div class="nav-item" onclick="showPage('reports',this)">Reports & Analytics</div>
     <div class="nav-section">Settings</div>
     <div class="nav-item" onclick="showPage('settings',this)">Settings</div>
@@ -620,6 +623,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="c-paid" placeholder="0.00" oninput="calcPending()"></div>
         <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="c-pending-amt" placeholder="Auto" readonly style="opacity:0.6"></div>
         <div class="form-group"><label>Notes</label><input type="text" id="c-notes" placeholder="Any special notes..."></div>
+        <div class="form-group"><label>🎂 Birthday (DD-MM)</label><input type="text" id="c-birthday" placeholder="e.g. 25-06" maxlength="5"></div>
+        <div class="form-group"><label>👥 Referred By</label><select id="c-referrer" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%"><option value="">None / Direct</option></select></div>
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" id="c-save-btn" onclick="saveCustomer()">Save Customer</button>
@@ -1432,6 +1437,201 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   </div>
 </div>
 
+<!-- ══════════════════ SUPPLIER MANAGEMENT ══════════════════ -->
+<div class="page" id="page-suppliers">
+  <div class="section-header"><h2>🚚 Supplier Management</h2><p>Track who supplies what, at what price</p></div>
+  <div class="cards-grid" id="supplier-cards"></div>
+  <div class="tabs" style="margin-bottom:16px">
+    <div class="tab active" onclick="switchSuppTab('list')" id="stab-list">📋 All Suppliers</div>
+    <div class="tab" onclick="switchSuppTab('add')" id="stab-add">➕ Add Supplier</div>
+    <div class="tab" onclick="switchSuppTab('catalog')" id="stab-catalog">📦 Product Catalog</div>
+  </div>
+  <div id="stab-content-list">
+    <div class="search-bar"><input type="text" placeholder="🔍 Search suppliers..." onkeyup="filterSuppTable(this.value)"></div>
+    <div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Phone</th><th>Products</th><th>Total Purchased</th><th>Last Order</th><th>Actions</th></tr></thead><tbody id="supplier-tbody"></tbody></table></div>
+  </div>
+  <div id="stab-content-add" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Add / Edit Supplier</span></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Supplier Name *</label><input type="text" id="sup-name" placeholder="e.g. TEA n31 Wholesale"></div>
+        <div class="form-group"><label>Phone / WhatsApp *</label><input type="tel" id="sup-phone" placeholder="+91 XXXXX XXXXX"></div>
+        <div class="form-group"><label>Products Supplied</label><input type="text" id="sup-products" placeholder="e.g. Tea Mini, Tea 100g"></div>
+        <div class="form-group"><label>City / Location</label><input type="text" id="sup-city" placeholder="e.g. Chennai"></div>
+        <div class="form-group"><label>Payment Terms</label><select id="sup-terms"><option>Cash on Delivery</option><option>Credit 7 days</option><option>Credit 15 days</option><option>Credit 30 days</option><option>Advance</option></select></div>
+        <div class="form-group"><label>Min Order Amount (₹)</label><input type="number" id="sup-minorder" placeholder="0"></div>
+        <div class="form-group" style="grid-column:span 2"><label>Notes</label><textarea id="sup-notes" rows="2" placeholder="e.g. Good quality, fast delivery..."></textarea></div>
+      </div>
+      <input type="hidden" id="sup-edit-id">
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveSupplier()">💾 Save Supplier</button>
+        <button class="btn btn-secondary" onclick="clearSupplierForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+  <div id="stab-content-catalog" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">📦 Supplier × Product Catalog</span><button class="btn btn-secondary btn-sm" onclick="switchSuppTab('add')">+ Add Supplier</button></div>
+      <div id="supplier-catalog"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ LOYALTY & REFERRALS ══════════════════ -->
+<div class="page" id="page-loyalty">
+  <div class="section-header"><h2>⭐ Loyalty & Referrals</h2><p>Reward loyal customers · Track referrals · Birthday reminders</p></div>
+  <div class="cards-grid" id="loyalty-cards"></div>
+  <div class="tabs" style="margin-bottom:16px">
+    <div class="tab active" onclick="switchLoyaltyTab('leaderboard')" id="ltab-leaderboard">🏆 Leaderboard</div>
+    <div class="tab" onclick="switchLoyaltyTab('points')" id="ltab-points">⭐ Points</div>
+    <div class="tab" onclick="switchLoyaltyTab('history')" id="ltab-history">🕐 Purchase History</div>
+    <div class="tab" onclick="switchLoyaltyTab('birthdays')" id="ltab-birthdays">🎂 Birthdays</div>
+    <div class="tab" onclick="switchLoyaltyTab('referrals')" id="ltab-referrals">👥 Referrals</div>
+  </div>
+  <!-- Leaderboard -->
+  <div id="ltab-content-leaderboard">
+    <div id="loyalty-leaderboard"></div>
+  </div>
+  <!-- Points -->
+  <div id="ltab-content-points" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">⭐ Customer Points (₹100 = 1 Point)</span><button class="btn btn-secondary btn-sm" onclick="renderLoyaltyPoints()">Refresh</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Total Spent</th><th>Points Earned</th><th>Points Value</th><th>WhatsApp</th></tr></thead><tbody id="loyalty-points-tbody"></tbody></table></div>
+    </div>
+  </div>
+  <!-- Purchase History -->
+  <div id="ltab-content-history" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">🕐 Customer Purchase Timeline</span></div>
+      <div class="form-grid" style="grid-template-columns:1fr auto;gap:8px;margin-bottom:12px">
+        <select id="history-customer-select" onchange="renderCustomerHistory()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text)">
+          <option value="">Select a customer...</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="renderCustomerHistory()">View</button>
+      </div>
+      <div id="customer-history-timeline"></div>
+    </div>
+  </div>
+  <!-- Birthdays -->
+  <div id="ltab-content-birthdays" style="display:none">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎂 Add Birthday</span></div>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group"><label>Customer</label>
+            <select id="bday-customer" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%"><option value="">Select customer...</option></select>
+          </div>
+          <div class="form-group"><label>Birthday (DD-MM)</label><input type="text" id="bday-date" placeholder="e.g. 25-06" maxlength="5"></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" onclick="saveBirthday()">💾 Save Birthday</button></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎉 Upcoming Birthdays</span><button class="btn btn-secondary btn-sm" onclick="renderBirthdays()">Refresh</button></div>
+        <div id="birthday-list"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Referrals -->
+  <div id="ltab-content-referrals" style="display:none">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">👥 Add Referral</span></div>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group"><label>Referred By (existing customer)</label>
+            <select id="ref-from" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%"><option value="">Select customer...</option></select>
+          </div>
+          <div class="form-group"><label>New Customer Referred</label><input type="text" id="ref-to" placeholder="New customer name"></div>
+          <div class="form-group"><label>Date</label><input type="date" id="ref-date"></div>
+        </div>
+        <div class="form-actions"><button class="btn btn-primary" onclick="saveReferral()">Save Referral</button></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏅 Referral Champions</span></div>
+        <div id="referral-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ BUSINESS ANALYTICS ══════════════════ -->
+<div class="page" id="page-analytics">
+  <div class="section-header"><h2>📈 Business Analytics</h2><p>Deep insights — trends, patterns, break-even analysis</p></div>
+  <div class="tabs" style="margin-bottom:16px">
+    <div class="tab active" onclick="switchAnalyticsTab('monthly')" id="atab-monthly">📅 Monthly Trends</div>
+    <div class="tab" onclick="switchAnalyticsTab('weekday')" id="atab-weekday">📊 Best Days</div>
+    <div class="tab" onclick="switchAnalyticsTab('hours')" id="atab-hours">⏰ Peak Hours</div>
+    <div class="tab" onclick="switchAnalyticsTab('seasonal')" id="atab-seasonal">🌦️ Seasonal</div>
+    <div class="tab" onclick="switchAnalyticsTab('breakeven')" id="atab-breakeven">⚖️ Break-Even</div>
+  </div>
+  <!-- Monthly Trends -->
+  <div id="atab-content-monthly">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📅 Month-over-Month Revenue</span></div>
+        <div id="monthly-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📈 Month-over-Month Profit</span></div>
+        <div id="monthly-profit-chart"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">📊 Monthly Summary Table</span><button class="btn btn-secondary btn-sm" onclick="exportMonthlyCSV()"><i class="fas fa-download"></i> Export</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Received</th><th>Pending</th><th>Profit</th><th>vs Last Month</th></tr></thead><tbody id="monthly-summary-tbody"></tbody></table></div>
+    </div>
+  </div>
+  <!-- Best Days -->
+  <div id="atab-content-weekday" style="display:none">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📊 Best Day of Week (by Revenue)</span></div>
+        <div id="weekday-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏆 Day Rankings</span></div>
+        <div id="weekday-ranking"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Peak Hours -->
+  <div id="atab-content-hours" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">⏰ Peak Sales Hours</span><span style="font-size:0.75rem;color:var(--text-dim)">Based on sale entry times</span></div>
+      <div id="peak-hours-chart"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">🌅 Morning vs Evening Sales</span></div>
+      <div id="morning-evening-chart"></div>
+    </div>
+  </div>
+  <!-- Seasonal -->
+  <div id="atab-content-seasonal" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">🌦️ Seasonal Demand Patterns</span></div>
+      <div id="seasonal-chart"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">📦 Product Seasonality</span></div>
+      <div id="product-seasonal"></div>
+    </div>
+  </div>
+  <!-- Break-Even -->
+  <div id="atab-content-breakeven" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">⚖️ Break-Even Calculator</span></div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div class="form-group"><label>Monthly Fixed Cost (₹)</label><input type="number" id="be-fixed" placeholder="e.g. 5000 (rent, salary)" oninput="calcBreakEven()"></div>
+        <div class="form-group"><label>Select Product</label><select id="be-product" onchange="calcBreakEven()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%"><option value="">All Products (avg)</option></select></div>
+      </div>
+      <div id="breakeven-result"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">📊 Break-Even Per Product</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Product</th><th>Sell Price</th><th>Cost/Unit</th><th>Profit/Unit</th><th>Units for ₹5k fixed</th><th>Units for ₹10k fixed</th></tr></thead><tbody id="breakeven-tbody"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════ SETTINGS ══════════════════ -->
 <div class="page" id="page-settings">
   <div class="section-header"><h2>Settings</h2><p>Connect Google Sheets, configure business info</p></div>
@@ -1476,6 +1676,47 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>UPI ID (for QR)</label><input type="text" id="biz-upi" placeholder="name@upi"></div>
       </div>
       <div class="form-actions"><button class="btn btn-primary" onclick="saveBizSettings()">💾 Save</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">🌐 Language / மொழி</span></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding:8px 0">
+      <button id="lang-en" class="btn btn-primary" onclick="setLanguage('en')" style="flex:1;min-width:120px">🇬🇧 English</button>
+      <button id="lang-ta" class="btn btn-secondary" onclick="setLanguage('ta')" style="flex:1;min-width:120px">🇮🇳 தமிழ் (Tamil)</button>
+    </div>
+    <div id="lang-status" style="font-size:0.8rem;color:var(--text-dim);margin-top:8px">Current: English</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">📱 Multi-Device Access</span></div>
+    <div class="alert alert-info" style="margin-bottom:12px">Share your app with family/staff — they can use the same data on any device!</div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>Device Name (your name)</label>
+        <input type="text" id="device-name" placeholder="e.g. Gugan Phone, Wife Tablet">
+      </div>
+      <div class="form-group">
+        <label>Access PIN (4 digits)</label>
+        <input type="number" id="access-pin" placeholder="e.g. 1234" maxlength="4" style="letter-spacing:6px">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveDeviceSettings()">💾 Save Device Settings</button>
+      <button class="btn btn-secondary" onclick="generateShareLink()">🔗 Generate Share Link</button>
+    </div>
+    <div id="share-link-box" style="margin-top:12px;display:none">
+      <div style="background:rgba(0,184,148,0.08);border:1px solid rgba(0,184,148,0.2);border-radius:8px;padding:12px">
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:6px">Share this link with family/staff:</div>
+        <div id="share-link-text" style="font-size:0.82rem;color:var(--accent3);word-break:break-all;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="copyShareLink()">📋 Copy</button>
+          <button class="wa-btn" style="padding:4px 12px;font-size:0.78rem" onclick="shareViaWhatsApp()">💬 Share via WhatsApp</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.78rem;color:var(--text-dim)">
+      💡 <strong>How multi-device works:</strong> Export your data as JSON backup, then import it on the other device. For live sync, both devices should be connected to the same Google Sheet.
     </div>
   </div>
 
@@ -1659,6 +1900,9 @@ let DB = {
   teaEntries: [],
   students: [],
   staff: [],
+  suppliers: [],
+  birthdays: {},
+  referrals: [],
   settings: {
     bizName: 'Meenatchi Traders',
     bizOwner: '',
@@ -1821,6 +2065,9 @@ function loadData() {
       DB.teaEntries     = parsed.teaEntries     || DB.teaEntries;
       DB.students       = parsed.students       || DB.students;
       DB.staff          = parsed.staff          || DB.staff;
+      DB.suppliers      = parsed.suppliers      || DB.suppliers  || [];
+      DB.birthdays      = parsed.birthdays      || DB.birthdays  || {};
+      DB.referrals      = parsed.referrals      || DB.referrals  || [];
       DB.settings       = { ...DB.settings, ...(parsed.settings || {}) };
       DB.invoiceCounter = parsed.invoiceCounter || DB.invoiceCounter;
       DB.productRules   = parsed.productRules   || DB.productRules;
@@ -6318,18 +6565,968 @@ renderDashboard = function() {
 
 // ── PAGE TITLE for forecast ─────────────────────────────
 const _origPageTitles = PAGE_TITLES;
-PAGE_TITLES['forecast'] = '🔮 Sales Forecast AI';
+PAGE_TITLES['forecast']   = '🔮 Sales Forecast AI';
+PAGE_TITLES['suppliers']  = '🚚 Supplier Management';
+PAGE_TITLES['loyalty']    = '⭐ Loyalty & Referrals';
+PAGE_TITLES['analytics']  = '📈 Business Analytics';
 
-// ── showPage hook for forecast ──────────────────────────
+// ── showPage hook for new pages ──────────────────────────
 const _origShowPage = showPage;
 showPage = function(id, el, isMobile) {
   _origShowPage(id, el, isMobile);
-  if (id === 'forecast') {
-    renderForecast();
-    renderForecastStockDays();
-    renderDashboardForecastCard();
+  if (id === 'forecast')  { renderForecast(); renderForecastStockDays(); renderDashboardForecastCard(); }
+  if (id === 'suppliers') { renderSuppliers(); }
+  if (id === 'loyalty')   { renderLoyalty(); }
+  if (id === 'analytics') { renderAnalytics(); }
+};
+
+// ════════════════════════════════════════════════════════
+//  SUPPLIER MANAGEMENT
+// ════════════════════════════════════════════════════════
+
+if (!DB.suppliers) DB.suppliers = [];
+
+function switchSuppTab(tab) {
+  ['list','add','catalog'].forEach(t => {
+    const btn = document.getElementById('stab-' + t);
+    const c   = document.getElementById('stab-content-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (c)   c.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'catalog') renderSupplierCatalog();
+  if (tab === 'list')    renderSuppliers();
+}
+
+function renderSuppliers() {
+  if (!DB.suppliers) DB.suppliers = [];
+  const sups = DB.suppliers;
+
+  // Cards
+  const cards = document.getElementById('supplier-cards');
+  if (cards) {
+    const totalPurchased = sups.reduce((a, s) => a + (s.totalPurchased || 0), 0);
+    cards.innerHTML = `
+      <div class="stat-card gold"><div class="icon">🚚</div><div class="label">Suppliers</div><div class="value">${sups.length}</div></div>
+      <div class="stat-card purple"><div class="icon">📦</div><div class="label">Products Covered</div><div class="value">${[...new Set(sups.flatMap(s => (s.products||'').split(',').map(p=>p.trim()).filter(Boolean)))].length}</div></div>
+      <div class="stat-card green"><div class="icon">₹</div><div class="label">Total Purchased</div><div class="value" style="font-size:1rem">${formatCurrency(totalPurchased)}</div></div>
+    `;
+  }
+
+  const tbody = document.getElementById('supplier-tbody');
+  if (!tbody) return;
+  if (!sups.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">🚚<p>No suppliers yet. Add your first supplier!</p></div></td></tr>'; return; }
+
+  tbody.innerHTML = sups.map(s => {
+    // Count products bought from this supplier
+    const prods = (s.products || '').split(',').map(p => p.trim()).filter(Boolean);
+    const totalBought = DB.products.filter(p => prods.some(sp => p.name.toLowerCase().includes(sp.toLowerCase())))
+      .reduce((a, p) => a + (p.buyPrice || 0), 0);
+    return `<tr>
+      <td><strong>${s.name}</strong><br><span style="font-size:0.72rem;color:var(--text-dim)">${s.city||''} · ${s.terms||''}</span></td>
+      <td><a href="tel:${s.phone}" style="color:var(--accent4)">${s.phone}</a></td>
+      <td style="font-size:0.78rem">${(s.products||'—').substring(0,40)}</td>
+      <td>${formatCurrency(s.totalPurchased||0)}</td>
+      <td style="font-size:0.78rem">${s.lastOrder||'—'}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="editSupplier('${s.id}')">Edit</button>
+        <button class="wa-btn" style="padding:3px 8px;font-size:0.72rem" onclick="whatsappSupplier('${s.id}')">💬 Order</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSupplierCatalog() {
+  const el = document.getElementById('supplier-catalog');
+  if (!el || !DB.suppliers) return;
+  if (!DB.suppliers.length) { el.innerHTML = '<div class="empty-state">📦<p>Add suppliers first to see catalog</p></div>'; return; }
+
+  el.innerHTML = DB.suppliers.map(s => {
+    const prods = (s.products||'').split(',').map(p=>p.trim()).filter(Boolean);
+    const matchedProducts = DB.products.filter(p => prods.some(sp => p.name.toLowerCase().includes(sp.toLowerCase())));
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><strong style="color:var(--accent)">${s.name}</strong> <span style="font-size:0.75rem;color:var(--text-dim)">· ${s.phone}</span></div>
+        <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="whatsappSupplier('${s.id}')">💬 WhatsApp</button>
+      </div>
+      ${matchedProducts.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${matchedProducts.map(p => `<div style="background:rgba(247,201,72,0.08);border:1px solid rgba(247,201,72,0.15);border-radius:6px;padding:6px 10px;font-size:0.78rem">
+          <div style="font-weight:600">${p.name}</div>
+          <div style="color:var(--text-dim)">Buy: ${formatCurrency(p.cpu)}/unit · Sell: ${formatCurrency(p.sellPrice)}</div>
+          <div style="color:var(--green)">Stock: ${p.balance} ${p.unit}</div>
+        </div>`).join('')}
+      </div>` : `<div style="font-size:0.8rem;color:var(--text-dim);font-style:italic">${prods.join(', ') || 'No products mapped'}</div>`}
+    </div>`;
+  }).join('');
+}
+
+function saveSupplier() {
+  const name = v('sup-name');
+  if (!name.trim()) { showToast('Supplier name required!', 'error'); return; }
+  const editId = v('sup-edit-id');
+  const sup = {
+    id: editId || uid(),
+    name, phone: v('sup-phone'),
+    products: v('sup-products'),
+    city: v('sup-city'),
+    terms: v('sup-terms'),
+    minOrder: +v('sup-minorder')||0,
+    notes: v('sup-notes'),
+    totalPurchased: 0,
+    lastOrder: editId ? (DB.suppliers.find(s=>s.id===editId)||{}).lastOrder : today()
+  };
+  if (!DB.suppliers) DB.suppliers = [];
+  if (editId) {
+    const idx = DB.suppliers.findIndex(s => s.id === editId);
+    if (idx !== -1) { sup.totalPurchased = DB.suppliers[idx].totalPurchased||0; DB.suppliers[idx] = sup; }
+  } else {
+    DB.suppliers.push(sup);
+  }
+  saveData();
+  clearSupplierForm();
+  switchSuppTab('list');
+  showToast('✅ Supplier saved!', 'success');
+}
+
+function editSupplier(id) {
+  const s = DB.suppliers.find(x => x.id === id);
+  if (!s) return;
+  set2('sup-name', s.name); set2('sup-phone', s.phone||'');
+  set2('sup-products', s.products||''); set2('sup-city', s.city||'');
+  set2('sup-notes', s.notes||''); set2('sup-minorder', s.minOrder||0);
+  set2('sup-edit-id', s.id);
+  switchSuppTab('add');
+}
+
+function deleteSupplier(id) {
+  if (!confirm('Delete this supplier?')) return;
+  DB.suppliers = DB.suppliers.filter(s => s.id !== id);
+  saveData(); renderSuppliers();
+  showToast('Supplier deleted', 'info');
+}
+
+function clearSupplierForm() {
+  ['sup-name','sup-phone','sup-products','sup-city','sup-notes','sup-minorder','sup-edit-id'].forEach(id => set2(id,''));
+}
+
+function whatsappSupplier(id) {
+  const s = DB.suppliers.find(x => x.id === id);
+  if (!s) return;
+  const lowStock = DB.products.filter(p => p.balance <= (p.alertAt||10));
+  let msg = `Hello ${s.name}! This is ${DB.settings.bizName||'Meenatchi Traders'}.\n\nWe need to reorder:\n`;
+  const supProds = (s.products||'').split(',').map(p=>p.trim().toLowerCase());
+  const toOrder = lowStock.filter(p => supProds.some(sp => p.name.toLowerCase().includes(sp)));
+  if (toOrder.length) { toOrder.forEach(p => { msg += `• ${p.name} — Need ${p.alertAt * 3} ${p.unit}\n`; }); }
+  else { msg += `• Please share latest price list\n`; }
+  msg += `\nKindly confirm availability. Thank you!`;
+  const ph = s.phone.replace(/\D/g,'');
+  window.open(`https://wa.me/${ph.startsWith('91') ? ph : '91'+ph}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function filterSuppTable(q) {
+  document.querySelectorAll('#supplier-tbody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  LOYALTY, LEADERBOARD, BIRTHDAYS, REFERRALS
+// ════════════════════════════════════════════════════════
+
+if (!DB.birthdays)  DB.birthdays  = {};
+if (!DB.referrals)  DB.referrals  = [];
+
+function switchLoyaltyTab(tab) {
+  ['leaderboard','points','history','birthdays','referrals'].forEach(t => {
+    const btn = document.getElementById('ltab-' + t);
+    const c   = document.getElementById('ltab-content-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (c)   c.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'leaderboard') renderLoyaltyLeaderboard();
+  if (tab === 'points')      renderLoyaltyPoints();
+  if (tab === 'history')     populateHistoryDropdown();
+  if (tab === 'birthdays')   renderBirthdays();
+  if (tab === 'referrals')   renderReferrals();
+}
+
+function renderLoyalty() {
+  renderLoyaltyCards();
+  renderLoyaltyLeaderboard();
+  populateLoyaltyDropdowns();
+  set2('ref-date', today());
+}
+
+function getLoyaltyData() {
+  return DB.customers.map(c => {
+    const custSales = DB.sales.filter(s => s.customer.toLowerCase() === c.name.toLowerCase());
+    const totalSpent = custSales.reduce((a, s) => a + (s.total||0), 0);
+    const points = Math.floor(totalSpent / 100);
+    const orders = custSales.length;
+    const lastSale = custSales.length ? custSales.sort((a,b) => new Date(b.date)-new Date(a.date))[0].date : null;
+    const referrals = DB.referrals.filter(r => r.from === c.name).length;
+    return { ...c, totalSpent, points, orders, lastSale, referrals };
+  }).sort((a, b) => b.totalSpent - a.totalSpent);
+}
+
+function renderLoyaltyCards() {
+  const data = getLoyaltyData();
+  const el = document.getElementById('loyalty-cards');
+  if (!el) return;
+  const totalPoints = data.reduce((a,c) => a+c.points, 0);
+  const totalReferrals = DB.referrals.length;
+  const topCustomer = data[0];
+  el.innerHTML = `
+    <div class="stat-card gold"><div class="icon">🏆</div><div class="label">Top Customer</div><div class="value" style="font-size:0.95rem">${topCustomer ? topCustomer.name.substring(0,14) : '—'}</div><div class="sub">${topCustomer ? formatCurrency(topCustomer.totalSpent) : ''}</div></div>
+    <div class="stat-card purple"><div class="icon">⭐</div><div class="label">Total Points Issued</div><div class="value">${totalPoints.toLocaleString()}</div></div>
+    <div class="stat-card green"><div class="icon">👥</div><div class="label">Total Referrals</div><div class="value">${totalReferrals}</div></div>
+    <div class="stat-card teal"><div class="icon">🎂</div><div class="label">Birthdays Saved</div><div class="value">${Object.keys(DB.birthdays||{}).length}</div></div>
+  `;
+}
+
+function renderLoyaltyLeaderboard() {
+  const el = document.getElementById('loyalty-leaderboard');
+  if (!el) return;
+  const data = getLoyaltyData().slice(0, 10);
+  if (!data.length) { el.innerHTML = '<div class="empty-state">🏆<p>No customers yet. Add sales to see leaderboard.</p></div>'; return; }
+
+  const medals = ['🥇','🥈','🥉'];
+  const maxSpent = data[0].totalSpent || 1;
+
+  el.innerHTML = `<div class="card"><div class="card-header"><span class="card-title">🏆 Top Customer Leaderboard</span></div>
+    <div style="padding:8px">
+    ${data.map((c, i) => {
+      const pct = Math.max(4, (c.totalSpent / maxSpent) * 100);
+      const colors = ['#f7c948','#a29bfe','#00b894','#74b9ff','#e17055'];
+      const col = colors[Math.min(i, colors.length-1)];
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:1.1rem">${medals[i] || (i+1)+'.'}</span>
+            <div>
+              <div style="font-weight:600;font-size:0.88rem">${c.name}</div>
+              <div style="font-size:0.7rem;color:var(--text-dim)">${c.orders} orders · ${c.points} pts${c.referrals ? ` · ${c.referrals} referrals` : ''}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="color:${col};font-weight:700">${formatCurrency(c.totalSpent)}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim)">Last: ${c.lastSale ? formatDate(c.lastSale) : 'N/A'}</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:20px;height:6px">
+          <div style="width:${pct}%;height:100%;background:${col};border-radius:20px;transition:width 0.8s"></div>
+        </div>
+      </div>`;
+    }).join('')}
+    </div></div>`;
+}
+
+function renderLoyaltyPoints() {
+  const tbody = document.getElementById('loyalty-points-tbody');
+  if (!tbody) return;
+  const data = getLoyaltyData().filter(c => c.totalSpent > 0);
+  tbody.innerHTML = data.map(c => `<tr>
+    <td><strong>${c.name}</strong></td>
+    <td>${formatCurrency(c.totalSpent)}</td>
+    <td><span style="color:var(--accent);font-weight:700">⭐ ${c.points}</span></td>
+    <td style="color:var(--green)">₹${c.points} discount eligible</td>
+    <td>${c.phone ? `<button class="wa-btn" style="padding:3px 8px;font-size:0.72rem" onclick="sendPointsWhatsApp('${c.id}')">💬 Notify</button>` : '—'}</td>
+  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:20px">No purchase data yet</td></tr>';
+}
+
+function sendPointsWhatsApp(custId) {
+  const c = DB.customers.find(x => x.id === custId);
+  if (!c) return;
+  const data = getLoyaltyData().find(x => x.id === custId);
+  const msg = `🎉 Hello ${c.name}!\n\nYou have earned ⭐ ${data.points} Loyalty Points at ${DB.settings.bizName||'Meenatchi Traders'}!\n\n💰 Your points value: ₹${data.points} off on next purchase.\n\nThank you for your support! 🙏`;
+  const ph = c.phone.replace(/\D/g,'');
+  window.open(`https://wa.me/${ph.startsWith('91')?ph:'91'+ph}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function populateHistoryDropdown() {
+  const sel = document.getElementById('history-customer-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select a customer...</option>' + DB.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function renderCustomerHistory() {
+  const custId = v('history-customer-select');
+  const el = document.getElementById('customer-history-timeline');
+  if (!el) return;
+  if (!custId) { el.innerHTML = '<div style="color:var(--text-dim);padding:12px">Select a customer above.</div>'; return; }
+  const cust = DB.customers.find(c => c.id === custId);
+  if (!cust) return;
+  const sales = DB.sales.filter(s => s.customer.toLowerCase() === cust.name.toLowerCase()).sort((a,b) => new Date(b.date)-new Date(a.date));
+  const totalSpent = sales.reduce((a,s) => a+s.total,0);
+  const points = Math.floor(totalSpent/100);
+
+  if (!sales.length) { el.innerHTML = '<div style="color:var(--text-dim);padding:12px">No purchase history for this customer.</div>'; return; }
+
+  el.innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="background:rgba(247,201,72,0.1);border:1px solid rgba(247,201,72,0.2);border-radius:8px;padding:10px 16px;text-align:center">
+        <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">${formatCurrency(totalSpent)}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">Total Spent</div>
+      </div>
+      <div style="background:rgba(162,155,254,0.1);border:1px solid rgba(162,155,254,0.2);border-radius:8px;padding:10px 16px;text-align:center">
+        <div style="font-size:1.2rem;font-weight:700;color:var(--accent4)">${sales.length}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">Orders</div>
+      </div>
+      <div style="background:rgba(0,184,148,0.1);border:1px solid rgba(0,184,148,0.2);border-radius:8px;padding:10px 16px;text-align:center">
+        <div style="font-size:1.2rem;font-weight:700;color:var(--green)">⭐ ${points}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">Points</div>
+      </div>
+    </div>
+    <div style="position:relative;padding-left:20px;border-left:2px solid rgba(247,201,72,0.2)">
+      ${sales.map((s, i) => `
+        <div style="position:relative;margin-bottom:16px;padding-left:16px">
+          <div style="position:absolute;left:-26px;top:2px;width:10px;height:10px;border-radius:50%;background:${i===0?'var(--accent)':'var(--border)'}"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:4px">
+            <div>
+              <div style="font-weight:600;font-size:0.85rem">${s.product}</div>
+              <div style="font-size:0.72rem;color:var(--text-dim)">${formatDate(s.date)} · Qty: ${s.qty} · ${s.payment}</div>
+              ${s.invoiceNo ? `<div style="font-size:0.7rem;color:var(--accent4)">${s.invoiceNo}</div>` : ''}
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700;color:var(--accent)">${formatCurrency(s.total)}</div>
+              <div style="font-size:0.7rem;color:${s.pending>0?'var(--red)':'var(--green)'}">${s.pending>0?'Pending: '+formatCurrency(s.pending):'✅ Paid'}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function populateLoyaltyDropdowns() {
+  const bdaySel = document.getElementById('bday-customer');
+  const refFrom = document.getElementById('ref-from');
+  const refOpts = DB.customers.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+  if (bdaySel) bdaySel.innerHTML = '<option value="">Select customer...</option>' + refOpts;
+  if (refFrom) refFrom.innerHTML = '<option value="">Select customer...</option>' + refOpts;
+}
+
+function saveBirthday() {
+  const cust = v('bday-customer');
+  const date = v('bday-date');
+  if (!cust || !date) { showToast('Select customer and enter birthday!', 'error'); return; }
+  if (!/^\d{2}-\d{2}$/.test(date)) { showToast('Format: DD-MM (e.g. 25-06)', 'error'); return; }
+  if (!DB.birthdays) DB.birthdays = {};
+  DB.birthdays[cust] = date;
+  // Also save on customer record
+  const c = DB.customers.find(x => x.name === cust);
+  if (c) c.birthday = date;
+  saveData();
+  renderBirthdays();
+  showToast(`🎂 Birthday saved for ${cust}!`, 'success');
+}
+
+function renderBirthdays() {
+  const el = document.getElementById('birthday-list');
+  if (!el) return;
+  const today_mmdd = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit'}).split('/').reverse().join('-');
+  const entries = Object.entries(DB.birthdays || {});
+
+  if (!entries.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No birthdays saved yet.</div>'; return; }
+
+  // Sort by proximity to today
+  const withDays = entries.map(([name, bday]) => {
+    const [dd, mm] = bday.split('-').map(Number);
+    const now = new Date();
+    let next = new Date(now.getFullYear(), mm-1, dd);
+    if (next < now) next = new Date(now.getFullYear()+1, mm-1, dd);
+    const days = Math.ceil((next - now) / 86400000);
+    return { name, bday, days };
+  }).sort((a,b) => a.days - b.days);
+
+  el.innerHTML = withDays.map(({ name, bday, days }) => {
+    const isToday = days === 0;
+    const cust = DB.customers.find(c => c.name === name);
+    const [dd, mm] = bday.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:${isToday?'rgba(247,201,72,0.1)':'rgba(255,255,255,0.03)'};border-radius:8px;margin-bottom:6px;border-left:3px solid ${isToday?'var(--accent)':'var(--border)'}">
+      <div>
+        <div style="font-weight:600;font-size:0.85rem">${isToday?'🎂 ':''}${name}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">${dd} ${months[parseInt(mm)-1]} · ${isToday ? '🎉 TODAY!' : `in ${days} days`}</div>
+      </div>
+      ${cust && cust.phone ? `<button class="wa-btn" style="padding:3px 8px;font-size:0.72rem" onclick="sendBirthdayWish('${cust.id}')">🎂 Wish</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function sendBirthdayWish(custId) {
+  const c = DB.customers.find(x => x.id === custId);
+  if (!c) return;
+  const msg = `🎂 Happy Birthday ${c.name}! 🎉\n\nWarm wishes from all of us at ${DB.settings.bizName||'Meenatchi Traders'}!\n\n🎁 As a birthday gift, enjoy a special discount on your next purchase. Visit us soon!\n\nThank you for your continued support! 🙏`;
+  const ph = c.phone.replace(/\D/g,'');
+  window.open(`https://wa.me/${ph.startsWith('91')?ph:'91'+ph}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function saveReferral() {
+  const from = v('ref-from');
+  const to   = v('ref-to').trim();
+  const date = v('ref-date');
+  if (!from || !to) { showToast('Fill both fields!', 'error'); return; }
+  if (!DB.referrals) DB.referrals = [];
+  DB.referrals.push({ id: uid(), from, to, date: date||today() });
+  saveData();
+  renderReferrals();
+  set2('ref-to','');
+  showToast(`✅ Referral saved! ${from} referred ${to}`, 'success');
+}
+
+function renderReferrals() {
+  const el = document.getElementById('referral-list');
+  if (!el) return;
+  if (!DB.referrals || !DB.referrals.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No referrals recorded yet.</div>'; return; }
+
+  const counts = {};
+  DB.referrals.forEach(r => { counts[r.from] = (counts[r.from]||0)+1; });
+  const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const medals = ['🥇','🥈','🥉'];
+
+  el.innerHTML = `
+    <div style="margin-bottom:12px">
+      ${ranked.map(([name, cnt], i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px">
+          <span>${medals[i]||'  '} <strong>${name}</strong></span>
+          <span style="color:var(--accent);font-weight:700">${cnt} referral${cnt>1?'s':''}</span>
+        </div>`).join('')}
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:8px">
+      ${DB.referrals.slice(-5).reverse().map(r=>`<div style="padding:3px 0">${r.from} → ${r.to} · ${formatDate(r.date)}</div>`).join('')}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+//  BUSINESS ANALYTICS
+// ════════════════════════════════════════════════════════
+
+function switchAnalyticsTab(tab) {
+  ['monthly','weekday','hours','seasonal','breakeven'].forEach(t => {
+    const btn = document.getElementById('atab-' + t);
+    const c   = document.getElementById('atab-content-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (c)   c.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'monthly')   renderMonthlyTrends();
+  if (tab === 'weekday')   renderWeekdayAnalysis();
+  if (tab === 'hours')     renderPeakHours();
+  if (tab === 'seasonal')  renderSeasonalPatterns();
+  if (tab === 'breakeven') renderBreakEven();
+}
+
+function renderAnalytics() { renderMonthlyTrends(); populateBreakEvenProducts(); }
+
+function getMonthlyData() {
+  const byMonth = {};
+  DB.sales.forEach(s => {
+    if (!s.date) return;
+    const m = s.date.substring(0,7); // YYYY-MM
+    if (!byMonth[m]) byMonth[m] = { orders:0, revenue:0, received:0, pending:0, profit:0 };
+    byMonth[m].orders++;
+    byMonth[m].revenue  += Number(s.total)    || 0;
+    byMonth[m].received += Number(s.received) || 0;
+    byMonth[m].pending  += Number(s.pending)  || 0;
+    byMonth[m].profit   += Number(s.profit)   || 0;
+  });
+  return Object.entries(byMonth).sort().map(([m, d]) => ({ month: m, ...d }));
+}
+
+function renderMonthlyTrends() {
+  const data = getMonthlyData();
+  if (!data.length) {
+    ['monthly-chart','monthly-profit-chart'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px">No sales data yet.</div>';
+    });
+    return;
+  }
+
+  // Revenue chart
+  const maxRev = Math.max(...data.map(d=>d.revenue), 1);
+  const colors = ['#f7c948','#a29bfe','#00b894','#74b9ff','#e17055','#fd9644','#55efc4'];
+  const revEl = document.getElementById('monthly-chart');
+  if (revEl) {
+    revEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:8px;padding:12px 0;height:160px;overflow-x:auto">
+      ${data.map((d, i) => {
+        const h = Math.max(8, (d.revenue/maxRev)*120);
+        const col = colors[i % colors.length];
+        const label = d.month.substring(5) + '/' + d.month.substring(2,4);
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:44px">
+          <div style="font-size:0.65rem;color:${col};font-weight:700">${formatCurrency(d.revenue).replace('₹','₹')}</div>
+          <div style="width:36px;height:${h}px;background:${col};border-radius:4px 4px 0 0;cursor:default" title="${d.month}: ${formatCurrency(d.revenue)}"></div>
+          <div style="font-size:0.62rem;color:var(--text-dim)">${label}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Profit chart
+  const maxProf = Math.max(...data.map(d=>d.profit), 1);
+  const profEl = document.getElementById('monthly-profit-chart');
+  if (profEl) {
+    profEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:8px;padding:12px 0;height:160px;overflow-x:auto">
+      ${data.map((d, i) => {
+        const h = Math.max(8, (d.profit/maxProf)*120);
+        const col = d.profit >= 0 ? '#00b894' : '#ff7675';
+        const label = d.month.substring(5) + '/' + d.month.substring(2,4);
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:44px">
+          <div style="font-size:0.65rem;color:${col};font-weight:700">${formatCurrency(d.profit)}</div>
+          <div style="width:36px;height:${h}px;background:${col};border-radius:4px 4px 0 0"></div>
+          <div style="font-size:0.62rem;color:var(--text-dim)">${label}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Summary table
+  const tbody = document.getElementById('monthly-summary-tbody');
+  if (tbody) {
+    tbody.innerHTML = [...data].reverse().map((d, i) => {
+      const prev = data[data.length - 2 - i];
+      const change = prev ? ((d.revenue - prev.revenue) / Math.max(prev.revenue,1) * 100).toFixed(1) : null;
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const label = months[parseInt(d.month.substring(5))-1] + ' ' + d.month.substring(0,4);
+      return `<tr>
+        <td><strong>${label}</strong></td>
+        <td>${d.orders}</td>
+        <td>${formatCurrency(d.revenue)}</td>
+        <td class="text-green">${formatCurrency(d.received)}</td>
+        <td class="text-red">${formatCurrency(d.pending)}</td>
+        <td style="color:var(--green)">${formatCurrency(d.profit)}</td>
+        <td>${change !== null ? `<span style="color:${parseFloat(change)>=0?'var(--green)':'var(--red)'">${parseFloat(change)>=0?'▲':'▼'} ${Math.abs(change)}%</span>` : '—'}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--text-dim)">No data</td></tr>';
+  }
+}
+
+function renderWeekdayAnalysis() {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayData = days.map(d => ({ day: d, revenue: 0, orders: 0 }));
+  DB.sales.forEach(s => {
+    if (!s.date) return;
+    const dow = new Date(s.date).getDay();
+    dayData[dow].revenue += Number(s.total)||0;
+    dayData[dow].orders++;
+  });
+
+  const sorted = [...dayData].sort((a,b)=>b.revenue-a.revenue);
+  const maxRev = Math.max(...dayData.map(d=>d.revenue), 1);
+  const colors = ['#f7c948','#a29bfe','#00b894','#74b9ff','#e17055','#fd9644','#55efc4'];
+
+  const chartEl = document.getElementById('weekday-chart');
+  if (chartEl) {
+    chartEl.innerHTML = `<div style="padding:12px 0">
+      ${dayData.map((d, i) => {
+        const pct = Math.max(3, (d.revenue/maxRev)*100);
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:3px">
+            <span>${d.day}</span><span style="color:${colors[i]};font-weight:600">${formatCurrency(d.revenue)} (${d.orders} orders)</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:20px;height:8px">
+            <div style="width:${pct}%;height:100%;background:${colors[i]};border-radius:20px;transition:width 0.8s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  const rankEl = document.getElementById('weekday-ranking');
+  if (rankEl) {
+    const medals = ['🥇','🥈','🥉'];
+    rankEl.innerHTML = sorted.map((d, i) => `
+      <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px">
+        <span>${medals[i]||`${i+1}.`} <strong>${d.day}</strong></span>
+        <span style="color:var(--accent);font-weight:700">${formatCurrency(d.revenue)}</span>
+      </div>`).join('');
+  }
+}
+
+function renderPeakHours() {
+  // Use sale entry timestamps from IDs (approximate) or track by time buckets
+  const buckets = { 'Morning (6-9am)':0, 'Mid-Morning (9-12pm)':0, 'Afternoon (12-3pm)':0, 'Evening (3-6pm)':0, 'Night (6-9pm)':0, 'Late (9pm+)':0 };
+  const hourCounts = Array(24).fill(0);
+
+  DB.sales.forEach(s => {
+    // Extract timestamp from ID if available
+    if (s.id && s.id.startsWith('id')) {
+      const ts = parseInt(s.id.substring(2, 15));
+      if (!isNaN(ts) && ts > 1e12) {
+        const h = new Date(ts).getHours();
+        hourCounts[h]++;
+        if (h >= 6 && h < 9)   buckets['Morning (6-9am)']++;
+        else if (h < 12)        buckets['Mid-Morning (9-12pm)']++;
+        else if (h < 15)        buckets['Afternoon (12-3pm)']++;
+        else if (h < 18)        buckets['Evening (3-6pm)']++;
+        else if (h < 21)        buckets['Night (6-9pm)']++;
+        else                    buckets['Late (9pm+)']++;
+      }
+    }
+  });
+
+  const total = Object.values(buckets).reduce((a,b)=>a+b,0) || 1;
+  const colors = ['#f7c948','#a29bfe','#00b894','#74b9ff','#e17055','#fd9644'];
+
+  const el = document.getElementById('peak-hours-chart');
+  if (el) {
+    const maxBucket = Math.max(...Object.values(buckets), 1);
+    el.innerHTML = `<div style="padding:12px 0">
+      ${Object.entries(buckets).map(([label, cnt], i) => {
+        const pct = Math.max(2, (cnt/maxBucket)*100);
+        const share = ((cnt/total)*100).toFixed(1);
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:4px">
+            <span>${label}</span>
+            <span style="color:${colors[i]};font-weight:600">${cnt} sales (${share}%)</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:20px;height:10px">
+            <div style="width:${pct}%;height:100%;background:${colors[i]};border-radius:20px;transition:width 0.8s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${total <= 1 ? '<div style="color:var(--text-dim);font-size:0.8rem;margin-top:8px">⚠️ More sales data needed for accurate peak hour analysis.</div>' : ''}
+    </div>`;
+  }
+
+  // Morning vs Evening
+  const meEl = document.getElementById('morning-evening-chart');
+  if (meEl) {
+    const morning = (buckets['Morning (6-9am)']+buckets['Mid-Morning (9-12pm)']);
+    const afternoon = buckets['Afternoon (12-3pm)'];
+    const evening = (buckets['Evening (3-6pm)']+buckets['Night (6-9pm)']);
+    const peak = morning>=evening && morning>=afternoon ? 'Morning' : evening>=afternoon ? 'Evening' : 'Afternoon';
+    meEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:12px 0;text-align:center">
+        <div style="background:rgba(247,201,72,0.1);border-radius:10px;padding:16px">
+          <div style="font-size:1.8rem">🌅</div>
+          <div style="font-size:1.2rem;font-weight:700;color:var(--accent)">${morning}</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">Morning Sales</div>
+        </div>
+        <div style="background:rgba(0,184,148,0.1);border-radius:10px;padding:16px">
+          <div style="font-size:1.8rem">☀️</div>
+          <div style="font-size:1.2rem;font-weight:700;color:var(--green)">${afternoon}</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">Afternoon Sales</div>
+        </div>
+        <div style="background:rgba(162,155,254,0.1);border-radius:10px;padding:16px">
+          <div style="font-size:1.8rem">🌙</div>
+          <div style="font-size:1.2rem;font-weight:700;color:var(--accent4)">${evening}</div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">Evening Sales</div>
+        </div>
+      </div>
+      <div style="text-align:center;padding:8px;font-size:0.85rem;color:var(--accent)">🏆 Peak time: <strong>${peak}</strong></div>`;
+  }
+}
+
+function renderSeasonalPatterns() {
+  const quarters = { 'Q1 Jan-Mar':0, 'Q2 Apr-Jun':0, 'Q3 Jul-Sep':0, 'Q4 Oct-Dec':0 };
+  const productByMonth = {};
+
+  DB.sales.forEach(s => {
+    if (!s.date) return;
+    const m = parseInt(s.date.substring(5,7));
+    const q = m<=3?'Q1 Jan-Mar':m<=6?'Q2 Apr-Jun':m<=9?'Q3 Jul-Sep':'Q4 Oct-Dec';
+    quarters[q] += Number(s.total)||0;
+    if (s.product) {
+      if (!productByMonth[s.product]) productByMonth[s.product] = Array(12).fill(0);
+      productByMonth[s.product][m-1] += Number(s.qty)||1;
+    }
+  });
+
+  const el = document.getElementById('seasonal-chart');
+  if (el) {
+    const maxQ = Math.max(...Object.values(quarters),1);
+    const qColors = ['#f7c948','#00b894','#e17055','#a29bfe'];
+    el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:12px 0">
+      ${Object.entries(quarters).map(([q,rev],i)=>`
+        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px">
+          <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:6px">${q}</div>
+          <div style="font-size:1.1rem;font-weight:700;color:${qColors[i]}">${formatCurrency(rev)}</div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:20px;height:6px;margin-top:8px">
+            <div style="width:${Math.max(4,(rev/maxQ)*100)}%;height:100%;background:${qColors[i]};border-radius:20px"></div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  const prodEl = document.getElementById('product-seasonal');
+  if (prodEl) {
+    const months = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+    const top5 = Object.entries(productByMonth).sort((a,b)=>b[1].reduce((x,y)=>x+y)-a[1].reduce((x,y)=>x+y)).slice(0,5);
+    if (!top5.length) { prodEl.innerHTML = '<div style="color:var(--text-dim);padding:12px">No data yet</div>'; return; }
+    prodEl.innerHTML = `<div style="padding:8px 0">
+      ${top5.map(([name,mData])=>{
+        const maxM = Math.max(...mData,1);
+        return `<div style="margin-bottom:14px">
+          <div style="font-size:0.82rem;font-weight:600;margin-bottom:6px">${name}</div>
+          <div style="display:flex;gap:3px;align-items:flex-end;height:40px">
+            ${mData.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="width:100%;background:rgba(247,201,72,${0.1+0.7*(v/maxM)});border-radius:2px;height:${Math.max(2,(v/maxM)*32)}px" title="${months[i]}: ${v} sold"></div>
+              <div style="font-size:0.58rem;color:var(--text-dim)">${months[i]}</div>
+            </div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+}
+
+function populateBreakEvenProducts() {
+  const sel = document.getElementById('be-product');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">All Products (avg)</option>' + DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+function calcBreakEven() {
+  const fixedCost = +v('be-fixed') || 5000;
+  const prodId = v('be-product');
+  const el = document.getElementById('breakeven-result');
+  if (!el) return;
+
+  let profitPerUnit, productName, sellPrice, costPerUnit;
+
+  if (prodId) {
+    const p = DB.products.find(x => x.id === prodId);
+    if (!p) return;
+    profitPerUnit = p.profitPerUnit;
+    productName = p.name;
+    sellPrice = p.sellPrice;
+    costPerUnit = p.cpu;
+  } else {
+    const active = DB.products.filter(p => p.profitPerUnit > 0);
+    if (!active.length) { el.innerHTML = '<div style="color:var(--text-dim)">Add products first.</div>'; return; }
+    profitPerUnit = active.reduce((a,p)=>a+p.profitPerUnit,0)/active.length;
+    sellPrice = active.reduce((a,p)=>a+p.sellPrice,0)/active.length;
+    costPerUnit = active.reduce((a,p)=>a+p.cpu,0)/active.length;
+    productName = 'All Products (avg)';
+  }
+
+  if (profitPerUnit <= 0) { el.innerHTML = '<div style="color:var(--red)">Product has no profit margin. Cannot calculate.</div>'; return; }
+
+  const breakEvenUnits = Math.ceil(fixedCost / profitPerUnit);
+  const breakEvenRevenue = breakEvenUnits * sellPrice;
+  const margin = ((profitPerUnit/sellPrice)*100).toFixed(1);
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+      <div style="background:rgba(247,201,72,0.1);border:1px solid rgba(247,201,72,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--accent)">${breakEvenUnits}</div>
+        <div style="font-size:0.75rem;color:var(--text-dim)">Units to Break Even</div>
+      </div>
+      <div style="background:rgba(0,184,148,0.1);border:1px solid rgba(0,184,148,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:700;color:var(--green)">${formatCurrency(breakEvenRevenue)}</div>
+        <div style="font-size:0.75rem;color:var(--text-dim)">Revenue to Break Even</div>
+      </div>
+      <div style="background:rgba(162,155,254,0.1);border:1px solid rgba(162,155,254,0.2);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:700;color:var(--accent4)">${margin}%</div>
+        <div style="font-size:0.75rem;color:var(--text-dim)">Profit Margin</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;font-size:0.82rem;line-height:2">
+      <div>📦 Product: <strong>${productName}</strong></div>
+      <div>💰 Sell Price: <strong>${formatCurrency(sellPrice)}</strong> · Cost: <strong>${formatCurrency(costPerUnit)}</strong> · Profit/unit: <strong style="color:var(--green)">${formatCurrency(profitPerUnit)}</strong></div>
+      <div>🏭 Fixed Cost: <strong>${formatCurrency(fixedCost)}</strong>/month</div>
+      <div>⚖️ You need to sell <strong style="color:var(--accent)">${breakEvenUnits} units/month</strong> just to cover fixed costs.</div>
+      <div>📅 Daily target: <strong style="color:var(--accent4)">${Math.ceil(breakEvenUnits/30)} units/day</strong> to break even</div>
+    </div>`;
+
+  renderBreakEvenTable();
+}
+
+function renderBreakEven() {
+  populateBreakEvenProducts();
+  set2('be-fixed', DB.settings.monthlyFixedCost || 5000);
+  calcBreakEven();
+  renderBreakEvenTable();
+}
+
+function renderBreakEvenTable() {
+  const tbody = document.getElementById('breakeven-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = DB.products.map(p => {
+    const be5k = p.profitPerUnit > 0 ? Math.ceil(5000/p.profitPerUnit) : '∞';
+    const be10k = p.profitPerUnit > 0 ? Math.ceil(10000/p.profitPerUnit) : '∞';
+    return `<tr>
+      <td>${p.name}</td>
+      <td>${formatCurrency(p.sellPrice)}</td>
+      <td>${formatCurrency(p.cpu)}</td>
+      <td style="color:var(--green)">${formatCurrency(p.profitPerUnit)}</td>
+      <td class="highlight">${be5k}</td>
+      <td class="highlight">${be10k}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:16px">No products</td></tr>';
+}
+
+function exportMonthlyCSV() {
+  const data = getMonthlyData();
+  const rows = [['Month','Orders','Revenue','Received','Pending','Profit']];
+  data.forEach(d => rows.push([d.month, d.orders, d.revenue, d.received, d.pending, d.profit]));
+  const csv = rows.map(r => r.map(c=>`"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `monthly_analytics_${today()}.csv`; a.click();
+  showToast('📊 Monthly data exported!','success');
+}
+
+// ════════════════════════════════════════════════════════
+//  LANGUAGE SUPPORT (Tamil / English)
+// ════════════════════════════════════════════════════════
+
+const LANG = {
+  en: {
+    dashboard: 'Dashboard', products: 'Products & Stock', customers: 'Customer Management',
+    sales: 'Sales Entry', invoices: 'Invoices', settings: 'Settings',
+    suppliers: 'Supplier Management', loyalty: 'Loyalty & Referrals', analytics: 'Business Analytics',
+    forecast: 'Sales Forecast AI', tuition: 'Tuition Management', reports: 'Reports & Analytics',
+    totalIncome: 'Business Income', totalProfit: 'Business Profit', pendingPayments: 'Pending Payments',
+    todaySales: "Today's Sales", monthlySales: 'Monthly Sales',
+    greeting: 'Good', morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening'
+  },
+  ta: {
+    dashboard: 'டாஷ்போர்டு', products: 'தயாரிப்புகள் & கையிருப்பு', customers: 'வாடிக்கையாளர் மேலாண்மை',
+    sales: 'விற்பனை பதிவு', invoices: 'இன்வாய்ஸ்கள்', settings: 'அமைப்புகள்',
+    suppliers: 'சப்ளையர் மேலாண்மை', loyalty: 'விசுவாசம் & பரிந்துரைகள்', analytics: 'வணிக பகுப்பாய்வு',
+    forecast: 'விற்பனை முன்னறிவிப்பு AI', tuition: 'தனியார் பள்ளி மேலாண்மை', reports: 'அறிக்கைகள்',
+    totalIncome: 'மொத்த வருமானம்', totalProfit: 'மொத்த லாபம்', pendingPayments: 'நிலுவை பணம்',
+    todaySales: 'இன்றைய விற்பனை', monthlySales: 'மாதாந்திர விற்பனை',
+    greeting: 'வணக்கம்', morning: 'காலை', afternoon: 'மதியம்', evening: 'மாலை'
   }
 };
+
+let currentLang = localStorage.getItem('mt_lang') || 'en';
+
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('mt_lang', lang);
+  const L = LANG[lang];
+  // Update page titles
+  Object.assign(PAGE_TITLES, {
+    dashboard: (lang==='ta'?'📊 ':'📊 ') + L.dashboard,
+    products: '📦 ' + L.products,
+    customers: '👥 ' + L.customers,
+    sales: '🧾 ' + L.sales,
+    invoices: '📄 ' + L.invoices,
+    settings: '⚙️ ' + L.settings,
+    suppliers: '🚚 ' + L.suppliers,
+    loyalty: '⭐ ' + L.loyalty,
+    analytics: '📈 ' + L.analytics,
+    forecast: '🔮 ' + L.forecast,
+    tuition: '🎓 ' + L.tuition,
+    reports: '📊 ' + L.reports
+  });
+  // Update nav labels
+  const navMap = {
+    'dashboard': L.dashboard, 'sales': L.sales, 'products': L.products,
+    'customers': L.customers, 'invoices': L.invoices, 'settings': L.settings,
+    'tuition': L.tuition, 'reports': L.reports
+  };
+  document.querySelectorAll('.nav-item').forEach(el => {
+    const onclick = el.getAttribute('onclick') || '';
+    const match = onclick.match(/showPage\('(\w+)'/);
+    if (match && navMap[match[1]]) {
+      el.textContent = navMap[match[1]];
+    }
+  });
+  // Update stat card labels
+  const statMap = {
+    'd-biz-income': L.totalIncome, 'd-biz-profit': L.totalProfit,
+    'd-pending': L.pendingPayments, 'd-today': L.todaySales, 'd-monthly': L.monthlySales
+  };
+  Object.entries(statMap).forEach(([id, text]) => {
+    const card = document.getElementById(id);
+    if (card && card.parentElement) {
+      const label = card.parentElement.querySelector('.label');
+      if (label) label.textContent = text;
+    }
+  });
+  // Update buttons
+  const langEnBtn = document.getElementById('lang-en');
+  const langTaBtn = document.getElementById('lang-ta');
+  if (langEnBtn) langEnBtn.className = lang==='en' ? 'btn btn-primary' : 'btn btn-secondary';
+  if (langTaBtn) langTaBtn.className = lang==='ta' ? 'btn btn-primary' : 'btn btn-secondary';
+  const langStatus = document.getElementById('lang-status');
+  if (langStatus) langStatus.textContent = lang==='ta' ? 'தற்போது: தமிழ்' : 'Current: English';
+  showToast(lang==='ta' ? '✅ தமிழ் மொழி தேர்ந்தெடுக்கப்பட்டது!' : '✅ Language set to English!', 'success');
+}
+
+// Apply saved language on load
+if (currentLang === 'ta') { setTimeout(() => setLanguage('ta'), 500); }
+
+// ════════════════════════════════════════════════════════
+//  MULTI-DEVICE / SHARE LINK
+// ════════════════════════════════════════════════════════
+
+function saveDeviceSettings() {
+  const name = v('device-name');
+  const pin  = v('access-pin');
+  DB.settings.deviceName = name;
+  DB.settings.accessPin = pin;
+  saveData();
+  showToast(`✅ Device "${name}" settings saved!`, 'success');
+}
+
+function generateShareLink() {
+  const box = document.getElementById('share-link-box');
+  const textEl = document.getElementById('share-link-text');
+  if (!box || !textEl) return;
+
+  // The share link is the current page URL with a backup param hint
+  const baseUrl = window.location.href.split('?')[0].split('#')[0];
+  const pin = DB.settings.accessPin || '';
+  const deviceLink = `${baseUrl}`;
+
+  textEl.textContent = deviceLink;
+  box.style.display = 'block';
+
+  // Show instructions
+  showToast('📱 Share this link + export your data JSON to sync devices', 'info');
+}
+
+function copyShareLink() {
+  const text = document.getElementById('share-link-text');
+  if (!text) return;
+  navigator.clipboard.writeText(text.textContent).then(() => showToast('✅ Link copied!', 'success')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text.textContent;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ Link copied!', 'success');
+  });
+}
+
+function shareViaWhatsApp() {
+  const text = document.getElementById('share-link-text');
+  if (!text) return;
+  const msg = `📱 Meenatchi Traders App\n\nOpen this link on your device:\n${text.textContent}\n\nThen import the backup JSON file I'll send you to get all the data.\n\n_${DB.settings.bizName||'Meenatchi Traders'}_`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// Patch saveCustomer to handle birthday/referrer
+const _origSaveCustomer = saveCustomer;
+saveCustomer = function() {
+  // Add birthday and referrer before calling original
+  const bday = v('c-birthday');
+  const referrer = v('c-referrer');
+  _origSaveCustomer();
+  // Find the just-saved customer and add extra fields
+  const name = document.getElementById('c-name') ? '' : v('c-name');
+  if (bday || referrer) {
+    const c = DB.customers[DB.customers.length - 1];
+    if (c) {
+      if (bday) { c.birthday = bday; if (!DB.birthdays) DB.birthdays={}; DB.birthdays[c.name] = bday; }
+      if (referrer) { if (!DB.referrals) DB.referrals=[]; DB.referrals.push({id:uid(),from:referrer,to:c.name,date:today()}); }
+      saveData();
+    }
+  }
+};
+
+// Populate referrer dropdown in customer form
+const _origPopulateCustDatalist = populateCustomerDatalist;
+populateCustomerDatalist = function() {
+  _origPopulateCustDatalist();
+  const refSel = document.getElementById('c-referrer');
+  if (refSel) {
+    refSel.innerHTML = '<option value="">None / Direct</option>' + DB.customers.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  }
+};
+
 </script>
 
 </body>

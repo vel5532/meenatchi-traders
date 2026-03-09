@@ -1447,9 +1447,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       </div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="connectSheets()">🔗 Connect & Test</button>
-        <button class="btn btn-secondary" onclick="disconnectSheets()">🔗 Disconnect</button>
+        <button class="btn btn-success" onclick="syncData()" id="full-sync-btn">☁️ Sync All Data Now</button>
+        <button class="btn btn-secondary" onclick="disconnectSheets()">Disconnect</button>
       </div>
       <div id="sheets-status" style="margin-top:12px"></div>
+      <div id="sheets-list" style="margin-top:8px"></div>
     </div>
     <div class="card">
       <div class="card-header"><span class="card-title">🏪 Business Information</span></div>
@@ -2652,6 +2654,7 @@ function receivePayment(custId) {
   renderSalesTable();
   renderDashboard();
   showToast(`✅ ₹${amount} received from ${c.name}!`, 'success');
+  syncCustomerToSheet(c);
   // Auto-switch to pending tab to stay in context
   switchTab('customers', 'pending');
 }
@@ -4095,6 +4098,7 @@ function collectFees(studentId) {
   renderTuition();
   renderTuitionDash();
   showToast(`✅ ₹${amount} fees collected from ${s.name}!`, 'success');
+  syncStudentToSheet(s);
 }
 
 function paySalary(staffId) {
@@ -4112,6 +4116,7 @@ function paySalary(staffId) {
   renderTuition();
   renderTuitionDash();
   showToast(`✅ ₹${amount} salary paid to ${s.name}!`, 'success');
+  syncStaffToSheet(s);
 }
 
 function remindStudent(id) {
@@ -4471,26 +4476,36 @@ function connectSheets() {
   if (!url) { showToast('Enter Apps Script URL!', 'error'); return; }
   DB.settings.appsScriptUrl = url;
   DB.settings.sheetUrl = sheetUrl;
-  DB.settings.sheetTabs = v('sheet-tabs');
+  DB.settings.sheetTabs = v('sheet-tabs') || DB.settings.sheetTabs;
   saveData();
 
   const status = document.getElementById('sheets-status');
-  status.innerHTML = '<div class="loading">🔄 Testing connection...</div>';
+  const sheetsList = document.getElementById('sheets-list');
+  status.innerHTML = '<div class="alert alert-info">🔄 Testing connection & auto-creating sheets...</div>';
+  if (sheetsList) sheetsList.innerHTML = '';
 
   fetch(url + '?action=test')
     .then(r => r.json())
     .then(data => {
       if (data.status === 'ok') {
-        status.innerHTML = '<div class="alert alert-success">✅ Connected successfully! Google Sheets is linked.</div>';
+        const sheets = data.sheets || [];
+        status.innerHTML = `<div class="alert alert-success">
+          ✅ <strong>Connected!</strong> Google Sheets linked · v${data.version || '2.0'}
+        </div>`;
+        if (sheetsList && sheets.length > 0) {
+          sheetsList.innerHTML = `<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:6px">📋 Auto-created sheets:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">${sheets.map(s => `<span style="background:rgba(0,184,148,0.12);color:#00b894;border:1px solid rgba(0,184,148,0.2);border-radius:4px;padding:2px 8px;font-size:0.75rem">${s}</span>`).join('')}</div>`;
+        }
         document.getElementById('sheets-banner').style.display = 'none';
-        showToast('✅ Google Sheets connected!', 'success');
+        showToast('✅ Connected! Auto-syncing all data...', 'success');
+        setTimeout(() => syncData(), 800);
       } else {
         throw new Error(data.message || 'Connection failed');
       }
     })
     .catch(err => {
-      status.innerHTML = `<div class="alert alert-warning">⚠️ Could not connect. Using local storage. Error: ${err.message}</div>`;
-      showToast('⚠️ Using local storage (Google Sheets not connected)', 'info');
+      status.innerHTML = `<div class="alert alert-warning">⚠️ Could not connect. Check your URL.<br><small>${err.message}</small></div>`;
+      showToast('⚠️ Connection failed — check URL', 'error');
     });
 }
 
@@ -5004,31 +5019,90 @@ function syncData() {
     return;
   }
   const icon = document.getElementById('sync-icon');
-  icon.classList.add('fa-spin');
-  showToast('Syncing with Google Sheets...', 'info');
+  if (icon) icon.classList.add('fa-spin');
+  showToast('Syncing all data to Google Sheets...', 'info');
 
-  fetch(DB.settings.appsScriptUrl + '?action=sync', {
+  fetch(DB.settings.appsScriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sales: DB.sales, products: DB.products })
-  })
-    .then(r => r.json())
-    .then(() => {
-      icon.classList.remove('fa-spin');
-      showToast('✅ Synced with Google Sheets!', 'success');
+    body: JSON.stringify({
+      action: 'syncAll',
+      sales:      DB.sales,
+      invoices:   DB.invoices,
+      products:   DB.products,
+      customers:  DB.customers,
+      students:   DB.students,
+      staff:      DB.staff,
+      teaEntries: DB.teaEntries || []
     })
-    .catch(() => {
-      icon.classList.remove('fa-spin');
-      showToast('Sync failed — saved locally', 'error');
-    });
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (icon) icon.classList.remove('fa-spin');
+    if (data.status === 'ok') {
+      const c = data.counts || {};
+      showToast(`✅ Synced! Sales:${c.sales||0} Products:${c.products||0} Customers:${c.customers||0} Invoices:${c.invoices||0}`, 'success');
+    } else {
+      showToast('Sync error: ' + (data.message || 'Unknown'), 'error');
+    }
+  })
+  .catch(err => {
+    if (icon) icon.classList.remove('fa-spin');
+    showToast('Sync failed — check connection', 'error');
+  });
 }
 
 function syncSaleToSheet(sale) {
   if (!DB.settings.appsScriptUrl) return;
+  // Sync the sale
   fetch(DB.settings.appsScriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'addSale', sale })
+  }).catch(() => {});
+
+  // Sync the auto-created invoice too
+  if (sale.invoiceNo) {
+    const inv = DB.invoices.find(i => i.invNo === sale.invoiceNo);
+    if (inv) {
+      setTimeout(() => {
+        fetch(DB.settings.appsScriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'addInvoice', invoice: inv })
+        }).catch(() => {});
+      }, 500);
+    }
+  }
+}
+
+// Sync a single customer update (used by receivePayment)
+function syncCustomerToSheet(customer) {
+  if (!DB.settings.appsScriptUrl) return;
+  fetch(DB.settings.appsScriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'updateCustomer', customer })
+  }).catch(() => {});
+}
+
+// Sync a single student update (used by collectFees)
+function syncStudentToSheet(student) {
+  if (!DB.settings.appsScriptUrl) return;
+  fetch(DB.settings.appsScriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'updateStudent', student })
+  }).catch(() => {});
+}
+
+// Sync a single staff update (used by paySalary)
+function syncStaffToSheet(staff) {
+  if (!DB.settings.appsScriptUrl) return;
+  fetch(DB.settings.appsScriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'updateStaff', staff })
   }).catch(() => {});
 }
 

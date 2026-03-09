@@ -1,63 +1,83 @@
 // ═══════════════════════════════════════════════════════
 //  GOOGLE APPS SCRIPT BACKEND — Code.gs
 //  Meenatchi Traders Business Manager
+//  Version 2.0 — Full Auto-Sync All Modules
 //
 //  SETUP INSTRUCTIONS:
 //  1. Open your Google Sheet
 //  2. Go to Extensions → Apps Script
-//  3. Paste this entire file into Code.gs
+//  3. Delete all existing code, paste this entire file
 //  4. Save (Ctrl+S)
-//  5. Deploy → New Deployment → Web App
+//  5. Click Deploy → New Deployment
+//     - Type: Web App
 //     - Execute as: Me
 //     - Who has access: Anyone
-//  6. Copy the Web App URL and paste into the app Settings
+//  6. Click Deploy → Copy the Web App URL
+//  7. Paste URL into the app → Settings → Apps Script URL
+//  8. Click "Connect & Test" — you'll see green ✅
+//
+//  ALL SHEETS ARE AUTO-CREATED — no manual setup needed!
 // ═══════════════════════════════════════════════════════
 
-const SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+// ─── CORS HEADERS ─────────────────────────────────────
+function setCorsHeaders(output) {
+  return output
+    .setMimeType(ContentService.MimeType.JSON);
+}
 
-// ─── MAIN ROUTER ──────────────────────────────────────
+// ─── MAIN GET ROUTER ──────────────────────────────────
 function doGet(e) {
-  const action = e.parameter.action || 'test';
+  const action = (e && e.parameter && e.parameter.action) || 'test';
   let result;
 
   try {
     switch (action) {
       case 'test':
-        result = { status: 'ok', message: 'Meenatchi Traders API is connected!', timestamp: new Date().toISOString() };
+        result = {
+          status: 'ok',
+          message: '✅ Meenatchi Traders connected!',
+          version: '2.0',
+          timestamp: new Date().toISOString(),
+          sheets: getAllSheetNames()
+        };
         break;
-      case 'getProducts':
-        result = getProducts();
+      case 'getAll':
+        result = getAllData();
         break;
       case 'getSales':
-        result = getSales();
+        result = { status: 'ok', data: readSheet('APP_SALES') };
+        break;
+      case 'getProducts':
+        result = { status: 'ok', data: readSheet('APP_PRODUCTS') };
         break;
       case 'getCustomers':
-        result = getCustomers();
+        result = { status: 'ok', data: readSheet('APP_CUSTOMERS') };
         break;
-      case 'getDailySales':
-        result = getDailySales(e.parameter.date);
-        break;
-      case 'getTeaEntries':
-        result = getTeaEntries();
+      case 'getInvoices':
+        result = { status: 'ok', data: readSheet('APP_INVOICES') };
         break;
       case 'getStudents':
-        result = getStudents();
+        result = { status: 'ok', data: readSheet('APP_STUDENTS') };
         break;
       case 'getStaff':
-        result = getStaff();
+        result = { status: 'ok', data: readSheet('APP_STAFF') };
+        break;
+      case 'getTeaEntries':
+        result = { status: 'ok', data: readSheet('APP_TEA') };
         break;
       default:
         result = { status: 'error', message: 'Unknown action: ' + action };
     }
   } catch (err) {
-    result = { status: 'error', message: err.message };
+    result = { status: 'error', message: err.message, stack: err.stack };
   }
 
-  return ContentService
-    .createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
+  return setCorsHeaders(
+    ContentService.createTextOutput(JSON.stringify(result))
+  );
 }
 
+// ─── MAIN POST ROUTER ─────────────────────────────────
 function doPost(e) {
   let result;
   try {
@@ -65,30 +85,48 @@ function doPost(e) {
     const action = data.action;
 
     switch (action) {
+      // ── Individual record actions ──
       case 'addSale':
-        result = addSale(data.sale);
+        result = upsertRow('APP_SALES', HEADERS.sales, saleToRow(data.sale), data.sale.id);
+        syncDailySalesSummary(data.sale);
         break;
-      case 'updateSale':
-        result = updateSale(data.sale);
+      case 'addInvoice':
+        result = upsertRow('APP_INVOICES', HEADERS.invoices, invoiceToRow(data.invoice), data.invoice.id);
         break;
       case 'addProduct':
-        result = addProduct(data.product);
+        result = upsertRow('APP_PRODUCTS', HEADERS.products, productToRow(data.product), data.product.id);
         break;
       case 'addCustomer':
-        result = addCustomer(data.customer);
+        result = upsertRow('APP_CUSTOMERS', HEADERS.customers, customerToRow(data.customer), data.customer.id);
+        break;
+      case 'updateCustomer':
+        result = upsertRow('APP_CUSTOMERS', HEADERS.customers, customerToRow(data.customer), data.customer.id);
         break;
       case 'addTeaEntry':
-        result = addTeaEntry(data.entry);
+        result = upsertRow('APP_TEA', HEADERS.tea, teaToRow(data.entry), data.entry.id);
+        syncSellingTeaSheet(data.entry);
         break;
       case 'addStudent':
-        result = addStudent(data.student);
+        result = upsertRow('APP_STUDENTS', HEADERS.students, studentToRow(data.student), data.student.id);
+        break;
+      case 'updateStudent':
+        result = upsertRow('APP_STUDENTS', HEADERS.students, studentToRow(data.student), data.student.id);
         break;
       case 'addStaff':
-        result = addStaff(data.staff);
+        result = upsertRow('APP_STAFF', HEADERS.staff, staffToRow(data.staff), data.staff.id);
         break;
+      case 'updateStaff':
+        result = upsertRow('APP_STAFF', HEADERS.staff, staffToRow(data.staff), data.staff.id);
+        break;
+
+      // ── Full sync actions ──
       case 'syncAll':
         result = syncAll(data);
         break;
+      case 'updateForecast':
+        result = syncForecast(data);
+        break;
+
       default:
         result = { status: 'error', message: 'Unknown action: ' + action };
     }
@@ -96,299 +134,401 @@ function doPost(e) {
     result = { status: 'error', message: err.message };
   }
 
-  return ContentService
-    .createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
+  return setCorsHeaders(
+    ContentService.createTextOutput(JSON.stringify(result))
+  );
 }
 
-// ─── SHEET HELPERS ────────────────────────────────────
+// ─── SHEET HEADERS ────────────────────────────────────
+const HEADERS = {
+  sales: [
+    'ID', 'Date', 'Customer', 'Phone', 'Product', 'Items',
+    'Qty', 'Price', 'Discount', 'Total', 'Received', 'Pending',
+    'Payment', 'Status', 'Profit', 'Invoice No'
+  ],
+  invoices: [
+    'ID', 'Invoice No', 'Date', 'Customer', 'Phone', 'Address',
+    'Reference', 'Payment', 'Items', 'Subtotal', 'Discount Total',
+    'Total', 'Status', 'Quote'
+  ],
+  products: [
+    'ID', 'Name', 'Category', 'Buy Qty', 'Buy Price', 'Ship Cost',
+    'Total Cost', 'Cost Per Unit', 'Sell Price', 'Profit Per Unit',
+    'Stock', 'Sold', 'Balance', 'Alert At', 'Unit'
+  ],
+  customers: [
+    'ID', 'Name', 'Phone', 'Address', 'Product', 'Payment Mode',
+    'Total Bill', 'Paid', 'Pending', 'Status', 'Notes', 'Date', 'Last Sale'
+  ],
+  tea: [
+    'ID', 'Date', 'Time', 'Cups', 'Sell Price', 'Milk Cost',
+    'Sugar Cost', 'Powder Cost', 'Gas Cost', 'Income', 'Expense',
+    'Profit', 'Notes'
+  ],
+  students: [
+    'ID', 'Name', 'Class', 'Phone', 'Monthly Fees', 'Paid',
+    'Pending', 'Scholarship', 'Join Date'
+  ],
+  staff: [
+    'ID', 'Name', 'Subject', 'Class', 'Monthly Salary', 'Paid',
+    'Salary Due', 'Last Pay Date', 'Phone'
+  ],
+  forecast: [
+    'Product', 'Category', '7 Day Sales', '30 Day Sales',
+    'Avg Daily Sales', 'Stock', 'Stock Days Left', 'Forecast Tomorrow', 'Unit'
+  ],
+  dailySummary: [
+    'Date', 'Orders', 'Total Income', 'Total Received',
+    'Total Pending', 'Total Profit', 'Products Sold'
+  ]
+};
+
+// ─── ROW MAPPERS ──────────────────────────────────────
+function saleToRow(s) {
+  return [
+    s.id, s.date, s.customer, s.phone || '',
+    s.product, JSON.stringify(s.items || []),
+    s.qty, s.price, s.disc || 0, s.total,
+    s.received, s.pending, s.payment, s.status,
+    s.profit || 0, s.invoiceNo || ''
+  ];
+}
+
+function invoiceToRow(inv) {
+  const itemsStr = (inv.items || []).map(i =>
+    `${i.qty}x ${i.name} @ ₹${i.sell} = ₹${i.total}`
+  ).join(' | ');
+  return [
+    inv.id, inv.invNo, inv.date, inv.customer, inv.phone || '',
+    inv.addr || '', inv.ref || '', inv.payment || '',
+    itemsStr, inv.subtotal, inv.discTotal || 0,
+    inv.total, inv.status, inv.quote || ''
+  ];
+}
+
+function productToRow(p) {
+  return [
+    p.id, p.name, p.category, p.buyQty, p.buyPrice, p.shipCost || 0,
+    p.totalCost, p.cpu, p.sellPrice, p.profitPerUnit,
+    p.stock, p.sold || 0, p.balance, p.alertAt, p.unit
+  ];
+}
+
+function customerToRow(c) {
+  return [
+    c.id, c.name, c.phone || '', c.addr || '',
+    c.product || '', c.payment || '',
+    c.total || 0, c.paid || 0, c.pending || 0,
+    c.status || '', c.notes || '', c.date || '', c.lastSale || ''
+  ];
+}
+
+function teaToRow(t) {
+  return [
+    t.id, t.date, t.time || '', t.cups, t.sellPrice,
+    t.milk || 0, t.sugar || 0, t.powder || 0, t.gas || 0,
+    t.income, t.expense, t.profit, t.notes || ''
+  ];
+}
+
+function studentToRow(s) {
+  return [
+    s.id, s.name, s.class, s.phone || '',
+    s.fees, s.paid || 0, s.pending || 0, s.scholar || 0, s.joinDate || ''
+  ];
+}
+
+function staffToRow(s) {
+  const salaryDue = Math.max((s.salary || 0) - (s.paid || 0), 0);
+  return [
+    s.id, s.name, s.subject || '', s.class || '',
+    s.salary, s.paid || 0, salaryDue, s.payDate || '', s.phone || ''
+  ];
+}
+
+// ─── CORE SHEET UTILITIES ─────────────────────────────
+
 function getOrCreateSheet(name, headers) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(name);
+
   if (!sheet) {
     sheet = ss.insertSheet(name);
-    if (headers) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.getRange(1, 1, 1, headers.length)
-        .setBackground('#1a0a2e')
-        .setFontColor('#f7c948')
-        .setFontWeight('bold');
+    Logger.log('Created new sheet: ' + name);
+  }
+
+  // Always ensure headers exist on row 1
+  if (headers && sheet.getLastRow() === 0) {
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setValues([headers]);
+    // Style headers
+    headerRange
+      .setBackground('#1a0a2e')
+      .setFontColor('#f7c948')
+      .setFontWeight('bold')
+      .setFontSize(10);
+    sheet.setFrozenRows(1);
+    // Auto-resize columns
+    for (let i = 1; i <= headers.length; i++) {
+      sheet.setColumnWidth(i, 130);
     }
   }
+
   return sheet;
 }
 
-function sheetToObjects(sheet, headers) {
+function readSheet(sheetName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet || sheet.getLastRow() <= 1) return [];
+
   const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return [];
-  const head = data[0];
+  const headers = data[0];
   return data.slice(1).map(row => {
     const obj = {};
-    head.forEach((h, i) => { obj[h] = row[i]; });
+    headers.forEach((h, i) => { obj[h] = row[i]; });
     return obj;
   });
 }
 
-// ─── SALES ────────────────────────────────────────────
-function addSale(sale) {
-  const sheet = getOrCreateSheet('APP_SALES', [
-    'ID', 'Date', 'Customer', 'Product', 'Qty', 'Price', 'Discount',
-    'Total', 'Received', 'Pending', 'Payment', 'Status', 'Profit'
-  ]);
-  sheet.appendRow([
-    sale.id, sale.date, sale.customer, sale.product,
-    sale.qty, sale.price, sale.disc || 0, sale.total,
-    sale.received, sale.pending, sale.payment, sale.status,
-    sale.profit || 0
-  ]);
+// Upsert: update existing row if ID matches, else append
+function upsertRow(sheetName, headers, rowData, recordId) {
+  const sheet = getOrCreateSheet(sheetName, headers);
 
-  // Also update DAILY SALES sheet to match existing format
-  updateDailySalesSheet(sale);
+  if (recordId) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(recordId)) {
+        sheet.getRange(i + 1, 1, 1, rowData.length).setValues([rowData]);
+        return { status: 'ok', action: 'updated', sheet: sheetName };
+      }
+    }
+  }
 
-  return { status: 'ok', message: 'Sale added' };
+  sheet.appendRow(rowData);
+  return { status: 'ok', action: 'inserted', sheet: sheetName };
 }
 
-function updateDailySalesSheet(sale) {
-  try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DAILY SALES');
-    if (!sheet) return;
-    // Find or create row for today's date
-    const data = sheet.getDataRange().getValues();
-    const dateCol = 0;
-    const today = sale.date;
-    let rowIndex = -1;
+// Full rewrite of a sheet (for syncAll)
+function rewriteSheet(sheetName, headers, rows) {
+  const sheet = getOrCreateSheet(sheetName, headers);
 
+  // Clear data rows but keep header
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    sheet.deleteRows(2, lastRow - 1);
+  }
+
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  }
+
+  return rows.length;
+}
+
+function getAllSheetNames() {
+  return SpreadsheetApp.getActiveSpreadsheet()
+    .getSheets()
+    .map(s => s.getName());
+}
+
+// ─── SYNC ALL (full database push) ────────────────────
+function syncAll(payload) {
+  const results = {};
+
+  try {
+    // SALES
+    if (payload.sales) {
+      const rows = payload.sales.map(saleToRow);
+      results.sales = rewriteSheet('APP_SALES', HEADERS.sales, rows);
+      rebuildDailySummary(payload.sales);
+    }
+
+    // INVOICES
+    if (payload.invoices) {
+      const rows = payload.invoices.map(invoiceToRow);
+      results.invoices = rewriteSheet('APP_INVOICES', HEADERS.invoices, rows);
+    }
+
+    // PRODUCTS
+    if (payload.products) {
+      const rows = payload.products.map(productToRow);
+      results.products = rewriteSheet('APP_PRODUCTS', HEADERS.products, rows);
+    }
+
+    // CUSTOMERS
+    if (payload.customers) {
+      const rows = payload.customers.map(customerToRow);
+      results.customers = rewriteSheet('APP_CUSTOMERS', HEADERS.customers, rows);
+    }
+
+    // STUDENTS
+    if (payload.students) {
+      const rows = payload.students.map(studentToRow);
+      results.students = rewriteSheet('APP_STUDENTS', HEADERS.students, rows);
+    }
+
+    // STAFF
+    if (payload.staff) {
+      const rows = payload.staff.map(staffToRow);
+      results.staff = rewriteSheet('APP_STAFF', HEADERS.staff, rows);
+    }
+
+    // TEA ENTRIES
+    if (payload.teaEntries) {
+      const rows = payload.teaEntries.map(teaToRow);
+      results.tea = rewriteSheet('APP_TEA', HEADERS.tea, rows);
+    }
+
+    return {
+      status: 'ok',
+      message: '✅ All data synced to Google Sheets!',
+      counts: results,
+      timestamp: new Date().toISOString()
+    };
+  } catch (e) {
+    return { status: 'error', message: 'syncAll failed: ' + e.message };
+  }
+}
+
+// ─── DAILY SUMMARY SHEET ──────────────────────────────
+function syncDailySalesSummary(sale) {
+  try {
+    const sheet = getOrCreateSheet('DAILY SUMMARY', HEADERS.dailySummary);
+    const data = sheet.getDataRange().getValues();
+    const saleDate = String(sale.date || '').substring(0, 10);
+
+    // Find existing row for this date
+    let rowIndex = -1;
     for (let i = 1; i < data.length; i++) {
-      const cellDate = data[i][dateCol];
-      if (cellDate && String(cellDate).includes(today)) {
+      if (String(data[i][0]).substring(0, 10) === saleDate) {
         rowIndex = i + 1;
         break;
       }
     }
 
-    if (rowIndex === -1) {
-      sheet.appendRow([today, 0, 0, 0, 0, 0, 0, '=B' + (sheet.getLastRow()) + '*2.95+C' + (sheet.getLastRow()) + '*22.95+D' + (sheet.getLastRow()) + '*60.5']);
-      rowIndex = sheet.getLastRow();
+    if (rowIndex > 0) {
+      // Update existing row
+      const row = data[rowIndex - 1];
+      const updated = [
+        saleDate,
+        (Number(row[1]) || 0) + 1,
+        (Number(row[2]) || 0) + (sale.total || 0),
+        (Number(row[3]) || 0) + (sale.received || 0),
+        (Number(row[4]) || 0) + (sale.pending || 0),
+        (Number(row[5]) || 0) + (sale.profit || 0),
+        row[6] || ''
+      ];
+      sheet.getRange(rowIndex, 1, 1, updated.length).setValues([updated]);
+    } else {
+      // New date row
+      sheet.appendRow([
+        saleDate, 1, sale.total || 0,
+        sale.received || 0, sale.pending || 0,
+        sale.profit || 0, sale.product || ''
+      ]);
     }
-  } catch (e) {
-    Logger.log('DAILY SALES update error: ' + e.message);
+  } catch(e) {
+    Logger.log('Daily summary error: ' + e.message);
   }
 }
 
-function getSales() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('APP_SALES');
-  if (!sheet) return { status: 'ok', data: [] };
-  return { status: 'ok', data: sheetToObjects(sheet) };
+function rebuildDailySummary(sales) {
+  // Build day-by-day summary from all sales
+  const byDate = {};
+  sales.forEach(s => {
+    const d = String(s.date || '').substring(0, 10);
+    if (!d) return;
+    if (!byDate[d]) byDate[d] = { orders: 0, income: 0, received: 0, pending: 0, profit: 0, products: [] };
+    byDate[d].orders++;
+    byDate[d].income  += Number(s.total)    || 0;
+    byDate[d].received+= Number(s.received) || 0;
+    byDate[d].pending += Number(s.pending)  || 0;
+    byDate[d].profit  += Number(s.profit)   || 0;
+    if (s.product) byDate[d].products.push(s.product);
+  });
+
+  const rows = Object.keys(byDate).sort().map(d => {
+    const v = byDate[d];
+    return [d, v.orders, v.income, v.received, v.pending, v.profit, [...new Set(v.products)].join(', ')];
+  });
+
+  rewriteSheet('DAILY SUMMARY', HEADERS.dailySummary, rows);
 }
 
-// ─── PRODUCTS ─────────────────────────────────────────
-function addProduct(product) {
-  const sheet = getOrCreateSheet('APP_PRODUCTS', [
-    'ID', 'Name', 'Category', 'BuyQty', 'BuyPrice', 'ShipCost',
-    'TotalCost', 'CostPerUnit', 'SellPrice', 'ProfitPerUnit',
-    'Stock', 'Sold', 'Balance', 'AlertAt', 'Unit'
-  ]);
-  sheet.appendRow([
-    product.id, product.name, product.category,
-    product.buyQty, product.buyPrice, product.shipCost,
-    product.totalCost, product.cpu, product.sellPrice,
-    product.profitPerUnit, product.stock, product.sold || 0,
-    product.balance, product.alertAt, product.unit
-  ]);
-  return { status: 'ok', message: 'Product added' };
-}
-
-function getProducts() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('APP_PRODUCTS');
-  if (!sheet) return { status: 'ok', data: [] };
-  return { status: 'ok', data: sheetToObjects(sheet) };
-}
-
-// ─── CUSTOMERS ────────────────────────────────────────
-function addCustomer(customer) {
-  const sheet = getOrCreateSheet('APP_CUSTOMERS', [
-    'ID', 'Name', 'Phone', 'Address', 'Product', 'Payment',
-    'Total', 'Paid', 'Pending', 'Status', 'Notes', 'Date'
-  ]);
-  sheet.appendRow([
-    customer.id, customer.name, customer.phone, customer.addr,
-    customer.product, customer.payment, customer.total,
-    customer.paid, customer.pending, customer.status,
-    customer.notes || '', customer.date
-  ]);
-  return { status: 'ok', message: 'Customer added' };
-}
-
-function getCustomers() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('APP_CUSTOMERS');
-  if (!sheet) return { status: 'ok', data: [] };
-  return { status: 'ok', data: sheetToObjects(sheet) };
-}
-
-// ─── TEA SHOP ─────────────────────────────────────────
-function addTeaEntry(entry) {
-  const sheet = getOrCreateSheet('APP_TEA', [
-    'ID', 'Date', 'Time', 'Cups', 'SellPrice', 'Milk', 'Sugar',
-    'Powder', 'Gas', 'Income', 'Expense', 'Profit', 'Notes'
-  ]);
-  sheet.appendRow([
-    entry.id, entry.date, entry.time, entry.cups, entry.sellPrice,
-    entry.milk, entry.sugar, entry.powder, entry.gas,
-    entry.income, entry.expense, entry.profit, entry.notes || ''
-  ]);
-
-  // Update Selling TEA sheet
+// ─── FORECAST SHEET ───────────────────────────────────
+function syncForecast(data) {
   try {
-    const teaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Selling TEA');
-    if (teaSheet) {
-      teaSheet.appendRow([entry.date, entry.cups, entry.income, entry.notes]);
-    }
-  } catch(e) {}
+    const rows = (data.rows || []);
+    rewriteSheet('SALES FORECAST', HEADERS.forecast, rows);
 
-  return { status: 'ok', message: 'Tea entry added' };
-}
+    // Add timestamp row
+    const sheet = getOrCreateSheet('SALES FORECAST', HEADERS.forecast);
+    const lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow + 2, 1).setValue('Last updated: ' + new Date().toLocaleString('en-IN'));
 
-function getTeaEntries() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('APP_TEA');
-  if (!sheet) return { status: 'ok', data: [] };
-  return { status: 'ok', data: sheetToObjects(sheet) };
-}
-
-// ─── TUITION ──────────────────────────────────────────
-function addStudent(student) {
-  const sheet = getOrCreateSheet('APP_STUDENTS', [
-    'ID', 'Name', 'Class', 'Phone', 'Fees', 'Paid', 'Pending', 'Scholar', 'JoinDate'
-  ]);
-  sheet.appendRow([
-    student.id, student.name, student.class, student.phone,
-    student.fees, student.paid, student.pending, student.scholar || 0, student.joinDate
-  ]);
-  return { status: 'ok', message: 'Student added' };
-}
-
-function addStaff(staff) {
-  const sheet = getOrCreateSheet('APP_STAFF', [
-    'ID', 'Name', 'Subject', 'Class', 'Salary', 'Paid', 'PayDate', 'Phone'
-  ]);
-  sheet.appendRow([
-    staff.id, staff.name, staff.subject, staff.class,
-    staff.salary, staff.paid || 0, staff.payDate, staff.phone || ''
-  ]);
-  return { status: 'ok', message: 'Staff added' };
-}
-
-function getStudents() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('APP_STUDENTS');
-  if (!sheet) return { status: 'ok', data: [] };
-  return { status: 'ok', data: sheetToObjects(sheet) };
-}
-
-function getStaff() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('APP_STAFF');
-  if (!sheet) return { status: 'ok', data: [] };
-  return { status: 'ok', data: sheetToObjects(sheet) };
-}
-
-// ─── DAILY SALES READ ─────────────────────────────────
-function getDailySales(date) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DAILY SALES');
-  if (!sheet) return { status: 'ok', data: [] };
-  const data = sheetToObjects(sheet);
-  const filtered = date ? data.filter(r => String(r.Date || '').includes(date)) : data;
-  return { status: 'ok', data: filtered };
-}
-
-// ─── SYNC ALL ─────────────────────────────────────────
-function syncAll(payload) {
-  try {
-    // Sync sales
-    if (payload.sales && payload.sales.length > 0) {
-      const salesSheet = getOrCreateSheet('APP_SALES', [
-        'ID', 'Date', 'Customer', 'Product', 'Qty', 'Price', 'Discount',
-        'Total', 'Received', 'Pending', 'Payment', 'Status', 'Profit'
-      ]);
-      // Clear and rewrite
-      const lastRow = salesSheet.getLastRow();
-      if (lastRow > 1) salesSheet.deleteRows(2, lastRow - 1);
-      const rows = payload.sales.map(s => [
-        s.id, s.date, s.customer, s.product, s.qty, s.price,
-        s.disc || 0, s.total, s.received, s.pending,
-        s.payment, s.status, s.profit || 0
-      ]);
-      if (rows.length > 0) salesSheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-    }
-
-    // Sync products
-    if (payload.products && payload.products.length > 0) {
-      const prodSheet = getOrCreateSheet('APP_PRODUCTS', [
-        'ID', 'Name', 'Category', 'BuyQty', 'BuyPrice', 'ShipCost',
-        'TotalCost', 'CostPerUnit', 'SellPrice', 'ProfitPerUnit',
-        'Stock', 'Sold', 'Balance', 'AlertAt', 'Unit'
-      ]);
-      const lastRow = prodSheet.getLastRow();
-      if (lastRow > 1) prodSheet.deleteRows(2, lastRow - 1);
-      const rows = payload.products.map(p => [
-        p.id, p.name, p.category, p.buyQty, p.buyPrice, p.shipCost,
-        p.totalCost, p.cpu, p.sellPrice, p.profitPerUnit,
-        p.stock, p.sold || 0, p.balance, p.alertAt, p.unit
-      ]);
-      if (rows.length > 0) prodSheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-    }
-
-    // Sync customers
-    if (payload.customers && payload.customers.length > 0) {
-      const custSheet = getOrCreateSheet('APP_CUSTOMERS', [
-        'ID', 'Name', 'Phone', 'Address', 'Product', 'Payment',
-        'Total', 'Paid', 'Pending', 'Status', 'Notes', 'Date'
-      ]);
-      const lastRow = custSheet.getLastRow();
-      if (lastRow > 1) custSheet.deleteRows(2, lastRow - 1);
-      const rows = payload.customers.map(c => [
-        c.id, c.name, c.phone || '', c.addr || '', c.product || '',
-        c.payment || '', c.total || 0, c.paid || 0, c.pending || 0,
-        c.status || '', c.notes || '', c.date || ''
-      ]);
-      if (rows.length > 0) custSheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
-    }
-
-    return { status: 'ok', message: 'Synced all data successfully', timestamp: new Date().toISOString() };
-  } catch (e) {
-    return { status: 'error', message: 'Sync failed: ' + e.message };
+    return { status: 'ok', message: '✅ Forecast synced!' };
+  } catch(e) {
+    return { status: 'error', message: e.message };
   }
 }
 
-// ─── DAILY REPORT EMAIL ───────────────────────────────
+// ─── SELLING TEA MIRROR ───────────────────────────────
+function syncSellingTeaSheet(entry) {
+  try {
+    const sheet = getOrCreateSheet('Selling TEA', ['Date', 'Cups', 'Income', 'Expense', 'Profit', 'Notes']);
+    sheet.appendRow([entry.date, entry.cups, entry.income, entry.expense, entry.profit, entry.notes || '']);
+  } catch(e) {
+    Logger.log('Selling TEA sync error: ' + e.message);
+  }
+}
+
+// ─── GET ALL DATA (for full restore) ──────────────────
+function getAllData() {
+  return {
+    status: 'ok',
+    data: {
+      sales:      readSheet('APP_SALES'),
+      invoices:   readSheet('APP_INVOICES'),
+      products:   readSheet('APP_PRODUCTS'),
+      customers:  readSheet('APP_CUSTOMERS'),
+      students:   readSheet('APP_STUDENTS'),
+      staff:      readSheet('APP_STAFF'),
+      teaEntries: readSheet('APP_TEA')
+    },
+    timestamp: new Date().toISOString()
+  };
+}
+
+// ─── DAILY EMAIL REPORT (optional trigger) ────────────
+// To enable: Apps Script → Triggers → Add Trigger
+// Function: sendDailyReport | Time-driven | Day timer | 9 PM
 function sendDailyReport() {
-  // Set up a time-driven trigger for this in Apps Script:
-  // Triggers → Add Trigger → sendDailyReport → Day timer → 9:00 PM
-
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const salesSheet = ss.getSheetByName('APP_SALES');
-  if (!salesSheet) return;
-
   const today = Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd');
-  const data = sheetToObjects(salesSheet);
-  const todaySales = data.filter(r => String(r.Date || '').startsWith(today));
+  const sales = readSheet('APP_SALES').filter(r => String(r['Date'] || '').startsWith(today));
+  if (!sales.length) return;
 
-  if (!todaySales.length) return;
+  const income  = sales.reduce((a, r) => a + (Number(r['Total'])  || 0), 0);
+  const profit  = sales.reduce((a, r) => a + (Number(r['Profit']) || 0), 0);
+  const pending = sales.reduce((a, r) => a + (Number(r['Pending'])|| 0), 0);
 
-  const totalIncome = todaySales.reduce((a, r) => a + (Number(r.Total) || 0), 0);
-  const totalProfit = todaySales.reduce((a, r) => a + (Number(r.Profit) || 0), 0);
+  const body = [
+    'Meenatchi Traders — Daily Report (' + today + ')',
+    '═══════════════════════════════════════',
+    'Orders  : ' + sales.length,
+    'Income  : ₹' + income.toFixed(2),
+    'Profit  : ₹' + profit.toFixed(2),
+    'Pending : ₹' + pending.toFixed(2),
+    '',
+    'Top Sales:',
+    sales.slice(0, 5).map(s => '  • ' + s['Customer'] + ': ' + s['Product'] + ' × ' + s['Qty'] + ' = ₹' + s['Total']).join('\n'),
+    '',
+    '─ Meenatchi Traders Business Manager ─'
+  ].join('\n');
 
-  const body = `
-    Meenatchi Traders — Daily Report (${today})
-    =============================================
-    Orders: ${todaySales.length}
-    Total Income: ₹${totalIncome.toFixed(2)}
-    Total Profit: ₹${totalProfit.toFixed(2)}
-
-    Top Sales:
-    ${todaySales.slice(0, 5).map(s => `- ${s.Customer}: ${s.Product} × ${s.Qty} = ₹${s.Total}`).join('\n')}
-
-    Generated by Meenatchi Traders Business Manager
-  `;
-
-  // Replace with owner email
-  const ownerEmail = Session.getActiveUser().getEmail();
-  MailApp.sendEmail(ownerEmail, `Meenatchi Traders Daily Report — ${today}`, body);
+  MailApp.sendEmail(
+    Session.getActiveUser().getEmail(),
+    'Meenatchi Traders Daily Report — ' + today,
+    body
+  );
 }

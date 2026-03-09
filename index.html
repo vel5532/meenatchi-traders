@@ -359,6 +359,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="nav-item" onclick="showPage('bulkwa',this)">Bulk WhatsApp</div>
     <div class="nav-item" onclick="showPage('profittarget',this)">Profit Target</div>
     <div class="nav-section">Reports</div>
+    <div class="nav-item" onclick="showPage('forecast',this)">🔮 Sales Forecast AI</div>
     <div class="nav-item" onclick="showPage('reports',this)">Reports & Analytics</div>
     <div class="nav-section">Settings</div>
     <div class="nav-item" onclick="showPage('settings',this)">Settings</div>
@@ -405,6 +406,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   <!-- ══ BUSINESS TAB ══ -->
   <div id="dash-business">
     <div id="low-stock-alerts"></div>
+    <div id="forecast-dashboard-alert"></div>
     <div class="cards-grid">
       <div class="stat-card gold"><div class="icon">₹</div><div class="label">Business Income</div><div class="value" id="d-biz-income">₹0</div><div class="sub">This month</div></div>
       <div class="stat-card green"><div class="icon">📈</div><div class="label">Business Profit</div><div class="value" id="d-biz-profit">₹0</div><div class="sub">This month</div></div>
@@ -427,6 +429,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       </div>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔮 AI Sales Forecast</span><button class="btn btn-secondary btn-sm" onclick="showPage('forecast',null)">Full Report →</button></div>
+        <div id="dashboard-forecast-card" style="padding:8px 4px"></div>
+      </div>
       <div class="card">
         <div class="card-header"><span class="card-title">Pending Payments</span><button class="btn btn-secondary btn-sm" onclick="showPage('reminders',null)">🔔 Remind</button></div>
         <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Amount</th><th>Days</th></tr></thead><tbody id="pending-table"></tbody></table></div>
@@ -623,9 +629,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   </div>
 
   <div class="tab-content" id="customers-pending">
+    <div style="padding:8px 0 12px;font-size:0.82rem;color:var(--text-dim)">
+      💡 Click <strong>Receive ₹</strong> to record a payment against any pending balance.
+    </div>
     <div class="table-wrap">
       <table id="pending-cust-table">
-        <thead><tr><th>Customer</th><th>Phone</th><th>Pending (₹)</th><th>Days Old</th><th>WhatsApp</th></tr></thead>
+        <thead><tr><th>Customer</th><th>Phone</th><th>Total Bill</th><th>Paid</th><th>Pending (₹)</th><th>Days Old</th><th>Receive Payment</th></tr></thead>
         <tbody id="pending-cust-tbody"></tbody>
       </table>
     </div>
@@ -953,6 +962,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="stat-card green"><div class="icon">₹</div><div class="label">Total Fees</div><div class="value" id="t-fees">₹0</div></div>
     <div class="stat-card red"><div class="icon">🕐</div><div class="label">Pending Fees</div><div class="value" id="t-pending">₹0</div></div>
     <div class="stat-card purple"><div class="icon">👨‍🏫</div><div class="label">Staff</div><div class="value" id="t-staff">0</div></div>
+    <div class="stat-card orange"><div class="icon">💸</div><div class="label">Salary Due</div><div class="value" id="t-salary-due">₹0</div></div>
   </div>
 
   <div class="tabs">
@@ -966,7 +976,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="search-bar"><input type="text" placeholder="🔍 Search students..." onkeyup="filterTable('student-table',this.value)"></div>
     <div class="table-wrap">
       <table id="student-table">
-        <thead><tr><th>Name</th><th>Class</th><th>Parent Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name & Class</th><th>Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
         <tbody id="student-tbody"></tbody>
       </table>
     </div>
@@ -998,7 +1008,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   <div class="tab-content" id="tuition-staff">
     <div class="table-wrap">
       <table id="staff-table">
-        <thead><tr><th>Name</th><th>Subject</th><th>Class</th><th>Monthly Salary</th><th>Paid</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name & Subject</th><th>Phone</th><th>Monthly Salary</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead>
         <tbody id="staff-tbody"></tbody>
       </table>
     </div>
@@ -1283,6 +1293,142 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   </div>
   <div class="tab-content" id="reports-tuition">
     <div id="tuition-report-content" class="card"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ SALES FORECAST AI ══════════════════ -->
+<div class="page" id="page-forecast">
+  <div class="section-header">
+    <h2>🔮 Auto Sales Forecast AI</h2>
+    <p>Predictive demand engine — powered by your real sales history</p>
+  </div>
+
+  <!-- Forecast Alert Strip -->
+  <div id="forecast-page-alert"></div>
+
+  <!-- Tabs -->
+  <div class="tabs" style="margin-bottom:16px">
+    <div class="tab active" onclick="switchForecastTab('overview')" id="ftab-overview">📊 Overview</div>
+    <div class="tab" onclick="switchForecastTab('table')" id="ftab-table">📋 Forecast Table</div>
+    <div class="tab" onclick="switchForecastTab('insights')" id="ftab-insights">💡 Insights</div>
+    <div class="tab" onclick="switchForecastTab('export')" id="ftab-export">📤 Export</div>
+  </div>
+
+  <!-- ── OVERVIEW TAB ── -->
+  <div id="ftab-content-overview">
+    <div class="cards-grid" id="forecast-cards"></div>
+
+    <div class="grid-2" style="margin-top:16px">
+      <!-- Tomorrow Forecast -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📅 Tomorrow's Forecast</span>
+          <span style="font-size:0.72rem;color:var(--text-dim)">Based on 7-day trend</span>
+        </div>
+        <div id="dashboard-forecast-card" style="padding:8px 4px"></div>
+      </div>
+
+      <!-- Top 5 Demand Chart -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📈 Top 5 Products — Daily Demand</span>
+        </div>
+        <div id="forecast-chart" style="padding:8px 4px"></div>
+      </div>
+    </div>
+
+    <!-- Stock Days Left Visual -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">⏳ Stock Days Remaining</span>
+        <button class="btn btn-secondary btn-sm" onclick="renderForecast()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+      <div id="forecast-stock-days" style="padding:8px"></div>
+    </div>
+  </div>
+
+  <!-- ── TABLE TAB ── -->
+  <div id="ftab-content-table" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Full Forecast Data</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportForecastCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="syncForecastToSheet()"><i class="fas fa-table"></i> Sheets</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>7 Day Sales</th>
+              <th>30 Day Sales</th>
+              <th>Avg Daily</th>
+              <th>Stock</th>
+              <th>Days Left</th>
+              <th>Tomorrow</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="forecast-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INSIGHTS TAB ── -->
+  <div id="ftab-content-insights" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">💡 Smart Insight Engine</span>
+        <button class="btn btn-secondary btn-sm" onclick="renderForecastInsights(getForecastData())"><i class="fas fa-brain"></i> Refresh</button>
+      </div>
+      <div id="forecast-insights" style="padding:8px"></div>
+    </div>
+
+    <!-- Restock Recommendations -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">🛒 Restock Recommendations</span>
+      </div>
+      <div id="forecast-restock" style="padding:8px"></div>
+    </div>
+  </div>
+
+  <!-- ── EXPORT TAB ── -->
+  <div id="ftab-content-export" style="display:none">
+    <div class="card">
+      <div class="card-header"><span class="card-title">📤 Export Forecast Report</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:16px">
+        <button class="btn btn-primary" onclick="exportForecastPDF()" style="padding:20px;flex-direction:column;height:auto;gap:8px">
+          <i class="fas fa-file-pdf" style="font-size:2rem"></i>
+          <strong>Download PDF</strong>
+          <span style="font-size:0.75rem;font-weight:400">Full forecast report</span>
+        </button>
+        <button class="btn btn-secondary" onclick="exportForecastCSV()" style="padding:20px;flex-direction:column;height:auto;gap:8px">
+          <i class="fas fa-file-csv" style="font-size:2rem"></i>
+          <strong>Export Excel/CSV</strong>
+          <span style="font-size:0.75rem;font-weight:400">Open in spreadsheet</span>
+        </button>
+        <button class="wa-btn" onclick="exportForecastWhatsApp()" style="padding:20px;flex-direction:column;height:auto;gap:8px;border-radius:var(--radius)">
+          <i class="fab fa-whatsapp" style="font-size:2rem"></i>
+          <strong>Share on WhatsApp</strong>
+          <span style="font-size:0.75rem;font-weight:400">Send summary message</span>
+        </button>
+        <button class="btn btn-secondary" onclick="syncForecastToSheet()" style="padding:20px;flex-direction:column;height:auto;gap:8px">
+          <i class="fas fa-table" style="font-size:2rem"></i>
+          <strong>Sync to Google Sheets</strong>
+          <span style="font-size:0.75rem;font-weight:400">Update SALES FORECAST tab</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- WhatsApp Preview -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">📱 WhatsApp Message Preview</span></div>
+      <div id="wa-forecast-preview" style="padding:16px;background:rgba(37,211,102,0.05);border-radius:8px;font-family:monospace;font-size:0.82rem;white-space:pre-wrap;line-height:1.6;color:var(--text)"></div>
+    </div>
   </div>
 </div>
 
@@ -2455,18 +2601,59 @@ function renderCustomerTable() {
     const pending = DB.customers.filter(c => c.pending > 0);
     pendingTbody.innerHTML = pending.length ? pending.map(c => {
       const days = Math.floor((new Date() - new Date(c.date || today())) / 86400000);
-      return `<tr>
+      return `<tr id="prow-${c.id}">
         <td><strong>${c.name}</strong></td>
         <td><a href="tel:${c.phone}" style="color:var(--accent4)">${c.phone}</a></td>
+        <td>${formatCurrency(c.total || 0)}</td>
+        <td class="text-green">${formatCurrency(c.paid || 0)}</td>
         <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
-        <td>${days}d</td>
+        <td>${days}d ago</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="editCustomer('${c.id}')" style="margin-right:4px">Edit</button>
-          <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="quickRemind('${c.id}')">💬 Remind</button>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <input type="number" id="recv-${c.id}" placeholder="₹ Amount" step="0.01" min="0" max="${c.pending}"
+              style="width:100px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:0.8rem"
+              onkeyup="if(event.key==='Enter')receivePayment('${c.id}')">
+            <button class="btn btn-success btn-sm" onclick="receivePayment('${c.id}')" style="padding:4px 10px;font-size:0.78rem">✅ Receive</button>
+            <button class="wa-btn" style="padding:4px 8px;font-size:0.72rem" onclick="quickRemind('${c.id}')">💬</button>
+          </div>
         </td>
       </tr>`;
-    }).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--green)">🎉 All payments cleared!</td></tr>';
+    }).join('') : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--green)">🎉 All payments cleared! No pending dues.</td></tr>';
   }
+}
+
+function receivePayment(custId) {
+  const c = DB.customers.find(x => x.id === custId);
+  if (!c) return;
+  const inputEl = document.getElementById('recv-' + custId);
+  if (!inputEl) return;
+  const amount = parseFloat(inputEl.value);
+  if (!amount || amount <= 0) { showToast('Enter a valid amount!', 'error'); return; }
+  if (amount > c.pending) { showToast(`Max receivable: ${formatCurrency(c.pending)}`, 'error'); return; }
+
+  c.paid = (c.paid || 0) + amount;
+  c.pending = Math.max((c.pending || 0) - amount, 0);
+  if (c.pending === 0) c.status = 'Paid';
+
+  // Update matching sale records too (most recent pending first)
+  let remaining = amount;
+  const pendingSales = DB.sales.filter(s => s.customer.toLowerCase() === c.name.toLowerCase() && s.pending > 0)
+                                .sort((a,b) => new Date(b.date) - new Date(a.date));
+  for (const sale of pendingSales) {
+    if (remaining <= 0) break;
+    const apply = Math.min(sale.pending, remaining);
+    sale.received = (sale.received || 0) + apply;
+    sale.pending = Math.max(sale.pending - apply, 0);
+    remaining -= apply;
+  }
+
+  saveData();
+  renderCustomerTable();
+  renderSalesTable();
+  renderDashboard();
+  showToast(`✅ ₹${amount} received from ${c.name}!`, 'success');
+  // Auto-switch to pending tab to stay in context
+  switchTab('customers', 'pending');
 }
 
 function editCustomer(id) {
@@ -2668,7 +2855,6 @@ function saveSale(andInvoice = false) {
   const received = +v('s-received') || 0;
   const pending = Math.max(total - received, 0);
 
-  // For backward compat — store first product in top-level `product` field
   const firstProduct = _saleRows[0]?.product || '';
   const saleDate = v('s-date') || today();
 
@@ -2685,7 +2871,7 @@ function saveSale(andInvoice = false) {
 
   DB.sales.push(sale);
 
-  // Update stock for each product
+  // Update stock
   _saleRows.forEach(r => {
     const prod = DB.products.find(p => p.name === r.product);
     if (prod) {
@@ -2694,26 +2880,62 @@ function saveSale(andInvoice = false) {
     }
   });
 
-  // Update/create customer record
+  // Auto update/create customer record
   let cust = DB.customers.find(c => c.name.toLowerCase() === customer.toLowerCase());
   if (cust) {
+    cust.total = (cust.total || 0) + total;
     cust.pending = (cust.pending || 0) + pending;
     cust.paid = (cust.paid || 0) + received;
     cust.product = firstProduct;
     cust.status = v('s-status');
     if (phone && !cust.phone) cust.phone = phone;
+    cust.lastSale = saleDate;
   } else {
-    DB.customers.push({ id: uid(), name: customer, phone, addr: '', product: firstProduct, payment: v('s-payment'), total, paid: received, pending, status: v('s-status'), notes: '', date: saleDate });
+    cust = { id: uid(), name: customer, phone, addr: v('s-addr') || '', product: firstProduct, payment: v('s-payment'), total, paid: received, pending, status: v('s-status'), notes: '', date: saleDate, lastSale: saleDate };
+    DB.customers.push(cust);
   }
+
+  // ─── AUTO-CREATE INVOICE ───────────────────────────
+  const invNo = 'MT-' + (DB.invoiceCounter || 1001);
+  DB.invoiceCounter = (DB.invoiceCounter || 1001) + 1;
+  const invoice = {
+    id: uid(),
+    invNo,
+    date: saleDate,
+    customer,
+    phone: cust.phone || phone,
+    addr: cust.addr || '',
+    ref: '',
+    payment: v('s-payment'),
+    items: _saleRows.map(r => ({
+      id: uid(),
+      name: r.product,
+      mrp: r.price,
+      sell: r.price - (r.disc > 0 ? r.disc / r.qty : 0),
+      disc: r.disc,
+      qty: r.qty,
+      total: r.total
+    })),
+    subtotal: total,
+    discTotal: _saleRows.reduce((a,r) => a + r.disc, 0),
+    total,
+    quote: 'Thank you for your purchase! 🙏',
+    status: 'Auto-Generated',
+    saleId: sale.id
+  };
+  DB.invoices.push(invoice);
+  sale.invoiceNo = invNo;
+  // ──────────────────────────────────────────────────
 
   saveData();
   renderSalesTable();
   renderDashboard();
   renderProductTable();
   renderCustomerTable();
+  renderInvoiceHistory();
   updateSalesQuickStats();
   updateDailySummary();
-  showToast(_saleRows.length > 1 ? `Sale saved! ${_saleRows.length} products.` : 'Sale recorded!', 'success');
+  showToast(`✅ Sale saved! Invoice ${invNo} auto-created.`, 'success');
   clearSaleForm();
   populateCustomerDatalist();
 
@@ -3799,39 +4021,97 @@ function renderTuition() {
   const totalFees = DB.students.reduce((a, s) => a + s.fees, 0);
   const totalPaid = DB.students.reduce((a, s) => a + s.paid, 0);
   const totalPending = DB.students.reduce((a, s) => a + s.pending, 0);
+  const totalSalaryDue = DB.staff.reduce((a, s) => a + Math.max((s.salary||0) - (s.paid||0), 0), 0);
 
   set('t-students', DB.students.length);
   set('t-fees', formatCurrency(totalFees));
   set('t-pending', formatCurrency(totalPending));
   set('t-staff', DB.staff.length);
 
+  // Salary due card
+  const salaryEl = document.getElementById('t-salary-due');
+  if (salaryEl) salaryEl.textContent = formatCurrency(totalSalaryDue);
+
   const stBody = document.getElementById('student-tbody');
   if (stBody) {
     stBody.innerHTML = DB.students.length ? DB.students.map(s => `<tr>
-      <td><strong>${s.name}</strong></td>
-      <td>${s.class}</td>
-      <td><a href="tel:${s.phone}" style="color:var(--accent4)">${s.phone}</a></td>
+      <td><strong>${s.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${s.class}</span></td>
+      <td><a href="tel:${s.phone}" style="color:var(--accent4)">${s.phone || '—'}</a></td>
       <td>${formatCurrency(s.fees)}</td>
       <td class="text-green">${formatCurrency(s.paid)}</td>
-      <td class="${s.pending > 0 ? 'text-red' : 'text-green'}">${formatCurrency(s.pending)}</td>
+      <td class="${s.pending > 0 ? 'text-red' : 'text-green'}"><strong>${formatCurrency(s.pending)}</strong></td>
       <td>
-        ${s.pending > 0 ? `<button class="wa-btn" style="padding:3px 8px;font-size:0.7rem" onclick="remindStudent('${s.id}')">💬</button>` : ''}
-        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">Del</button>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          ${s.pending > 0 ? `
+            <input type="number" id="sfee-${s.id}" placeholder="₹" step="0.01" min="0" max="${s.pending}"
+              style="width:80px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:0.78rem"
+              onkeyup="if(event.key==='Enter')collectFees('${s.id}')">
+            <button class="btn btn-success btn-sm" onclick="collectFees('${s.id}')" style="padding:3px 8px;font-size:0.75rem">💰 Collect</button>
+            <button class="wa-btn" style="padding:3px 7px;font-size:0.7rem" onclick="remindStudent('${s.id}')">💬</button>
+          ` : '<span style="color:var(--green);font-size:0.8rem">✅ Paid</span>'}
+          <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')" style="padding:3px 6px">🗑</button>
+        </div>
       </td>
-    </tr>`).join('') : '<tr><td colspan="7"><div class="empty-state">🎓<p>No students yet</p></div></td></tr>';
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state">🎓<p>No students yet. Add a student to begin.</p></div></td></tr>';
   }
 
   const sfBody = document.getElementById('staff-tbody');
   if (sfBody) {
-    sfBody.innerHTML = DB.staff.length ? DB.staff.map(s => `<tr>
-      <td><strong>${s.name}</strong></td>
-      <td>${s.subject}</td>
-      <td>${s.class}</td>
-      <td>${formatCurrency(s.salary)}</td>
-      <td class="text-green">${formatCurrency(s.paid)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button></td>
-    </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state">👨‍🏫<p>No staff added</p></div></td></tr>';
+    sfBody.innerHTML = DB.staff.length ? DB.staff.map(s => {
+      const salaryDue = Math.max((s.salary || 0) - (s.paid || 0), 0);
+      return `<tr>
+        <td><strong>${s.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${s.subject} · ${s.class}</span></td>
+        <td><a href="tel:${s.phone}" style="color:var(--accent4)">${s.phone || '—'}</a></td>
+        <td>${formatCurrency(s.salary)}</td>
+        <td class="text-green">${formatCurrency(s.paid || 0)}</td>
+        <td class="${salaryDue > 0 ? 'text-red' : 'text-green'}"><strong>${formatCurrency(salaryDue)}</strong></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+            ${salaryDue > 0 ? `
+              <input type="number" id="ssal-${s.id}" placeholder="₹" step="0.01" min="0" max="${salaryDue}"
+                style="width:80px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:0.78rem"
+                onkeyup="if(event.key==='Enter')paySalary('${s.id}')">
+              <button class="btn btn-success btn-sm" onclick="paySalary('${s.id}')" style="padding:3px 8px;font-size:0.75rem">💸 Pay</button>
+            ` : '<span style="color:var(--green);font-size:0.8rem">✅ Paid</span>'}
+            <button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')" style="padding:3px 6px">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="6"><div class="empty-state">👨‍🏫<p>No staff added yet.</p></div></td></tr>';
   }
+}
+
+function collectFees(studentId) {
+  const s = DB.students.find(x => x.id === studentId);
+  if (!s) return;
+  const inputEl = document.getElementById('sfee-' + studentId);
+  if (!inputEl) return;
+  const amount = parseFloat(inputEl.value);
+  if (!amount || amount <= 0) { showToast('Enter a valid amount!', 'error'); return; }
+  if (amount > s.pending) { showToast(`Max: ${formatCurrency(s.pending)}`, 'error'); return; }
+  s.paid = (s.paid || 0) + amount;
+  s.pending = Math.max((s.pending || 0) - amount, 0);
+  saveData();
+  renderTuition();
+  renderTuitionDash();
+  showToast(`✅ ₹${amount} fees collected from ${s.name}!`, 'success');
+}
+
+function paySalary(staffId) {
+  const s = DB.staff.find(x => x.id === staffId);
+  if (!s) return;
+  const inputEl = document.getElementById('ssal-' + staffId);
+  if (!inputEl) return;
+  const amount = parseFloat(inputEl.value);
+  const salaryDue = Math.max((s.salary || 0) - (s.paid || 0), 0);
+  if (!amount || amount <= 0) { showToast('Enter a valid amount!', 'error'); return; }
+  if (amount > salaryDue) { showToast(`Max: ${formatCurrency(salaryDue)}`, 'error'); return; }
+  s.paid = (s.paid || 0) + amount;
+  s.payDate = today();
+  saveData();
+  renderTuition();
+  renderTuitionDash();
+  showToast(`✅ ₹${amount} salary paid to ${s.name}!`, 'success');
 }
 
 function remindStudent(id) {
@@ -4335,6 +4615,386 @@ function clearAllData() {
   showToast('All data cleared. Reloading...', 'info');
   setTimeout(() => location.reload(), 1500);
 }
+
+// ═══════════════════════════════════════════════════════
+//  AUTO SALES FORECAST AI — forecast.js
+//  Meenatchi Traders Business Manager
+//  Predictive demand engine with smart insights
+// ═══════════════════════════════════════════════════════
+
+// ─── FORECAST CORE ────────────────────────────────────
+
+function getForecastData() {
+  const now = new Date();
+  const msPerDay = 86400000;
+
+  // Build sales maps for 7d and 30d
+  const sales7  = {};
+  const sales30 = {};
+
+  DB.sales.forEach(s => {
+    if (!s.date || !s.product || !s.qty) return;
+    const saleDate = new Date(s.date);
+    const diffDays = Math.floor((now - saleDate) / msPerDay);
+
+    const qty = Number(s.qty) || 0;
+    if (diffDays < 7) {
+      sales7[s.product]  = (sales7[s.product]  || 0) + qty;
+    }
+    if (diffDays < 30) {
+      sales30[s.product] = (sales30[s.product] || 0) + qty;
+    }
+  });
+
+  return DB.products.map(p => {
+    const q7  = sales7[p.name]  || 0;
+    const q30 = sales30[p.name] || 0;
+    const avg7  = q7  / 7;
+    const avg30 = q30 / 30;
+    // Weighted: 70% recent 7-day trend, 30% 30-day baseline
+    const avgDaily = avg7 * 0.7 + avg30 * 0.3;
+    const stock = Number(p.balance) || 0;
+    const daysLeft = avgDaily > 0 ? stock / avgDaily : Infinity;
+    const tomorrowForecast = Math.round(avgDaily * 10) / 10;
+
+    return {
+      id:        p.id,
+      name:      p.name,
+      category:  p.category,
+      unit:      p.unit || 'pcs',
+      stock,
+      sold:      p.sold || 0,
+      sellPrice: p.sellPrice,
+      q7,
+      q30,
+      avg7:      Math.round(avg7 * 100) / 100,
+      avg30:     Math.round(avg30 * 100) / 100,
+      avgDaily:  Math.round(avgDaily * 100) / 100,
+      daysLeft:  isFinite(daysLeft) ? Math.round(daysLeft * 10) / 10 : null,
+      tomorrow:  tomorrowForecast,
+    };
+  });
+}
+
+// ─── RENDER FORECAST PAGE ─────────────────────────────
+
+function renderForecast() {
+  const data = getForecastData();
+  renderForecastCards(data);
+  renderForecastTable(data);
+  renderForecastChart(data);
+  renderForecastInsights(data);
+  renderForecastAlerts(data);
+}
+
+function renderForecastCards(data) {
+  const active   = data.filter(d => d.avgDaily > 0);
+  const critical = data.filter(d => d.daysLeft !== null && d.daysLeft < 5);
+  const topSeller = data.reduce((a, b) => (b.avgDaily > a.avgDaily ? b : a), data[0] || {});
+  const totalTomorrowRevenue = data.reduce((sum, d) => sum + d.tomorrow * d.sellPrice, 0);
+
+  const el = document.getElementById('forecast-cards');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stat-card gold">
+      <div class="icon">🔮</div>
+      <div class="label">Products Tracked</div>
+      <div class="value">${active.length}</div>
+      <div class="sub">Active sellers</div>
+    </div>
+    <div class="stat-card red">
+      <div class="icon">⚠️</div>
+      <div class="label">Critical Stock</div>
+      <div class="value">${critical.length}</div>
+      <div class="sub">Will run out &lt;5 days</div>
+    </div>
+    <div class="stat-card green">
+      <div class="icon">🏆</div>
+      <div class="label">Top Seller</div>
+      <div class="value" style="font-size:0.95rem">${topSeller.name ? topSeller.name.substring(0, 14) + (topSeller.name.length > 14 ? '…' : '') : '—'}</div>
+      <div class="sub">${topSeller.avgDaily || 0}/day avg</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="icon">💰</div>
+      <div class="label">Tomorrow Revenue</div>
+      <div class="value">${formatCurrency(totalTomorrowRevenue)}</div>
+      <div class="sub">Projected</div>
+    </div>
+  `;
+}
+
+function renderForecastTable(data) {
+  const tbody = document.getElementById('forecast-tbody');
+  if (!tbody) return;
+
+  const sorted = [...data].sort((a, b) => b.avgDaily - a.avgDaily);
+
+  tbody.innerHTML = sorted.map(d => {
+    const daysClass = d.daysLeft === null ? 'text-dim' :
+                      d.daysLeft < 5    ? 'text-red'  :
+                      d.daysLeft < 15   ? 'text-orange' : 'text-green';
+    const daysLabel = d.daysLeft === null ? '∞' : d.daysLeft + ' days';
+    const urgency   = d.daysLeft !== null && d.daysLeft < 5
+                    ? '<span class="badge badge-cancelled">URGENT</span>'
+                    : d.daysLeft !== null && d.daysLeft < 15
+                    ? '<span class="badge badge-pending">WATCH</span>'
+                    : '<span class="badge badge-delivered">OK</span>';
+
+    return `<tr>
+      <td><strong>${d.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${d.category}</span></td>
+      <td>${d.q7} ${d.unit}</td>
+      <td>${d.q30} ${d.unit}</td>
+      <td>${d.avgDaily} / day</td>
+      <td>${d.stock}</td>
+      <td class="${daysClass}"><strong>${daysLabel}</strong></td>
+      <td class="highlight"><strong>${d.tomorrow > 0 ? d.tomorrow + ' ' + d.unit : '—'}</strong></td>
+      <td>${urgency}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-dim)">No sales data yet. Start recording sales to see forecasts.</td></tr>';
+}
+
+function renderForecastChart(data) {
+  const container = document.getElementById('forecast-chart');
+  if (!container) return;
+
+  const top5 = [...data].sort((a, b) => b.avgDaily - a.avgDaily).slice(0, 5);
+  const maxVal = Math.max(...top5.map(d => d.avgDaily), 0.1);
+
+  const colors = ['#f7c948', '#a29bfe', '#00b894', '#e17055', '#74b9ff'];
+
+  container.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
+      ${top5.map((d, i) => {
+        const pct = Math.max(4, (d.avgDaily / maxVal) * 100);
+        return `
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.78rem">
+              <span style="color:var(--text)">${d.name.substring(0, 20)}</span>
+              <span style="color:${colors[i]};font-weight:600">${d.avgDaily}/day</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06);border-radius:20px;height:10px;overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:${colors[i]};border-radius:20px;transition:width 0.8s ease;box-shadow:0 0 8px ${colors[i]}66"></div>
+            </div>
+            <div style="font-size:0.68rem;color:var(--text-dim);margin-top:2px">
+              Stock: ${d.stock} ${d.unit} · ${d.daysLeft !== null ? d.daysLeft + ' days left' : 'No demand yet'}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderForecastInsights(data) {
+  const el = document.getElementById('forecast-insights');
+  if (!el) return;
+
+  const insights = [];
+  const sorted = [...data].sort((a, b) => b.avgDaily - a.avgDaily);
+
+  // Fastest seller
+  if (sorted[0] && sorted[0].avgDaily > 0) {
+    insights.push({ icon: '🚀', color: '#f7c948', text: `<strong>${sorted[0].name}</strong> is your fastest selling product at <strong>${sorted[0].avgDaily} ${sorted[0].unit}/day</strong>.` });
+  }
+
+  // Critical stock
+  const critical = data.filter(d => d.daysLeft !== null && d.daysLeft < 5);
+  critical.forEach(d => {
+    insights.push({ icon: '🔴', color: '#ff7675', text: `<strong>${d.name}</strong> stock will finish in about <strong>${d.daysLeft} days</strong>. Reorder now!` });
+  });
+
+  // Long stock
+  const longStock = data.filter(d => d.daysLeft !== null && d.daysLeft > 20);
+  longStock.forEach(d => {
+    insights.push({ icon: '🟢', color: '#00b894', text: `<strong>${d.name}</strong> stock may last <strong>${d.daysLeft} days</strong> at current demand.` });
+  });
+
+  // Week-over-week trend
+  data.forEach(d => {
+    if (d.q30 > 0 && d.avg7 > d.avg30 * 1.3) {
+      insights.push({ icon: '📈', color: '#a29bfe', text: `<strong>${d.name}</strong> demand increased significantly this week (${d.avg7.toFixed(1)} vs ${d.avg30.toFixed(1)} avg/day).` });
+    } else if (d.q30 > 0 && d.avg7 < d.avg30 * 0.5 && d.avg30 > 0) {
+      insights.push({ icon: '📉', color: '#e17055', text: `<strong>${d.name}</strong> demand dropped this week. Consider a promotion.` });
+    }
+  });
+
+  // No sales products
+  const dead = data.filter(d => d.q30 === 0 && d.stock > 0);
+  if (dead.length > 0) {
+    insights.push({ icon: '💤', color: '#636e72', text: `<strong>${dead.length} product${dead.length > 1 ? 's' : ''}</strong> had no sales in 30 days. Check pricing or demand.` });
+  }
+
+  if (insights.length === 0) {
+    insights.push({ icon: '📊', color: '#a29bfe', text: 'Record more sales to unlock AI-powered insights and trend analysis.' });
+  }
+
+  el.innerHTML = insights.map(ins => `
+    <div class="forecast-insight" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid ${ins.color};margin-bottom:8px">
+      <span style="font-size:1.1rem;flex-shrink:0">${ins.icon}</span>
+      <span style="font-size:0.82rem;color:var(--text);line-height:1.5">${ins.text}</span>
+    </div>`).join('');
+}
+
+function renderForecastAlerts(data) {
+  // Update both dashboard and forecast page alert areas
+  ['forecast-dashboard-alert', 'forecast-page-alert'].forEach(elemId => {
+    const el = document.getElementById(elemId);
+    if (!el) return;
+    const critical = data.filter(d => d.daysLeft !== null && d.daysLeft < 5 && d.avgDaily > 0);
+    if (critical.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <div class="alert alert-warning" style="margin-bottom:12px">
+        <strong>🔮 AI Forecast Alert</strong><br>
+        ${critical.map(d => `• <strong>${d.name}</strong> will finish in ~${d.daysLeft} days (${d.tomorrow} ${d.unit}/day demand)`).join('<br>')}
+      </div>`;
+  });
+}
+
+// ─── TOMORROW FORECAST CARD (for Dashboard) ───────────
+
+function renderDashboardForecastCard() {
+  const el = document.getElementById('dashboard-forecast-card');
+  if (!el) return;
+
+  const data = getForecastData();
+  const active = data.filter(d => d.tomorrow > 0).sort((a, b) => b.tomorrow - a.tomorrow).slice(0, 5);
+
+  if (active.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">Record sales to see tomorrow\'s forecast.</div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px">Tomorrow's expected demand:</div>
+    ${active.map((d, i) => {
+      const icons = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <span style="font-size:0.8rem">${icons[i]} ${d.name.substring(0, 18)}</span>
+        <span style="font-size:0.8rem;color:var(--accent);font-weight:600">${d.tomorrow} ${d.unit}</span>
+      </div>`;
+    }).join('')}`;
+}
+
+// ─── EXPORT FUNCTIONS ─────────────────────────────────
+
+function exportForecastWhatsApp() {
+  const data = getForecastData();
+  const active = data.filter(d => d.tomorrow > 0).sort((a, b) => b.tomorrow - a.tomorrow);
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
+  const dateStr = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+
+  let msg = `📊 *${biz} — Business Forecast*\n📅 ${dateStr}\n\n`;
+  msg += `*Tomorrow's Expected Sales:*\n`;
+  if (active.length === 0) {
+    msg += 'No forecast data available yet.\n';
+  } else {
+    active.forEach(d => {
+      msg += `• ${d.name} → ${d.tomorrow} ${d.unit}\n`;
+    });
+  }
+  msg += `\n*Stock Alerts:*\n`;
+  const critical = data.filter(d => d.daysLeft !== null && d.daysLeft < 5 && d.avgDaily > 0);
+  if (critical.length === 0) {
+    msg += '✅ All stocks healthy\n';
+  } else {
+    critical.forEach(d => {
+      msg += `⚠️ ${d.name} — only ${d.daysLeft} days left!\n`;
+    });
+  }
+  msg += `\n_Generated by ${biz} App_`;
+
+  const encoded = encodeURIComponent(msg);
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+function exportForecastCSV() {
+  const data = getForecastData();
+  const rows = [
+    ['Product','Category','7 Day Sales','30 Day Sales','Avg Daily Sales','Stock','Stock Days Left','Forecast Tomorrow','Unit']
+  ];
+  data.forEach(d => {
+    rows.push([
+      d.name, d.category, d.q7, d.q30,
+      d.avgDaily, d.stock,
+      d.daysLeft !== null ? d.daysLeft : 'No demand',
+      d.tomorrow, d.unit
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `sales_forecast_${today()}.csv`;
+  a.click();
+  showToast('📊 Forecast CSV exported!', 'success');
+}
+
+function exportForecastPDF() {
+  if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+    showToast('PDF library loading... try again in a moment', 'info');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = getForecastData();
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
+  const dateStr = new Date().toLocaleDateString('en-IN');
+
+  doc.setFontSize(16);
+  doc.setTextColor(40, 40, 40);
+  doc.text(`${biz} — Sales Forecast Report`, 14, 20);
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Generated: ${dateStr}`, 14, 28);
+
+  const tableData = data.map(d => [
+    d.name.substring(0, 22),
+    d.q7.toString(),
+    d.q30.toString(),
+    d.avgDaily.toString(),
+    d.stock.toString(),
+    d.daysLeft !== null ? d.daysLeft + ' days' : '∞',
+    d.tomorrow > 0 ? d.tomorrow + ' ' + d.unit : '—'
+  ]);
+
+  doc.autoTable({
+    head: [['Product','7d Sales','30d Sales','Avg/Day','Stock','Days Left','Tomorrow']],
+    body: tableData,
+    startY: 35,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [26, 10, 46] },
+    alternateRowStyles: { fillColor: [245, 245, 255] }
+  });
+
+  doc.save(`sales_forecast_${today()}.pdf`);
+  showToast('📄 Forecast PDF downloaded!', 'success');
+}
+
+function syncForecastToSheet() {
+  if (!DB.settings.appsScriptUrl) {
+    showToast('Connect Google Sheets first!', 'info');
+    return;
+  }
+  const data = getForecastData();
+  const rows = data.map(d => [
+    d.name, d.q7, d.q30, d.avgDaily, d.stock,
+    d.daysLeft !== null ? d.daysLeft : 'No demand',
+    d.tomorrow + ' ' + d.unit
+  ]);
+
+  showToast('Syncing forecast to Google Sheets...', 'info');
+  fetch(DB.settings.appsScriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'updateForecast',
+      sheet: 'SALES FORECAST',
+      headers: ['Product','7 Day Sales','30 Day Sales','Avg Daily Sales','Stock','Stock Days Left','Forecast Tomorrow'],
+      rows
+    })
+  })
+  .then(() => showToast('✅ Forecast synced to Google Sheets!', 'success'))
+  .catch(() => showToast('Sync failed — check connection', 'error'));
+}
+
 
 // ─── GOOGLE SHEETS SYNC ───────────────────────────────
 function syncData() {
@@ -5485,6 +6145,117 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+</script>
+
+<script>
+// ── FORECAST TAB SWITCHER ──────────────────────────────
+function switchForecastTab(tab) {
+  ['overview','table','insights','export'].forEach(t => {
+    const btn = document.getElementById('ftab-' + t);
+    const content = document.getElementById('ftab-content-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (content) content.style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'table')    renderForecastTable(getForecastData());
+  if (tab === 'insights') { renderForecastInsights(getForecastData()); renderForecastRestock(); }
+  if (tab === 'export')   renderWAPreview();
+  if (tab === 'overview') renderForecast();
+}
+
+function renderForecastRestock() {
+  const el = document.getElementById('forecast-restock');
+  if (!el) return;
+  const data = getForecastData();
+  const needsRestock = data.filter(d => d.daysLeft !== null && d.daysLeft < 14 && d.avgDaily > 0)
+                           .sort((a, b) => a.daysLeft - b.daysLeft);
+  if (needsRestock.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">✅ All products have comfortable stock levels.</div>';
+    return;
+  }
+  el.innerHTML = needsRestock.map(d => {
+    const reorderQty = Math.ceil(d.avgDaily * 30); // 30-day supply
+    const urgency = d.daysLeft < 5 ? '#ff7675' : d.daysLeft < 10 ? '#e17055' : '#f7c948';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid ${urgency};margin-bottom:8px">
+      <div>
+        <div style="font-weight:600;font-size:0.85rem">${d.name}</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">Current: ${d.stock} ${d.unit} · ${d.daysLeft} days left</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:${urgency};font-weight:700;font-size:0.9rem">Reorder ${reorderQty}</div>
+        <div style="font-size:0.7rem;color:var(--text-dim)">${d.unit} (30-day supply)</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderForecastStockDays() {
+  const el = document.getElementById('forecast-stock-days');
+  if (!el) return;
+  const data = getForecastData();
+  const sorted = [...data].filter(d => d.daysLeft !== null).sort((a,b) => a.daysLeft - b.daysLeft);
+
+  el.innerHTML = sorted.map(d => {
+    const maxDays = 60;
+    const pct = Math.min(100, Math.max(2, (d.daysLeft / maxDays) * 100));
+    const color = d.daysLeft < 5 ? '#ff7675' : d.daysLeft < 15 ? '#e17055' : '#00b894';
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.78rem">
+        <span>${d.name}</span>
+        <span style="color:${color};font-weight:600">${d.daysLeft} days</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:20px;height:8px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:20px;transition:width 0.8s"></div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text-dim);font-size:0.82rem">No demand data yet.</div>';
+}
+
+function renderWAPreview() {
+  const el = document.getElementById('wa-forecast-preview');
+  if (!el) return;
+  const data = getForecastData();
+  const active = data.filter(d => d.tomorrow > 0).sort((a,b) => b.tomorrow - a.tomorrow);
+  const critical = data.filter(d => d.daysLeft !== null && d.daysLeft < 5 && d.avgDaily > 0);
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
+  const dateStr = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+
+  let msg = `📊 *${biz} — Business Forecast*\n📅 ${dateStr}\n\n`;
+  msg += `*Tomorrow's Expected Sales:*\n`;
+  active.forEach(d => { msg += `• ${d.name} → ${d.tomorrow} ${d.unit}\n`; });
+  if (active.length === 0) msg += 'No forecast data.\n';
+  msg += `\n*Stock Alerts:*\n`;
+  critical.forEach(d => { msg += `⚠️ ${d.name} — only ${d.daysLeft} days left!\n`; });
+  if (critical.length === 0) msg += '✅ All stocks healthy\n';
+  msg += `\n_${biz} App_`;
+  el.textContent = msg;
+}
+
+// ── PATCH renderDashboard to include forecast ───────────
+const _origRenderDashboard = renderDashboard;
+renderDashboard = function() {
+  _origRenderDashboard();
+  // Inject forecast data into dashboard
+  try {
+    const data = getForecastData();
+    renderDashboardForecastCard();
+    renderForecastAlerts(data);
+  } catch(e) {}
+};
+
+// ── PAGE TITLE for forecast ─────────────────────────────
+const _origPageTitles = PAGE_TITLES;
+PAGE_TITLES['forecast'] = '🔮 Sales Forecast AI';
+
+// ── showPage hook for forecast ──────────────────────────
+const _origShowPage = showPage;
+showPage = function(id, el, isMobile) {
+  _origShowPage(id, el, isMobile);
+  if (id === 'forecast') {
+    renderForecast();
+    renderForecastStockDays();
+    renderDashboardForecastCard();
+  }
+};
 </script>
 
 </body>

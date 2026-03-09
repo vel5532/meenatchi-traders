@@ -339,7 +339,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="nav-section">Main</div>
     <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
     <div class="nav-item" onclick="showPage('sales',this)">Sales Entry</div>
-    <div class="nav-item" onclick="showPage('invoices',this)">Invoices</div>
+    <div class="nav-item" onclick="showPage('invoices',this)" style="display:none">Invoices</div>
     <div class="nav-section">Stock & Products</div>
     <div class="nav-item" onclick="showPage('products',this)">Products & Stock</div>
     <div class="nav-item" onclick="showPage('orders',this)">Order Tracking</div>
@@ -695,9 +695,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="s-pending" readonly style="opacity:0.6"></div>
         <div class="form-group"><label>Est. Profit (₹)</label><input type="number" id="s-profit" readonly style="opacity:0.6;color:var(--green)"></div>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveSale()">Add Sale</button>
-        <button class="btn btn-success" onclick="saveSaleAndInvoice()">Save + Invoice</button>
+      <div class="form-actions" style="align-items:center">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;color:var(--text);user-select:none">
+          <input type="checkbox" id="s-make-invoice" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent4)">
+          Generate Invoice
+        </label>
+        <button class="btn btn-primary" onclick="saveSale()">💾 Save Sale</button>
         <button class="btn btn-secondary" onclick="clearSaleForm()">Clear</button>
       </div>
     </div>
@@ -851,46 +854,71 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ WHATSAPP REMINDERS ══════════════════ -->
 <div class="page" id="page-reminders">
-  <div class="section-header"><h2>💬 WhatsApp Reminder System</h2><p>Send payment reminders and order updates</p></div>
-  
-  <div class="grid-2">
+  <div class="section-header"><h2>💬 WhatsApp & Reminders</h2><p>Send messages, reminders and customize all templates</p></div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('reminders','remind')">🔔 Reminders</div>
+    <div class="tab" onclick="switchTab('reminders','templates');renderWATemplateEditor()">✏️ Message Templates</div>
+    <div class="tab" onclick="switchTab('reminders','custom')">📝 Custom Message</div>
+  </div>
+
+  <!-- REMINDERS TAB -->
+  <div class="tab-content active" id="reminders-remind">
     <div class="card">
-      <div class="card-header"><span class="card-title">📝 Custom Message</span></div>
-      <div class="form-grid" style="grid-template-columns:1fr">
-        <div class="form-group"><label>Customer Name</label><input type="text" id="wa-name" placeholder="Customer name"></div>
-        <div class="form-group"><label>Phone Number</label><input type="tel" id="wa-phone" placeholder="+91XXXXXXXXXX"></div>
-        <div class="form-group"><label>Message Template</label>
-          <select id="wa-template" onchange="fillTemplate()">
-            <option value="pending">💰 Pending Payment Reminder</option>
-            <option value="order">📦 Order Ready Notification</option>
-            <option value="custom">✏️ Custom Message</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="wa-amount" placeholder="0" oninput="fillTemplate()"></div>
-        <div class="form-group"><label>Message Preview</label><textarea id="wa-message" rows="5" style="resize:vertical"></textarea></div>
+      <div class="card-header">
+        <span class="card-title">⏳ Pending Payment Reminders</span>
+        <button class="wa-btn" style="padding:5px 14px;font-size:0.78rem" onclick="sendAllReminders()">💬 Remind All</button>
       </div>
-      <div class="form-actions">
-        <button class="wa-btn" onclick="sendWhatsApp()">💬 Send WhatsApp</button>
-        <button class="btn btn-secondary" onclick="copyMessage()">📋 Copy</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">⏳ Bulk Pending Reminders</span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Customer</th><th>Pending (₹)</th><th>Days</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Customer</th><th>Phone</th><th>Pending (₹)</th><th>Days</th><th>Actions</th></tr></thead>
           <tbody id="bulk-remind-tbody"></tbody>
         </table>
-      </div>
-      <div class="form-actions" style="margin-top:12px">
-        <button class="wa-btn" onclick="sendAllReminders()">💬 Remind All</button>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header"><span class="card-title">📋 Message Templates</span></div>
-    <div id="templates-list" style="display:grid;gap:12px"></div>
+  <!-- TEMPLATES TAB -->
+  <div class="tab-content" id="reminders-templates">
+    <div class="card">
+      <div class="card-header"><span class="card-title">✏️ Customize Message Templates</span></div>
+      <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:16px">Use <code>{name}</code>, <code>{biz}</code>, <code>{total}</code>, <code>{received}</code>, <code>{pending}</code>, <code>{pendingLine}</code>, <code>{date}</code>, <code>{items}</code>, <code>{invNo}</code> as placeholders.</p>
+      <div style="display:grid;gap:20px" id="wa-template-editor"></div>
+      <div class="form-actions" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="saveWATemplates()">💾 Save All Templates</button>
+        <button class="btn btn-secondary" onclick="resetWATemplates()">↺ Reset to Default</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM MESSAGE TAB -->
+  <div class="tab-content" id="reminders-custom">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📝 Custom Message</span></div>
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group"><label>Customer Name</label><input type="text" id="wa-name" placeholder="Customer name"></div>
+          <div class="form-group"><label>Phone Number</label><input type="tel" id="wa-phone" placeholder="+91XXXXXXXXXX"></div>
+          <div class="form-group"><label>Message Template</label>
+            <select id="wa-template" onchange="fillTemplate()">
+              <option value="pending">💰 Pending Payment Reminder</option>
+              <option value="order">📦 Order Ready Notification</option>
+              <option value="custom">✏️ Custom Message</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="wa-amount" placeholder="0" oninput="fillTemplate()"></div>
+          <div class="form-group"><label>Message Preview</label><textarea id="wa-message" rows="5" style="resize:vertical"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="wa-btn" onclick="sendWhatsApp()">💬 Send WhatsApp</button>
+          <button class="btn btn-secondary" onclick="copyMessage()">📋 Copy</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 Quick Templates</span></div>
+        <div id="templates-list" style="display:grid;gap:12px"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -975,13 +1003,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="tab" onclick="switchTab('tuition','add-student')">➕ Add Student</div>
     <div class="tab" onclick="switchTab('tuition','staff')">👩‍🏫 Staff</div>
     <div class="tab" onclick="switchTab('tuition','add-staff')">➕ Add Staff</div>
+    <div class="tab" onclick="switchTab('tuition','summary');renderTuitionSummary()">📊 Class Summary</div>
   </div>
 
   <div class="tab-content active" id="tuition-students">
     <div class="search-bar"><input type="text" placeholder="🔍 Search students..." onkeyup="filterTable('student-table',this.value)"></div>
     <div class="table-wrap">
       <table id="student-table">
-        <thead><tr><th>Name & Class</th><th>Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Class</th><th>Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
         <tbody id="student-tbody"></tbody>
       </table>
     </div>
@@ -1034,6 +1063,42 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveStaff()">💾 Save Staff</button>
         <button class="btn btn-secondary" onclick="clearStaffForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLASS SUMMARY TAB -->
+  <div class="tab-content" id="tuition-summary">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📊 Class-wise Fee Summary</span>
+        <button class="btn btn-secondary btn-sm" onclick="renderTuitionSummary()">🔄 Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tuition-summary-table">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Students</th>
+              <th>Total Fees</th>
+              <th>Paid Count</th>
+              <th>Balance Count</th>
+              <th>Fees Collected</th>
+              <th>Fees Pending</th>
+              <th>Summary</th>
+            </tr>
+          </thead>
+          <tbody id="tuition-summary-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">👩‍🏫 Staff — Name & Salary</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Staff Name</th><th>Subject</th><th>Handling Class</th><th>Monthly Salary</th><th>Paid</th><th>Due</th><th>Status</th></tr></thead>
+          <tbody id="tuition-staff-summary-tbody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1919,7 +1984,14 @@ let DB = {
   },
   invoiceCounter: 1001,
   productRules: [],
-  profitTargets: []
+  profitTargets: [],
+  waTemplates: {
+    saleConfirm: 'Hi {name}! 🙏\nThank you for your purchase at {biz}.\n\n🛍️ *Order Summary:*\n{items}\n\n💰 Total: ₹{total}\n✅ Paid: ₹{received}\n{pendingLine}\n📅 Date: {date}\n\nThank you for shopping with us! 😊',
+    invoiceReady: 'Hi {name}! 📄\nYour invoice from *{biz}* is ready.\n\n🔖 Invoice No: {invNo}\n💰 Amount: ₹{total}\n📅 Date: {date}\n\nPlease find your invoice attached. Thank you! 🙏',
+    pendingReminder: 'Hi {name}! 👋\nThis is a gentle reminder from *{biz}*.\n\n💸 Pending Amount: ₹{pending}\n📅 Due Since: {date}\n\nKindly clear the payment at your earliest convenience. Thank you! 🙏',
+    orderReady: 'Hi {name}! 📦\nGreat news! Your order from *{biz}* is ready.\n\n🛍️ Items: {items}\n💰 Amount: ₹{total}\n\nPlease contact us to arrange delivery/pickup. Thank you! 😊',
+    birthdayWish: 'Happy Birthday {name}! 🎂🎉\n\nWishing you a wonderful day filled with joy and happiness!\n\nWith love,\n*{biz}* 🙏'
+  }
 };
 
 // ─── INIT ─────────────────────────────────────────────
@@ -2570,6 +2642,9 @@ function saveProduct() {
     const idx = DB.products.findIndex(p => p.id === editId);
     if (idx !== -1) {
       const existing = DB.products[idx];
+      const oldCpu = existing.cpu || 0;
+      const newCpu = cpu;
+      const cpuChanged = Math.abs(oldCpu - newCpu) > 0.01;
       const addStock = +v('p-add-stock') || 0;
       const newStock = existing.stock + addStock;
       const newBalance = existing.balance + addStock;
@@ -2583,11 +2658,37 @@ function saveProduct() {
         alertAt: +v('p-alert') || 10,
         unit: v('p-unit') || 'pcs'
       };
+      saveData();
+      renderProductTable();
+      populateProductDropdowns();
+      clearProductForm();
+      switchTab('products', 'list');
+
+      if (cpuChanged) {
+        // Ask about past profit recalculation
+        const pastSales = DB.sales.filter(s =>
+          s.items ? s.items.some(i => i.product === name) : s.product === name
+        );
+        if (pastSales.length > 0) {
+          const oldPpu = existing.profitPerUnit || 0;
+          const newPpu = sell - cpu;
+          showModal('📊 Update Past Profits?',
+            `<p style="margin-bottom:12px">Buying price changed: <strong>₹${oldCpu.toFixed(2)}</strong> → <strong>₹${newCpu.toFixed(2)}</strong> per unit</p>
+            <p style="margin-bottom:16px;color:var(--text-dim)">Found <strong>${pastSales.length} past sale(s)</strong> of <em>${name}</em>. Should we recalculate their profit with the new cost?</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="recalcPastProfits('${name}',${newCpu},${sell});closeModal()">✅ Yes, update past profits</button>
+              <button class="btn btn-secondary" onclick="closeModal()">No, only future sales</button>
+            </div>`
+          );
+          return;
+        }
+      }
       if (addStock > 0) {
         showToast('✅ Product updated! +' + addStock + ' stock added', 'success');
       } else {
         showToast('✅ Product updated!', 'success');
       }
+      return;
     }
   } else {
     // ADD new product
@@ -2608,6 +2709,39 @@ function saveProduct() {
   populateProductDropdowns();
   clearProductForm();
   switchTab('products', 'list');
+}
+
+function recalcPastProfits(productName, newCpu, sellPrice) {
+  const newPpu = sellPrice - newCpu;
+  let updated = 0;
+  DB.sales.forEach(s => {
+    let changed = false;
+    if (s.items && s.items.length) {
+      s.items.forEach(item => {
+        if (item.product === productName) {
+          item._oldProfit = item.profit;
+          item.profit = (item.qty * newPpu) - (item.disc || 0);
+          changed = true;
+        }
+      });
+      if (changed) {
+        // Recalc total sale profit from all items
+        s.profit = s.items.reduce((a, item) => {
+          const prod = DB.products.find(p => p.name === item.product);
+          if (item.product === productName) return a + item.qty * newPpu - (item.disc || 0);
+          return a + (prod ? item.qty * prod.profitPerUnit - (item.disc || 0) : 0);
+        }, 0);
+        updated++;
+      }
+    } else if (s.product === productName) {
+      s.profit = s.qty * newPpu - (s.disc || 0);
+      updated++;
+    }
+  });
+  saveData();
+  renderSalesTable();
+  renderDashboard();
+  showToast('✅ Profit recalculated for ' + updated + ' past sale(s) of ' + productName, 'success');
 }
 
 function editProduct(id) {
@@ -3145,36 +3279,40 @@ function saveSale(andInvoice = false) {
     DB.customers.push(cust);
   }
 
-  // ─── AUTO-CREATE INVOICE ───────────────────────────
-  const invNo = 'MT-' + (DB.invoiceCounter || 1001);
-  DB.invoiceCounter = (DB.invoiceCounter || 1001) + 1;
-  const invoice = {
-    id: uid(),
-    invNo,
-    date: saleDate,
-    customer,
-    phone: cust.phone || phone,
-    addr: cust.addr || '',
-    ref: '',
-    payment: v('s-payment'),
-    items: _saleRows.map(r => ({
+  // ─── CREATE INVOICE ONLY IF CHECKBOX TICKED ───────
+  const makeInvoice = document.getElementById('s-make-invoice')?.checked;
+  let invoice = null;
+  if (makeInvoice) {
+    const invNo = 'MT-' + (DB.invoiceCounter || 1001);
+    DB.invoiceCounter = (DB.invoiceCounter || 1001) + 1;
+    invoice = {
       id: uid(),
-      name: r.product,
-      mrp: r.price,
-      sell: r.price - (r.disc > 0 ? r.disc / r.qty : 0),
-      disc: r.disc,
-      qty: r.qty,
-      total: r.total
-    })),
-    subtotal: total,
-    discTotal: _saleRows.reduce((a,r) => a + r.disc, 0),
-    total,
-    quote: 'Thank you for your purchase! 🙏',
-    status: 'Auto-Generated',
-    saleId: sale.id
-  };
-  DB.invoices.push(invoice);
-  sale.invoiceNo = invNo;
+      invNo,
+      date: saleDate,
+      customer,
+      phone: cust.phone || phone,
+      addr: cust.addr || '',
+      ref: '',
+      payment: v('s-payment'),
+      items: _saleRows.map(r => ({
+        id: uid(),
+        name: r.product,
+        mrp: r.price,
+        sell: r.price - (r.disc > 0 ? r.disc / r.qty : 0),
+        disc: r.disc,
+        qty: r.qty,
+        total: r.total
+      })),
+      subtotal: total,
+      discTotal: _saleRows.reduce((a,r) => a + r.disc, 0),
+      total,
+      quote: 'Thank you for your purchase! 🙏',
+      status: 'Saved',
+      saleId: sale.id
+    };
+    DB.invoices.push(invoice);
+    sale.invoiceNo = invNo;
+  }
   // ──────────────────────────────────────────────────
 
   saveData();
@@ -3185,13 +3323,17 @@ function saveSale(andInvoice = false) {
   renderInvoiceHistory();
   updateSalesQuickStats();
   updateDailySummary();
-  showToast(`✅ Sale saved! Invoice ${invNo} auto-created.`, 'success');
-  clearSaleForm();
-  populateCustomerDatalist();
 
-  if (andInvoice) {
+  if (makeInvoice && invoice) {
+    showToast(`✅ Sale saved! Invoice ${invoice.invNo} created.`, 'success');
+    clearSaleForm();
+    populateCustomerDatalist();
     prefillInvoiceFromSale(sale);
     showPage('invoices', null);
+  } else {
+    showToast('✅ Sale saved!', 'success');
+    clearSaleForm();
+    populateCustomerDatalist();
   }
 
   if (DB.settings.appsScriptUrl) syncSaleToSheet(sale);
@@ -3219,8 +3361,9 @@ function renderSalesTable() {
     <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
     <td class="text-green">${formatCurrency(s.profit)}</td>
     <td>
+      <button class="wa-btn" style="padding:4px 10px;font-size:0.72rem" onclick="sendSaleWhatsApp('${s.id}')">💬</button>
       <button class="btn btn-secondary btn-sm" onclick="prefillInvoiceAndGo('${s.id}')">📄</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">Del</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">🗑️</button>
     </td>
   </tr>`).join('');
 
@@ -4045,7 +4188,14 @@ function fillTemplate() {
   const t = v('wa-template');
   const name = v('wa-name') || '[Customer Name]';
   const amount = v('wa-amount') || '[Amount]';
-  const msg = TEMPLATES[t] ? TEMPLATES[t](name, amount) : '';
+  let msg = '';
+  if (t === 'pending') {
+    msg = applyWATpl('pendingReminder', { name, pending: amount, date: formatDate(today()) });
+  } else if (t === 'order') {
+    msg = applyWATpl('orderReady', { name, items: '[Products]', total: amount });
+  } else {
+    msg = TEMPLATES[t] ? TEMPLATES[t](name, amount) : '';
+  }
   set2('wa-message', msg);
 }
 
@@ -4061,85 +4211,224 @@ function copyMessage() {
   navigator.clipboard.writeText(msg).then(() => showToast('Copied!', 'success'));
 }
 
+// (renderReminders, editReminderCustomer, sendAllReminders moved below)
+
+// ─── WA TEMPLATE HELPERS ──────────────────────────────
+function getWATpl(key) {
+  return (DB.waTemplates && DB.waTemplates[key]) || '';
+}
+
+function applyWATpl(key, vars) {
+  let msg = getWATpl(key);
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
+  msg = msg.replace(/{biz}/g, biz);
+  Object.entries(vars).forEach(([k,v]) => { msg = msg.replace(new RegExp('{'+k+'}','g'), v||''); });
+  return msg;
+}
+
+function _buildSaleWAVars(s) {
+  const items = (s.items || []).map(i => `  • ${i.product} x${i.qty} = ₹${i.total}`).join('\n') || s.product;
+  const pendingLine = s.pending > 0 ? `⏳ Pending: ₹${s.pending}` : '';
+  return { name: s.customer, total: s.total, received: s.received,
+    pending: s.pending, pendingLine, date: formatDate(s.date), items, invNo: s.invoiceNo || '' };
+}
+
+function _refreshSaleWAPreview(saleId, tplKey) {
+  const s = DB.sales.find(x => x.id === saleId);
+  if (!s) return;
+  const vars = _buildSaleWAVars(s);
+  const msg = applyWATpl(tplKey, vars);
+  const ta = document.getElementById('wa-send-preview');
+  if (ta) ta.value = msg;
+}
+
+function sendSaleWhatsApp(saleId) {
+  const s = DB.sales.find(x => x.id === saleId);
+  if (!s) return;
+  const phone = (s.phone || '').replace(/\D/g,'');
+  if (!phone || phone.length < 10) { showToast('No phone number for this sale!', 'error'); return; }
+
+  const hasinvoice = !!s.invoiceNo;
+  const defaultTpl = hasinvoice ? 'invoiceReady' : 'saleConfirm';
+  const vars = _buildSaleWAVars(s);
+  const msg = applyWATpl(defaultTpl, vars);
+
+  showModal('💬 Send WhatsApp Message', `
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap">
+      <div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Customer</span><br><strong>${s.customer}</strong></div>
+      <div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Phone</span><br><strong style="color:var(--accent4)">${phone}</strong></div>
+      <div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Total</span><br><strong style="color:var(--green)">₹${s.total}</strong></div>
+      ${s.pending > 0 ? `<div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Pending</span><br><strong style="color:var(--red)">₹${s.pending}</strong></div>` : ''}
+    </div>
+
+    <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:0.78rem;color:var(--text-dim)">Template:</span>
+      <select id="wa-tpl-switcher" onchange="_refreshSaleWAPreview('${saleId}', this.value)"
+        style="background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:0.82rem;cursor:pointer">
+        <option value="saleConfirm" ${!hasinvoice?'selected':''}>🧾 Sale Confirmation</option>
+        <option value="invoiceReady" ${hasinvoice?'selected':''}>📄 Invoice Message</option>
+        <option value="pendingReminder" ${s.pending>0?'':''}> 💸 Payment Reminder</option>
+        <option value="orderReady">📦 Order Ready</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="_refreshSaleWAPreview('${saleId}', document.getElementById('wa-tpl-switcher').value)">↺ Reset</button>
+    </div>
+
+    <label style="font-size:0.78rem;color:var(--text-dim);margin-bottom:4px;display:block">✏️ Edit message before sending:</label>
+    <textarea id="wa-send-preview" rows="11"
+      style="width:100%;background:rgba(37,211,102,0.04);border:1px solid rgba(37,211,102,0.25);border-radius:10px;padding:12px;color:var(--text);font-size:0.84rem;resize:vertical;line-height:1.7;font-family:inherit"
+    >${msg}</textarea>
+
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="wa-btn" style="flex:1;justify-content:center" onclick="
+        const m=document.getElementById('wa-send-preview').value;
+        const p='${phone}';
+        window.open('https://wa.me/'+(p.startsWith('91')?p:'91'+p)+'?text='+encodeURIComponent(m),'_blank');
+        closeModal();
+      ">💬 Send on WhatsApp</button>
+      <button class="btn btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('wa-send-preview').value).then(()=>showToast('Copied! 📋','success'))">📋 Copy</button>
+      <button class="btn btn-secondary" onclick="closeModal()">✕</button>
+    </div>
+  `);
+}
+
+function sendSaleReminderWA(custId) {
+  const c = DB.customers.find(x => x.id === custId);
+  if (!c) return;
+  const phone = (c.phone||'').replace(/\D/g,'');
+  const msg = applyWATpl('pendingReminder', {
+    name: c.name, pending: c.pending || 0, date: formatDate(c.date || c.lastSale || '')
+  });
+  openWhatsApp(phone, msg);
+}
+
+function renderWATemplateEditor() {
+  const el = document.getElementById('wa-template-editor');
+  if (!el) return;
+  const defs = [
+    { key:'saleConfirm', label:'🧾 Sale Confirmation', desc:'Sent after saving a sale (no invoice)' },
+    { key:'invoiceReady', label:'📄 Invoice Message', desc:'Sent after saving a sale with invoice' },
+    { key:'pendingReminder', label:'💸 Pending Payment Reminder', desc:'Sent from Reminders tab' },
+    { key:'orderReady', label:'📦 Order Ready Notification', desc:'Sent when order is ready' },
+    { key:'birthdayWish', label:'🎂 Birthday Wish', desc:'Sent for customer birthdays' },
+  ];
+  el.innerHTML = defs.map(d => `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <strong style="font-size:0.92rem">${d.label}</strong>
+          <p style="font-size:0.75rem;color:var(--text-dim);margin:2px 0 0">${d.desc}</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="previewWATpl('${d.key}')">👁️ Preview</button>
+      </div>
+      <textarea id="watpl-${d.key}" rows="5" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:0.82rem;resize:vertical;font-family:inherit">${getWATpl(d.key)}</textarea>
+    </div>
+  `).join('');
+}
+
+function saveWATemplates() {
+  if (!DB.waTemplates) DB.waTemplates = {};
+  ['saleConfirm','invoiceReady','pendingReminder','orderReady','birthdayWish'].forEach(key => {
+    const el = document.getElementById('watpl-' + key);
+    if (el) DB.waTemplates[key] = el.value;
+  });
+  saveData();
+  showToast('✅ Templates saved!', 'success');
+}
+
+const DEFAULT_WA_TEMPLATES = {
+  saleConfirm: 'Hi {name}! 🙏\nThank you for your purchase at {biz}.\n\n🛍️ *Order Summary:*\n{items}\n\n💰 Total: ₹{total}\n✅ Paid: ₹{received}\n{pendingLine}\n📅 Date: {date}\n\nThank you for shopping with us! 😊',
+  invoiceReady: 'Hi {name}! 📄\nYour invoice from *{biz}* is ready.\n\n🔖 Invoice No: {invNo}\n💰 Amount: ₹{total}\n📅 Date: {date}\n\nPlease find your invoice attached. Thank you! 🙏',
+  pendingReminder: 'Hi {name}! 👋\nThis is a gentle reminder from *{biz}*.\n\n💸 Pending Amount: ₹{pending}\n📅 Due Since: {date}\n\nKindly clear the payment at your earliest convenience. Thank you! 🙏',
+  orderReady: 'Hi {name}! 📦\nGreat news! Your order from *{biz}* is ready.\n\n🛍️ Items: {items}\n💰 Amount: ₹{total}\n\nPlease contact us to arrange delivery/pickup. Thank you! 😊',
+  birthdayWish: 'Happy Birthday {name}! 🎂🎉\n\nWishing you a wonderful day filled with joy and happiness!\n\nWith love,\n*{biz}* 🙏'
+};
+
+function resetWATemplates() {
+  if (!confirm('Reset all templates to default? Your customizations will be lost.')) return;
+  DB.waTemplates = { ...DEFAULT_WA_TEMPLATES };
+  saveData();
+  renderWATemplateEditor();
+  showToast('Templates reset to default', 'info');
+}
+
+function previewWATpl(key) {
+  const el = document.getElementById('watpl-' + key);
+  const raw = el ? el.value : getWATpl(key);
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
+  let preview = raw
+    .replace(/{biz}/g, biz)
+    .replace(/{name}/g, 'Sample Customer')
+    .replace(/{total}/g, '1250')
+    .replace(/{received}/g, '1000')
+    .replace(/{pending}/g, '250')
+    .replace(/{pendingLine}/g, '⏳ Pending: ₹250')
+    .replace(/{date}/g, formatDate(today()))
+    .replace(/{invNo}/g, 'MT-1001')
+    .replace(/{items}/g, '  • Product A x2 = ₹500\n  • Product B x3 = ₹750');
+  showModal('👁️ Message Preview', `<pre style="white-space:pre-wrap;font-family:inherit;font-size:0.85rem;color:var(--text);line-height:1.7">${preview}</pre>`);
+}
+
+// ─── REMINDERS REDESIGN ───────────────────────────────
 function renderReminders() {
-  // Bulk remind table
   const tbody = document.getElementById('bulk-remind-tbody');
   if (tbody) {
     const pending = DB.customers.filter(c => c.pending > 0);
     tbody.innerHTML = pending.length ? pending.map(c => {
-      const days = Math.floor((new Date() - new Date(c.date || today())) / 86400000);
+      const days = Math.floor((new Date() - new Date(c.lastSale || c.date || today())) / 86400000);
+      const phone = (c.phone||'').replace(/\D/g,'');
       return `<tr>
-        <td><strong>${c.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${c.phone || ''}</span></td>
+        <td><strong>${c.name}</strong></td>
+        <td>${c.phone||'—'}</td>
         <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
-        <td>${days}d</td>
+        <td>${days}d ago</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="editReminderCustomer('${c.id}')" style="margin-right:4px;margin-bottom:3px">Edit</button>
-          <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="quickRemind('${c.id}')">💬 Send</button>
+          <button class="btn btn-secondary btn-sm" onclick="editReminderCustomer('${c.id}')" style="margin-right:4px">✏️</button>
+          <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="sendSaleReminderWA('${c.id}')">💬 Remind</button>
         </td>
       </tr>`;
-    }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--green);padding:20px">🎉 No pending payments!</td></tr>';
+    }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--green);padding:24px">🎉 No pending payments! All clear.</td></tr>';
   }
-
-  // Templates list
   const tl = document.getElementById('templates-list');
   if (tl) {
     tl.innerHTML = [
-      { title: '💰 Pending Payment', msg: TEMPLATES.pending('[Customer]', '[Amount]') },
-      { title: '📦 Order Ready', msg: TEMPLATES.order('[Customer]') },
-    ].map(t => `<div class="card" style="margin:0">
-      <strong style="font-size:0.85rem">${t.title}</strong>
-      <p style="font-size:0.8rem;color:var(--text-dim);margin-top:8px;line-height:1.6">${t.msg}</p>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="useTemplate(\`${t.msg}\`)">📋 Use Template</button>
+      { label: '💰 Pending Reminder', key: 'pendingReminder' },
+      { label: '📦 Order Ready', key: 'orderReady' },
+    ].map(t => `<div class="card" style="margin:0;padding:14px">
+      <strong style="font-size:0.85rem">${t.label}</strong>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:8px;white-space:pre-wrap;line-height:1.5">${(getWATpl(t.key)||'').replace(/{biz}/g, DB.settings.bizName||'Meenatchi Traders').substring(0,120)}...</p>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="switchTab('reminders','templates');renderWATemplateEditor()">✏️ Customize</button>
     </div>`).join('');
   }
 }
 
-
 function editReminderCustomer(id) {
   const c = DB.customers.find(x => x.id === id);
   if (!c) return;
-
-  // Pre-fill WhatsApp custom message form with this customer's details
   set2('wa-name', c.name);
   set2('wa-phone', c.phone || '');
   set2('wa-amount', c.pending || 0);
-
-  // Auto-fill the message
   const tmpl = document.getElementById('wa-template');
   if (tmpl) tmpl.value = 'pending';
   fillTemplate();
-
-  // Scroll to the custom message card
-  const waForm = document.querySelector('#page-reminders .card');
-  if (waForm) waForm.scrollIntoView({ behavior: 'smooth' });
-
+  showPage('reminders', null);
+  switchTab('reminders','custom');
   showToast('✏️ ' + c.name + ' loaded — edit & send below', 'info');
-
-  // Also highlight the form briefly
-  const nameEl = document.getElementById('wa-name');
-  if (nameEl) {
-    nameEl.style.border = '2px solid var(--accent)';
-    setTimeout(() => { nameEl.style.border = ''; }, 2000);
-  }
 }
 
 function sendAllReminders() {
   const pending = DB.customers.filter(c => c.pending > 0);
   if (!pending.length) { showToast('No pending payments!', 'info'); return; }
-  const biz = DB.settings.bizName || 'Meenatchi Traders';
   const queue = pending.map(c => {
     const ph = (c.phone || '').replace(/\D/g,'');
-    const msg = 'Hi ' + c.name + ', you have a pending payment of Rs.' + (c.pending || 0) + ' at ' + biz + '. Please clear when convenient. Thank you!';
+    const msg = applyWATpl('pendingReminder', {
+      name: c.name, pending: c.pending || 0, date: formatDate(c.lastSale || c.date || today())
+    });
     return { name: c.name, phone: ph, msg };
   }).filter(q => q.phone.length >= 10);
-  if (!queue.length) { showToast('No phone numbers found! Add phone to customers first.', 'error'); return; }
+  if (!queue.length) { showToast('No phone numbers found!', 'error'); return; }
   startWAQueue(queue);
 }
 
-function useTemplate(msg) {
-  set2('wa-message', msg);
-  showPage('reminders', null);
-}
 
 // ─── TEA SHOP ─────────────────────────────────────────
 function calcTeaProfit() {
@@ -4285,7 +4574,8 @@ function renderTuition() {
   const stBody = document.getElementById('student-tbody');
   if (stBody) {
     stBody.innerHTML = DB.students.length ? DB.students.map(s => `<tr>
-      <td><strong>${s.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${s.class}</span></td>
+      <td><strong>${s.name}</strong></td>
+      <td><span class="badge" style="background:rgba(162,155,254,0.1);color:var(--accent4)">${s.class || '—'}</span></td>
       <td><a href="tel:${s.phone}" style="color:var(--accent4)">${s.phone || '—'}</a></td>
       <td>${formatCurrency(s.fees)}</td>
       <td class="text-green">${formatCurrency(s.paid)}</td>
@@ -4302,7 +4592,7 @@ function renderTuition() {
           <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')" style="padding:3px 6px">🗑</button>
         </div>
       </td>
-    </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state">🎓<p>No students yet. Add a student to begin.</p></div></td></tr>';
+    </tr>`).join('') : '<tr><td colspan="7"><div class="empty-state">🎓<p>No students yet. Add a student to begin.</p></div></td></tr>';
   }
 
   const sfBody = document.getElementById('staff-tbody');
@@ -4329,6 +4619,102 @@ function renderTuition() {
       </tr>`;
     }).join('') : '<tr><td colspan="6"><div class="empty-state">👨‍🏫<p>No staff added yet.</p></div></td></tr>';
   }
+}
+
+function renderTuitionSummary() {
+  const students = appData.tuition?.students || [];
+  const staff = appData.tuition?.staff || [];
+
+  // --- Class Summary Table ---
+  const classOrder = ['KG','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+  const classMap = {};
+  students.forEach(s => {
+    const cls = s.class || 'Unknown';
+    if (!classMap[cls]) classMap[cls] = { students: 0, totalFees: 0, paidCount: 0, balanceCount: 0, collected: 0, pending: 0 };
+    const m = classMap[cls];
+    m.students++;
+    m.totalFees += Number(s.monthlyFee || 0);
+    const paid = Number(s.paidAmount || 0);
+    const due = Number(s.monthlyFee || 0) - paid;
+    if (due <= 0) m.paidCount++; else m.balanceCount++;
+    m.collected += paid;
+    m.pending += Math.max(0, due);
+  });
+
+  const sortedClasses = Object.keys(classMap).sort((a, b) => {
+    const ia = classOrder.indexOf(a), ib = classOrder.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  let totalStudents = 0, totalFees = 0, totalCollected = 0, totalPending = 0;
+  const summaryRows = sortedClasses.map(cls => {
+    const m = classMap[cls];
+    totalStudents += m.students;
+    totalFees += m.totalFees;
+    totalCollected += m.collected;
+    totalPending += m.pending;
+    const pct = m.totalFees > 0 ? Math.round((m.collected / m.totalFees) * 100) : 0;
+    return `<tr>
+      <td><span class="badge badge-info">${cls}</span></td>
+      <td>${m.students}</td>
+      <td>₹${m.totalFees.toLocaleString()}</td>
+      <td><span class="badge badge-success">${m.paidCount}</span></td>
+      <td><span class="badge badge-danger">${m.balanceCount}</span></td>
+      <td>₹${m.collected.toLocaleString()}</td>
+      <td>₹${m.pending.toLocaleString()}</td>
+      <td><div style="background:#e9ecef;border-radius:4px;height:10px;width:100px;display:inline-block;vertical-align:middle"><div style="background:#28a745;height:10px;border-radius:4px;width:${pct}%"></div></div> <small>${pct}%</small></td>
+    </tr>`;
+  });
+  const totalPct = totalFees > 0 ? Math.round((totalCollected / totalFees) * 100) : 0;
+  summaryRows.push(`<tr style="font-weight:bold;background:#f8f9fa">
+    <td>TOTAL</td><td>${totalStudents}</td><td>₹${totalFees.toLocaleString()}</td>
+    <td>${students.filter(s=>Number(s.monthlyFee||0)-Number(s.paidAmount||0)<=0).length}</td>
+    <td>${students.filter(s=>Number(s.monthlyFee||0)-Number(s.paidAmount||0)>0).length}</td>
+    <td>₹${totalCollected.toLocaleString()}</td><td>₹${totalPending.toLocaleString()}</td>
+    <td><div style="background:#e9ecef;border-radius:4px;height:10px;width:100px;display:inline-block;vertical-align:middle"><div style="background:#28a745;height:10px;border-radius:4px;width:${totalPct}%"></div></div> <small>${totalPct}%</small></td>
+  </tr>`);
+
+  const summaryTbody = document.getElementById('tuition-summary-tbody');
+  if (summaryTbody) summaryTbody.innerHTML = summaryRows.join('');
+
+  // --- Staff Salary Table ---
+  let staffTotalSalary = 0, staffTotalPaid = 0, staffTotalDue = 0;
+  const staffRows = staff.map(st => {
+    const salary = Number(st.salary || 0);
+    const paid = Number(st.paidSalary || 0);
+    const due = salary - paid;
+    staffTotalSalary += salary;
+    staffTotalPaid += paid;
+    staffTotalDue += Math.max(0, due);
+    const status = due <= 0
+      ? '<span class="badge badge-success">Paid</span>'
+      : '<span class="badge badge-danger">Due</span>';
+    return `<tr>
+      <td>${st.name || '-'}</td>
+      <td>${st.subject || '-'}</td>
+      <td>${st.class || '-'}</td>
+      <td>₹${salary.toLocaleString()}</td>
+      <td>₹${paid.toLocaleString()}</td>
+      <td>₹${Math.max(0,due).toLocaleString()}</td>
+      <td>${status}</td>
+    </tr>`;
+  });
+  if (staffRows.length === 0) {
+    staffRows.push('<tr><td colspan="7"><div class="empty-state">👨‍🏫<p>No staff added yet.</p></div></td></tr>');
+  } else {
+    staffRows.push(`<tr style="font-weight:bold;background:#f8f9fa">
+      <td colspan="3">TOTAL</td>
+      <td>₹${staffTotalSalary.toLocaleString()}</td>
+      <td>₹${staffTotalPaid.toLocaleString()}</td>
+      <td>₹${staffTotalDue.toLocaleString()}</td>
+      <td></td>
+    </tr>`);
+  }
+  const staffTbody = document.getElementById('tuition-staff-summary-tbody');
+  if (staffTbody) staffTbody.innerHTML = staffRows.join('');
 }
 
 function collectFees(studentId) {
@@ -7093,7 +7479,7 @@ function renderMonthlyTrends() {
         <td class="text-green">${formatCurrency(d.received)}</td>
         <td class="text-red">${formatCurrency(d.pending)}</td>
         <td style="color:var(--green)">${formatCurrency(d.profit)}</td>
-        <td>${change !== null ? `<span style="color:${parseFloat(change)>=0?'var(--green)':'var(--red)'">${parseFloat(change)>=0?'▲':'▼'} ${Math.abs(change)}%</span>` : '—'}</td>
+        <td>${change !== null ? '<span style="color:' + (parseFloat(change)>=0?'var(--green)':'var(--red)') + '">' + (parseFloat(change)>=0?'▲':'▼') + ' ' + Math.abs(change) + '%</span>' : '—'}</td>
       </tr>`;
     }).join('') || '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--text-dim)">No data</td></tr>';
   }

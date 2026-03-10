@@ -525,54 +525,123 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   </div>
 
   <div class="tab-content" id="products-add">
+    <input type="hidden" id="p-edit-id">
+
+    <!-- SECTION 1: Bulk Purchase Details -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title" id="prod-form-title">Add Product</span>
+        <span class="card-title" id="prod-form-title">📦 Bulk Purchase Details</span>
         <span id="prod-edit-badge" style="display:none;background:rgba(247,201,72,0.15);color:var(--accent);border:1px solid rgba(247,201,72,0.3);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">✏️ EDITING</span>
       </div>
-      <input type="hidden" id="p-edit-id">
       <div class="form-grid">
-        <div class="form-group"><label>Product Name</label><input type="text" id="p-name" placeholder="e.g. Tea n31 250g"></div>
-        <div class="form-group"><label>Category</label><select id="p-cat"><option>Tea</option><option>Nattu Sakkarai</option><option>Scrubber</option><option>MCS Items</option><option>Other</option></select></div>
-        <div class="form-group"><label>Purchase Quantity</label><input type="number" id="p-qty" placeholder="0" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Purchase Price (₹)</label><input type="number" id="p-buy" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Shipping Cost (₹)</label><input type="number" id="p-ship" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Sticker Cost / unit (₹)</label><input type="number" id="p-sticker" placeholder="0.00" step="0.01" oninput="calcProductCost()" title="Cost of label/sticker per unit"></div>
-        <div class="form-group"><label>Pack / Cover Cost / unit (₹)</label><input type="number" id="p-pack" placeholder="0.00" step="0.01" oninput="calcProductCost()" title="Box, cover, bag cost per unit"></div>
-        <div class="form-group"><label>Total Cost (₹)</label><input type="number" id="p-total" placeholder="Auto" readonly style="opacity:0.6"></div>
-        <div class="form-group"><label>Full CPU (incl. sticker+pack) ₹</label><input type="number" id="p-cpu" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent)"></div>
-        <div class="form-group"><label>Selling Price (₹)</label><input type="number" id="p-sell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
-        <div class="form-group"><label>Reseller Price (₹)</label><input type="number" id="p-resell" placeholder="0.00" step="0.01" oninput="calcProductProfit()" title="Special price for resellers"></div>
-        <div class="form-group"><label>Profit per Unit (₹)</label><input type="number" id="p-profit" placeholder="Auto" readonly style="opacity:0.6;color:var(--green)"></div>
-        <div class="form-group"><label>Reseller Profit / unit (₹)</label><input type="number" id="p-resprofit" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent4)"></div>
-        <div class="form-group"><label>Low Stock Alert At</label><input type="number" id="p-alert" placeholder="10"></div>
-        <div class="form-group"><label>Unit Type</label><select id="p-unit"><option>pcs</option><option>kg</option><option>g</option><option>packs</option><option>bottles</option></select></div>
-      </div>
-
-      <!-- Stock info shown only when editing -->
-      <div id="p-stock-info" style="display:none;margin-top:4px"></div>
-
-      <!-- Add Stock field - shown always, useful when editing -->
-      <div style="margin-top:14px;padding:14px 16px;background:rgba(85,239,196,0.06);border:1px solid rgba(85,239,196,0.2);border-radius:var(--radius-sm)">
-        <div style="font-size:0.75rem;color:var(--green);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">➕ Add Stock (When Editing)</div>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:160px;margin:0">
-            <label style="color:var(--text-dim)">Add Quantity to Current Stock</label>
-            <input type="number" id="p-add-stock" placeholder="e.g. 50 (leave 0 if not adding)" min="0">
+        <div class="form-group"><label>Product Base Name</label><input type="text" id="p-name" placeholder="e.g. Tea n31, Nattu Sakkarai" oninput="calcProductCost()"></div>
+        <div class="form-group">
+          <label>Category</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="p-cat" style="flex:1"></select>
+            <button type="button" onclick="showAddCategoryInline()" title="Add new category"
+              style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:8px;padding:7px 11px;cursor:pointer;font-size:1rem;white-space:nowrap">＋</button>
           </div>
-          <div style="padding-top:18px">
-            <button class="btn btn-success btn-sm" onclick="quickAddStock()" style="white-space:nowrap">
-              ➕ Add Stock Only
-            </button>
+          <div id="new-cat-row" style="display:none;margin-top:6px;display:none">
+            <div style="display:flex;gap:6px">
+              <input type="text" id="new-cat-input" placeholder="e.g. Honey, Spices..."
+                style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--accent4);border-radius:8px;padding:6px 10px;font-size:0.85rem"
+                onkeydown="if(event.key==='Enter')saveNewCategory()">
+              <button onclick="saveNewCategory()" class="btn btn-primary btn-sm">Add</button>
+              <button onclick="hideAddCategoryInline()" class="btn btn-secondary btn-sm">✕</button>
+            </div>
           </div>
         </div>
-        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:6px">💡 When editing, enter a number here to add that many units to the current balance. Leave at 0 to update details only.</p>
+        <div class="form-group">
+          <label>Purchase Quantity</label>
+          <div style="display:flex;gap:6px">
+            <input type="number" id="p-qty" placeholder="e.g. 10" oninput="calcProductCost()" style="flex:1">
+            <select id="p-bulk-unit" onchange="calcProductCost()" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="ml">ml</option>
+              <option value="l">L</option>
+              <option value="pcs">pcs</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Purchase Price (₹ total)</label><input type="number" id="p-buy" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Shipping Cost (₹ total)</label><input type="number" id="p-ship" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Total Cost (₹)</label><input type="number" id="p-total" placeholder="Auto" readonly style="opacity:0.6"></div>
       </div>
+      <!-- Cost per unit breakdown -->
+      <div id="p-cost-breakdown" style="margin-top:10px;padding:12px 16px;background:rgba(247,201,72,0.06);border:1px solid rgba(247,201,72,0.2);border-radius:10px;font-size:0.82rem;display:none">
+        <strong style="color:var(--accent)">📊 Cost Breakdown</strong>
+        <div id="p-cost-breakdown-content" style="margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px"></div>
+      </div>
+    </div>
 
-      <div class="form-actions" style="margin-top:14px">
-        <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">Save Product</button>
-        <button class="btn btn-secondary" onclick="clearProductForm()">Clear</button>
+    <!-- SECTION 2: Pack Variants -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🎁 Pack Variants (500g, 250g, 100g...)</span>
+        <button class="btn btn-primary btn-sm" onclick="addPackVariant()">+ Add Pack Size</button>
       </div>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:14px">Each pack size gets its own cost per unit (based on weight/qty), sticker, cover — and sell & reseller price.</p>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:720px">
+          <thead>
+            <tr style="background:rgba(162,155,254,0.08)">
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:left">Pack Size</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:left">Unit</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Base CPU ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Sticker ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Cover ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Full CPU ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Sell ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Reseller ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Profit ₹</th>
+              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Stock</th>
+              <th style="padding:8px;width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="pack-variants-tbody"></tbody>
+        </table>
+      </div>
+      <p style="font-size:0.72rem;color:var(--text-dim);margin-top:10px">💡 Base CPU is auto-calculated from bulk purchase cost ÷ pack size. Add sticker & cover to get Full CPU.</p>
+    </div>
+
+    <!-- SECTION 3: Single Unit Product (for items like Scrubber, MCS) -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">🔹 Single Unit Product</span><span style="font-size:0.75rem;color:var(--text-dim)">Use this if product is sold as individual units (not pack variants)</span></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Sticker Cost / unit (₹)</label><input type="number" id="p-sticker" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Pack / Cover Cost / unit (₹)</label><input type="number" id="p-pack" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Full CPU (₹)</label><input type="number" id="p-cpu" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent)"></div>
+        <div class="form-group"><label>Selling Price (₹)</label><input type="number" id="p-sell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
+        <div class="form-group"><label>Reseller Price (₹)</label><input type="number" id="p-resell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
+        <div class="form-group"><label>Profit / unit (₹)</label><input type="number" id="p-profit" placeholder="Auto" readonly style="opacity:0.6;color:var(--green)"></div>
+        <div class="form-group"><label>Reseller Profit / unit (₹)</label><input type="number" id="p-resprofit" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent4)"></div>
+        <div class="form-group"><label>Low Stock Alert At</label><input type="number" id="p-alert" placeholder="10"></div>
+        <div class="form-group"><label>Unit</label><select id="p-unit"><option>pcs</option><option>kg</option><option>g</option><option>packs</option><option>bottles</option></select></div>
+      </div>
+    </div>
+
+    <!-- Stock info (edit mode) -->
+    <div id="p-stock-info" style="display:none;margin-top:4px"></div>
+
+    <!-- Add Stock -->
+    <div class="card" style="background:rgba(85,239,196,0.04);border:1px solid rgba(85,239,196,0.2)">
+      <div class="card-header"><span class="card-title" style="color:var(--green)">➕ Add Stock</span><span style="font-size:0.75rem;color:var(--text-dim)">Use when editing an existing product</span></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="form-group" style="flex:1;min-width:160px;margin:0">
+          <label style="color:var(--text-dim)">Quantity to Add</label>
+          <input type="number" id="p-add-stock" placeholder="e.g. 50" min="0">
+        </div>
+        <div style="padding-top:18px">
+          <button class="btn btn-success btn-sm" onclick="quickAddStock()">➕ Add Stock Only</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions" style="margin-top:14px">
+      <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">💾 Save Product</button>
+      <button class="btn btn-secondary" onclick="clearProductForm()">Clear</button>
     </div>
   </div>
 
@@ -1822,6 +1891,26 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <button id="pwa-install-btn" class="btn btn-primary" style="margin-top:12px;display:none" onclick="installPWA()">Install App</button>
   </div>
 
+  <!-- ══ CATEGORY MANAGER ══ -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🏷️ Product Categories</span>
+      <button class="btn btn-primary btn-sm" onclick="showAddCategoryFromSettings()">＋ Add Category</button>
+    </div>
+    <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:14px">Manage categories shown in the product form. You can add new ones, rename existing ones, or delete unused ones.</p>
+    <!-- Inline add from settings -->
+    <div id="settings-cat-add" style="display:none;margin-bottom:14px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="settings-cat-input" placeholder="New category name..."
+          style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--accent4);border-radius:8px;padding:8px 12px;font-size:0.85rem"
+          onkeydown="if(event.key==='Enter')saveNewCategoryFromSettings()">
+        <button class="btn btn-primary" onclick="saveNewCategoryFromSettings()">Add</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('settings-cat-add').style.display='none'">Cancel</button>
+      </div>
+    </div>
+    <div id="cat-manager-list"></div>
+  </div>
+
   <div class="card">
     <div class="card-header"><span class="card-title">Data Management & Backup</span></div>
     <div style="margin-bottom:14px;padding:12px;background:rgba(78,205,196,0.07);border:1px solid rgba(78,205,196,0.2);border-radius:10px">
@@ -2009,6 +2098,7 @@ let DB = {
     sheetTabs: 'DAILY SALES,MCS,SCRUBER,Tuition,Tean31,Selling TEA'
   },
   invoiceCounter: 1001,
+  categories: ['Tea', 'Nattu Sakkarai', 'Scrubber', 'MCS', 'Other'],
   productRules: [],
   profitTargets: [],
   waTemplates: {
@@ -2023,6 +2113,8 @@ let DB = {
 // ─── INIT ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
+  if (!DB.categories || !DB.categories.length) DB.categories = ['Tea','Nattu Sakkarai','Scrubber','MCS','Other'];
+  populateCategoryDropdown('p-cat');
   setDefaultDates();
   renderDashboard();
   renderProductTable();
@@ -2401,6 +2493,7 @@ function showPage(id, el, isMobile = false) {
 
   // Built-in page renders
   if (id === 'dashboard')    { renderDashboard(); }
+  if (id === 'products')    { populateCategoryDropdown('p-cat'); }
   if (id === 'reports')      { generateProductReport(); generateCustomerPendingReport(); generateTuitionReport(); }
 
   // New intelligence & CRM modules
@@ -2411,7 +2504,7 @@ function showPage(id, el, isMobile = false) {
   if (id === 'custrem') { setTimeout(renderCustomerReminders, 80); }
   if (id === 'bulkwa')        { setTimeout(renderBulkWhatsApp, 80); }
   if (id === 'profittarget')  { setTimeout(renderProfitTarget, 80); }
-  if (id === 'settings')      { setTimeout(renderBackupStatus, 80); }
+  if (id === 'settings')      { setTimeout(renderBackupStatus, 80); setTimeout(renderCategoryManager, 80); }
 }
 
 function toggleSidebar() {
@@ -2649,17 +2742,68 @@ function renderRecentOrders() {
 }
 
 // ─── PRODUCTS ─────────────────────────────────────────
+// ── Pack Variants state ──
+let _packVariants = [];  // [{id, size, sizeUnit, sticker, cover, sellPrice, resellerPrice, stock}]
+
+function getPerGramCost() {
+  const qty = +v('p-qty') || 0;
+  const buy = +v('p-buy') || 0;
+  const ship = +v('p-ship') || 0;
+  const bulkUnit = v('p-bulk-unit') || 'kg';
+  if (!qty) return 0;
+  const totalCost = buy + ship;
+  // convert everything to grams / ml base
+  let baseQtyInG = qty;
+  if (bulkUnit === 'kg') baseQtyInG = qty * 1000;
+  else if (bulkUnit === 'l') baseQtyInG = qty * 1000;
+  else if (bulkUnit === 'g' || bulkUnit === 'ml') baseQtyInG = qty;
+  else baseQtyInG = qty; // pcs — 1:1
+  return baseQtyInG > 0 ? totalCost / baseQtyInG : 0;
+}
+
 function calcProductCost() {
-  const qty = +v('p-qty') || 1;
+  const qty = +v('p-qty') || 0;
   const buy = +v('p-buy') || 0;
   const ship = +v('p-ship') || 0;
   const sticker = +v('p-sticker') || 0;
   const pack = +v('p-pack') || 0;
   const total = buy + ship;
-  const baseCpu = total / qty;
-  const fullCpu = baseCpu + sticker + pack;  // full cost including sticker & pack per unit
+  const bulkUnit = v('p-bulk-unit') || 'kg';
+
   set2('p-total', total.toFixed(2));
-  set2('p-cpu', fullCpu.toFixed(2));
+
+  // Per-gram/ml cost for display
+  const pgCost = getPerGramCost();
+
+  // Show cost breakdown panel
+  const brkDiv = document.getElementById('p-cost-breakdown');
+  const brkContent = document.getElementById('p-cost-breakdown-content');
+  if (brkDiv && pgCost > 0) {
+    brkDiv.style.display = 'block';
+    const unitLabel = (bulkUnit === 'kg' || bulkUnit === 'l') ? 'g/ml' : bulkUnit;
+    brkContent.innerHTML = [
+      {label:'Per ' + unitLabel, val: pgCost},
+      {label:'Per 100g/ml', val: pgCost * 100},
+      {label:'Per 250g/ml', val: pgCost * 250},
+      {label:'Per 500g/ml', val: pgCost * 500},
+      {label:'Per 1kg/L', val: pgCost * 1000},
+    ].map(x => `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 12px;text-align:center">
+        <div style="font-size:0.7rem;color:var(--text-dim)">${x.label}</div>
+        <div style="font-weight:700;color:var(--accent);font-size:0.9rem">₹${x.val.toFixed(2)}</div>
+      </div>`).join('');
+  } else if (brkDiv) {
+    brkDiv.style.display = 'none';
+  }
+
+  // For single-unit section (pcs products like scrubber/MCS)
+  if (qty > 0) {
+    const baseCpu = total / qty;
+    const fullCpu = baseCpu + sticker + pack;
+    set2('p-cpu', fullCpu.toFixed(2));
+  }
+
+  // Recalc all pack variant rows
+  recalcPackVariants();
   calcProductProfit();
 }
 
@@ -2672,6 +2816,93 @@ function calcProductProfit() {
   else set2('p-resprofit', '');
 }
 
+function addPackVariant() {
+  const id = 'pv' + Date.now();
+  _packVariants.push({ id, size: '', sizeUnit: 'g', sticker: 0, cover: 0, sellPrice: 0, resellerPrice: 0, stock: 0 });
+  renderPackVariants();
+}
+
+function removePackVariant(id) {
+  _packVariants = _packVariants.filter(v => v.id !== id);
+  renderPackVariants();
+}
+
+function onPackVariantInput(el, id, field) {
+  const pv = _packVariants.find(x => x.id === id);
+  if (!pv) return;
+  pv[field] = field === 'sizeUnit' ? el.value : (parseFloat(el.value) || 0);
+  recalcPackVariants();
+}
+
+function recalcPackVariants() {
+  const pgCost = getPerGramCost();
+  const bulkUnit = v('p-bulk-unit') || 'kg';
+  const isPcs = (bulkUnit === 'pcs');
+  _packVariants.forEach(pv => {
+    // base CPU for this pack = cost_per_gram * pack_size_in_grams
+    let baseCpu = 0;
+    if (isPcs) {
+      // for pcs products use flat per-unit cost
+      const qty = +v('p-qty') || 1;
+      const total = (+v('p-buy') || 0) + (+v('p-ship') || 0);
+      baseCpu = total / qty;
+    } else {
+      // convert pack size to grams/ml
+      let sizeG = pv.size;
+      if (pv.sizeUnit === 'kg' || pv.sizeUnit === 'l') sizeG = pv.size * 1000;
+      else if (pv.sizeUnit === 'pcs') sizeG = pv.size;
+      baseCpu = pgCost * sizeG;
+    }
+    pv.baseCpu = baseCpu;
+    pv.fullCpu = baseCpu + (pv.sticker || 0) + (pv.cover || 0);
+    pv.profit = pv.sellPrice > 0 ? pv.sellPrice - pv.fullCpu : 0;
+    pv.resellerProfit = pv.resellerPrice > 0 ? pv.resellerPrice - pv.fullCpu : 0;
+  });
+  renderPackVariants();
+}
+
+function renderPackVariants() {
+  const tbody = document.getElementById('pack-variants-tbody');
+  if (!tbody) return;
+  if (!_packVariants.length) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:18px;color:var(--text-dim);font-size:0.8rem">No pack variants yet — click "+ Add Pack Size"</td></tr>';
+    return;
+  }
+  const unitOpts = ['g','ml','kg','l','pcs'].map(u => `<option value="${u}">${u}</option>`).join('');
+  tbody.innerHTML = _packVariants.map(pv => {
+    const profitColor = pv.profit > 0 ? 'var(--green)' : pv.profit < 0 ? 'var(--red)' : 'var(--text-dim)';
+    const inp = (field, val, w, placeholder) =>
+      `<input type="number" value="${val||''}" placeholder="${placeholder||'0'}" step="0.01"
+        onchange="onPackVariantInput(this,'${pv.id}','${field}')"
+        style="width:${w}px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.8rem;text-align:right">`;
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:6px 8px">
+        <input type="number" value="${pv.size||''}" placeholder="e.g. 500"
+          onchange="onPackVariantInput(this,'${pv.id}','size')"
+          style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.8rem;text-align:right">
+      </td>
+      <td style="padding:6px 6px">
+        <select onchange="onPackVariantInput(this,'${pv.id}','sizeUnit')"
+          style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.8rem">
+          ${['g','ml','kg','l','pcs'].map(u=>`<option value="${u}"${pv.sizeUnit===u?' selected':''}>${u}</option>`).join('')}
+        </select>
+      </td>
+      <td style="padding:6px 8px;text-align:right;color:var(--accent);font-size:0.8rem">₹${(pv.baseCpu||0).toFixed(3)}</td>
+      <td style="padding:6px 6px">${inp('sticker',pv.sticker,68,'0.00')}</td>
+      <td style="padding:6px 6px">${inp('cover',pv.cover,68,'0.00')}</td>
+      <td style="padding:6px 8px;text-align:right;color:var(--accent);font-weight:700;font-size:0.82rem">₹${(pv.fullCpu||0).toFixed(2)}</td>
+      <td style="padding:6px 6px">${inp('sellPrice',pv.sellPrice,75,'0.00')}</td>
+      <td style="padding:6px 6px">${inp('resellerPrice',pv.resellerPrice,75,'0.00')}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${profitColor};font-size:0.82rem">₹${(pv.profit||0).toFixed(2)}</td>
+      <td style="padding:6px 6px">${inp('stock',pv.stock,60,'0')}</td>
+      <td style="padding:6px 4px;text-align:center">
+        <button onclick="removePackVariant('${pv.id}')"
+          style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:0.8rem">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
 function saveProduct() {
   const name = v('p-name');
   if (!name.trim()) { showToast('Product name required!', 'error'); return; }
@@ -2681,11 +2912,15 @@ function saveProduct() {
   const ship = +v('p-ship') || 0;
   const sticker = +v('p-sticker') || 0;
   const pack = +v('p-pack') || 0;
+  const bulkUnit = v('p-bulk-unit') || 'kg';
   const total = buy + ship;
   const baseCpu = qty ? total / qty : 0;
-  const cpu = baseCpu + sticker + pack;   // full CPU including sticker & pack
+  const cpu = baseCpu + sticker + pack;
   const sell = +v('p-sell') || 0;
   const resellerPrice = +v('p-resell') || 0;
+  // Recalc variants before saving to ensure fresh numbers
+  recalcPackVariants();
+  const packVariants = _packVariants.map(pv => ({...pv}));
 
   if (editId) {
     // UPDATE existing product
@@ -2700,12 +2935,13 @@ function saveProduct() {
       const newBalance = existing.balance + addStock;
       DB.products[idx] = {
         ...existing, name, category: v('p-cat'),
-        buyQty: qty, buyPrice: buy, shipCost: ship,
+        buyQty: qty, buyPrice: buy, shipCost: ship, bulkUnit,
         stickerCost: sticker, packCost: pack,
         totalCost: total, cpu, sellPrice: sell,
         resellerPrice,
         profitPerUnit: sell - cpu,
         resellerProfit: resellerPrice > 0 ? resellerPrice - cpu : 0,
+        packVariants,
         stock: newStock,
         balance: newBalance,
         alertAt: +v('p-alert') || 10,
@@ -2745,17 +2981,20 @@ function saveProduct() {
     }
   } else {
     // ADD new product
+    // Use total stock from pack variants if any, else qty
+    const totalPackStock = packVariants.length ? packVariants.reduce((a,pv) => a + (pv.stock||0), 0) : qty;
     const prod = {
       id: uid(), name, category: v('p-cat'),
-      buyQty: qty, buyPrice: buy, shipCost: ship,
+      buyQty: qty, buyPrice: buy, shipCost: ship, bulkUnit,
       stickerCost: sticker, packCost: pack,
       totalCost: total, cpu, sellPrice: sell,
       resellerPrice,
       profitPerUnit: sell - cpu,
       resellerProfit: resellerPrice > 0 ? resellerPrice - cpu : 0,
-      stock: qty, sold: 0, balance: qty,
+      packVariants,
+      stock: totalPackStock, sold: 0, balance: totalPackStock,
       alertAt: +v('p-alert') || 10,
-      unit: v('p-unit') || 'pcs'
+      unit: packVariants.length ? 'packs' : (v('p-unit') || 'pcs')
     };
     DB.products.push(prod);
     showToast('Product saved!', 'success');
@@ -2819,9 +3058,14 @@ function editProduct(id) {
   set2('p-profit', p.profitPerUnit ? p.profitPerUnit.toFixed(2) : '');
   set2('p-resprofit', p.resellerProfit ? p.resellerProfit.toFixed(2) : '');
   set2('p-alert', p.alertAt);
-  set2('p-add-stock', '');  // clear add-stock field
+  set2('p-add-stock', '');
   const unit = document.getElementById('p-unit');
   if (unit) unit.value = p.unit;
+  const bulkUnitEl = document.getElementById('p-bulk-unit');
+  if (bulkUnitEl) bulkUnitEl.value = p.bulkUnit || 'kg';
+  // Load pack variants
+  _packVariants = p.packVariants ? p.packVariants.map(pv => ({...pv})) : [];
+  recalcPackVariants();
   // Show current stock info
   const stockInfo = document.getElementById('p-stock-info');
   if (stockInfo) {
@@ -2852,29 +3096,70 @@ function renderProductTable() {
     tbody.innerHTML = `<tr><td colspan="15" style="padding:32px"><div class="empty-state">📦<p>No products yet. Add your first product!</p></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = DB.products.map(p => {
+  let rows = [];
+  DB.products.forEach(p => {
     const isLow = p.balance <= p.alertAt;
-    return `<tr>
-      <td><strong>${p.name}</strong><br><span class="text-dim" style="font-size:0.7rem">${p.category}</span></td>
-      <td>${p.buyQty} ${p.unit}</td>
-      <td>${formatCurrency(p.buyPrice)}</td>
-      <td>${formatCurrency(p.shipCost)}</td>
-      <td>${p.stickerCost > 0 ? formatCurrency(p.stickerCost) : '—'}</td>
-      <td>${p.packCost > 0 ? formatCurrency(p.packCost) : '—'}</td>
-      <td style="color:var(--accent)">${formatCurrency(p.cpu)}</td>
-      <td class="text-green">${formatCurrency(p.sellPrice)}</td>
-      <td>${p.resellerPrice > 0 ? formatCurrency(p.resellerPrice) : '—'}</td>
-      <td class="highlight">${formatCurrency(p.profitPerUnit)}</td>
-      <td>${p.stock}</td>
-      <td>${p.sold || 0}</td>
-      <td><strong>${p.balance}</strong></td>
-      <td>${isLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" title="Edit Product" style="margin-right:4px;margin-bottom:2px">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" title="Delete">Del</button>
-      </td>
-    </tr>`;
-  }).join('');
+    if (p.packVariants && p.packVariants.length) {
+      // Parent row
+      rows.push(`<tr style="background:rgba(247,201,72,0.05)">
+        <td colspan="12" style="padding:8px 12px">
+          <strong style="color:var(--accent)">${p.name}</strong>
+          <span style="font-size:0.72rem;color:var(--text-dim);margin-left:8px">${p.category} · ${p.buyQty}${p.bulkUnit||'kg'} @ ₹${p.buyPrice} + Ship ₹${p.shipCost} = ₹${p.totalCost} total · ₹${(getPerGramCostForProduct(p)).toFixed(4)}/g</span>
+        </td>
+        <td colspan="3" style="padding:8px 12px;text-align:right">
+          <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button>
+        </td>
+      </tr>`);
+      // Variant rows
+      p.packVariants.forEach(pv => {
+        const pvLow = pv.stock <= (p.alertAt || 5);
+        const profitColor = (pv.profit||0) > 0 ? 'var(--green)' : 'var(--red)';
+        rows.push(`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:6px 12px 6px 24px">
+            <span style="color:var(--text-dim);font-size:0.7rem">↳</span>
+            <strong>${p.name} ${pv.size}${pv.sizeUnit}</strong>
+          </td>
+          <td>${pv.size}${pv.sizeUnit}</td>
+          <td>${formatCurrency(p.buyPrice)}</td>
+          <td>${formatCurrency(p.shipCost)}</td>
+          <td>${pv.sticker > 0 ? formatCurrency(pv.sticker) : '—'}</td>
+          <td>${pv.cover > 0 ? formatCurrency(pv.cover) : '—'}</td>
+          <td style="color:var(--accent)">${formatCurrency(pv.fullCpu||0)}</td>
+          <td class="text-green">${formatCurrency(pv.sellPrice)}</td>
+          <td>${pv.resellerPrice > 0 ? formatCurrency(pv.resellerPrice) : '—'}</td>
+          <td style="color:${profitColor};font-weight:700">${formatCurrency(pv.profit||0)}</td>
+          <td>${pv.stock||0}</td>
+          <td>0</td>
+          <td><strong>${pv.stock||0}</strong></td>
+          <td>${pvLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
+          <td></td>
+        </tr>`);
+      });
+    } else {
+      rows.push(`<tr>
+        <td><strong>${p.name}</strong><br><span class="text-dim" style="font-size:0.7rem">${p.category}</span></td>
+        <td>${p.buyQty} ${p.unit}</td>
+        <td>${formatCurrency(p.buyPrice)}</td>
+        <td>${formatCurrency(p.shipCost)}</td>
+        <td>${p.stickerCost > 0 ? formatCurrency(p.stickerCost) : '—'}</td>
+        <td>${p.packCost > 0 ? formatCurrency(p.packCost) : '—'}</td>
+        <td style="color:var(--accent)">${formatCurrency(p.cpu)}</td>
+        <td class="text-green">${formatCurrency(p.sellPrice)}</td>
+        <td>${p.resellerPrice > 0 ? formatCurrency(p.resellerPrice) : '—'}</td>
+        <td class="highlight">${formatCurrency(p.profitPerUnit)}</td>
+        <td>${p.stock}</td>
+        <td>${p.sold || 0}</td>
+        <td><strong>${p.balance}</strong></td>
+        <td>${isLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" style="margin-right:4px;margin-bottom:2px">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button>
+        </td>
+      </tr>`);
+    }
+  });
+  tbody.innerHTML = rows.join('');
 
   renderStockHealthGrid();
 }
@@ -2936,6 +3221,15 @@ function promptAddStock(id) {
   addStockToProduct(id, qty);
 }
 
+function getPerGramCostForProduct(p) {
+  if (!p || !p.buyQty || !p.totalCost) return 0;
+  const bulkUnit = p.bulkUnit || 'kg';
+  let baseQtyInG = p.buyQty;
+  if (bulkUnit === 'kg') baseQtyInG = p.buyQty * 1000;
+  else if (bulkUnit === 'l') baseQtyInG = p.buyQty * 1000;
+  return baseQtyInG > 0 ? p.totalCost / baseQtyInG : 0;
+}
+
 function renderStockHealthGrid() {
   const el = document.getElementById('stock-health-grid');
   if (!el) return;
@@ -2967,10 +3261,123 @@ function clearProductForm() {
   const title = document.getElementById('prod-form-title');
   const btn = document.getElementById('prod-save-btn');
   const stockInfo = document.getElementById('p-stock-info');
+  const brkDiv = document.getElementById('p-cost-breakdown');
   if (badge) badge.style.display = 'none';
   if (title) title.textContent = 'Add Product';
   if (btn) btn.innerHTML = '💾 Save Product';
   if (stockInfo) stockInfo.style.display = 'none';
+  if (brkDiv) brkDiv.style.display = 'none';
+  const bulkUnitEl = document.getElementById('p-bulk-unit');
+  if (bulkUnitEl) bulkUnitEl.value = 'kg';
+  _packVariants = [];
+  renderPackVariants();
+  populateCategoryDropdown('p-cat');
+}
+
+// ─── CATEGORIES ───────────────────────────────────────
+function populateCategoryDropdown(selectId, selectedVal) {
+  if (!DB.categories) DB.categories = ['Tea','Nattu Sakkarai','Scrubber','MCS','Other'];
+  const el = document.getElementById(selectId || 'p-cat');
+  if (!el) return;
+  const cur = selectedVal || el.value;
+  el.innerHTML = DB.categories.map(c => `<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
+  if (cur && DB.categories.includes(cur)) el.value = cur;
+}
+
+function showAddCategoryInline() {
+  const row = document.getElementById('new-cat-row');
+  if (row) { row.style.display = 'block'; document.getElementById('new-cat-input')?.focus(); }
+}
+
+function hideAddCategoryInline() {
+  const row = document.getElementById('new-cat-row');
+  if (row) row.style.display = 'none';
+  const inp = document.getElementById('new-cat-input');
+  if (inp) inp.value = '';
+}
+
+function saveNewCategory() {
+  const inp = document.getElementById('new-cat-input');
+  const name = (inp?.value || '').trim();
+  if (!name) { showToast('Enter a category name!', 'error'); return; }
+  if (!DB.categories) DB.categories = [];
+  if (DB.categories.map(c=>c.toLowerCase()).includes(name.toLowerCase())) {
+    showToast('Category already exists!', 'error'); return;
+  }
+  DB.categories.push(name);
+  saveData();
+  populateCategoryDropdown('p-cat', name);
+  hideAddCategoryInline();
+  renderCategoryManager();
+  showToast('✅ Category "' + name + '" added!', 'success');
+}
+
+function deleteCategory(name) {
+  const used = DB.products.some(p => p.category === name);
+  if (used) { showToast('Cannot delete — products use this category!', 'error'); return; }
+  DB.categories = DB.categories.filter(c => c !== name);
+  saveData();
+  populateCategoryDropdown('p-cat');
+  renderCategoryManager();
+  showToast('Category deleted', 'info');
+}
+
+function renameCategory(oldName) {
+  const newName = prompt('Rename "' + oldName + '" to:', oldName);
+  if (!newName || !newName.trim() || newName.trim() === oldName) return;
+  const n = newName.trim();
+  if (DB.categories.map(c=>c.toLowerCase()).includes(n.toLowerCase())) {
+    showToast('Name already taken!', 'error'); return;
+  }
+  DB.categories = DB.categories.map(c => c === oldName ? n : c);
+  DB.products.forEach(p => { if (p.category === oldName) p.category = n; });
+  saveData();
+  populateCategoryDropdown('p-cat');
+  renderCategoryManager();
+  showToast('✅ Renamed to "' + n + '"', 'success');
+}
+
+function showAddCategoryFromSettings() {
+  const el = document.getElementById('settings-cat-add');
+  if (el) { el.style.display = 'block'; document.getElementById('settings-cat-input')?.focus(); }
+}
+
+function saveNewCategoryFromSettings() {
+  const inp = document.getElementById('settings-cat-input');
+  const name = (inp?.value || '').trim();
+  if (!name) { showToast('Enter a category name!', 'error'); return; }
+  if (!DB.categories) DB.categories = [];
+  if (DB.categories.map(c=>c.toLowerCase()).includes(name.toLowerCase())) {
+    showToast('Already exists!', 'error'); return;
+  }
+  DB.categories.push(name);
+  saveData();
+  populateCategoryDropdown('p-cat', name);
+  if (inp) inp.value = '';
+  const el = document.getElementById('settings-cat-add');
+  if (el) el.style.display = 'none';
+  renderCategoryManager();
+  showToast('✅ Category "' + name + '" added!', 'success');
+}
+
+function renderCategoryManager() {
+  const el = document.getElementById('cat-manager-list');
+  if (!el) return;
+  if (!DB.categories) DB.categories = [];
+  el.innerHTML = DB.categories.map(cat => {
+    const count = DB.products.filter(p => p.category === cat).length;
+    const canDelete = count === 0;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
+      <div>
+        <strong style="font-size:0.9rem">${cat}</strong>
+        <span style="font-size:0.75rem;color:var(--text-dim);margin-left:8px">${count} product${count!==1?'s':''}</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm" onclick="renameCategory('${cat.replace(/'/g,"\'")}')">✏️ Rename</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.replace(/'/g,"\'")}')"          ${!canDelete?'disabled title="Products use this category" style=\"opacity:0.4;cursor:not-allowed\"':''}>🗑️</button>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-dim);text-align:center;padding:20px">No categories yet.</p>';
 }
 
 // ─── CUSTOMERS ────────────────────────────────────────
@@ -3244,22 +3651,48 @@ function onResellerToggle() {
   // Re-price all rows with reseller / normal price
   _saleRows.forEach(r => {
     if (!r.product) return;
-    const prod = DB.products.find(p => p.name === r.product);
-    if (!prod) return;
-    r.price = isReseller && prod.resellerPrice > 0 ? prod.resellerPrice : prod.sellPrice;
+    const found = findProductVariant(r.product);
+    if (!found) return;
+    if (found.variant) {
+      r.price = isReseller && found.variant.resellerPrice > 0 ? found.variant.resellerPrice : found.variant.sellPrice;
+      r._cpu = found.variant.fullCpu || 0;
+    } else {
+      r.price = isReseller && found.prod.resellerPrice > 0 ? found.prod.resellerPrice : found.prod.sellPrice;
+      r._cpu = found.prod.cpu || 0;
+    }
     r.total = Math.max((r.qty * r.price) - r.disc, 0);
   });
   renderSaleRows();
+}
+
+function findProductVariant(productLabel) {
+  // Returns { prod, variant } or { prod, variant:null } for single-unit
+  for (const p of DB.products) {
+    if (p.packVariants && p.packVariants.length) {
+      for (const pv of p.packVariants) {
+        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
+        if (label === productLabel) return { prod: p, variant: pv };
+      }
+    }
+    if (p.name === productLabel) return { prod: p, variant: null };
+  }
+  return null;
 }
 
 function onSaleRowProductChange(el, id) {
   const r = _saleRows.find(x => x.id === id);
   if (!r) return;
   r.product = el.value;
-  const prod = DB.products.find(p => p.name === el.value);
-  if (prod) {
+  const found = findProductVariant(el.value);
+  if (found) {
     const isReseller = document.getElementById('s-reseller')?.checked;
-    r.price = isReseller && prod.resellerPrice > 0 ? prod.resellerPrice : prod.sellPrice;
+    if (found.variant) {
+      r.price = isReseller && found.variant.resellerPrice > 0 ? found.variant.resellerPrice : found.variant.sellPrice;
+      r._cpu = found.variant.fullCpu || 0;
+    } else {
+      r.price = isReseller && found.prod.resellerPrice > 0 ? found.prod.resellerPrice : found.prod.sellPrice;
+      r._cpu = found.prod.cpu || 0;
+    }
     r.disc = 0;
     r.total = r.qty * r.price;
     renderSaleRows();
@@ -3284,10 +3717,14 @@ function removeSaleRow(id) {
 function calcSaleSummary() {
   const subtotal = _saleRows.reduce((a, r) => a + (r.total || 0), 0);
   const profit = _saleRows.reduce((a, r) => {
-    const prod = DB.products.find(p => p.name === r.product);
-    if (!prod) return a;
-    // Use actual sell price (which may be reseller price) minus full CPU
-    const unitProfit = r.price - prod.cpu;
+    // Use cached _cpu (set when product selected), or look up dynamically
+    let cpu = r._cpu;
+    if (cpu === undefined) {
+      const found = findProductVariant(r.product);
+      cpu = found ? (found.variant ? found.variant.fullCpu : found.prod.cpu) : 0;
+      r._cpu = cpu || 0;
+    }
+    const unitProfit = r.price - (cpu || 0);
     return a + (r.qty * unitProfit) - (r.disc || 0);
   }, 0);
   set2('s-total', subtotal.toFixed(2));
@@ -3305,21 +3742,26 @@ function saveSale(andInvoice = false) {
   const invalidRow = _saleRows.find(r => !r.product);
   if (invalidRow) { showToast('Select product for all rows!', 'error'); return; }
 
-  // Stock check
+  // Stock check (supports pack variants)
   for (const r of _saleRows) {
-    const prod = DB.products.find(p => p.name === r.product);
-    if (prod && prod.balance < r.qty) {
-      showToast(`Only ${prod.balance} "${r.product}" in stock!`, 'error'); return;
+    const found = findProductVariant(r.product);
+    if (found && found.variant) {
+      const avail = found.variant.stock || 0;
+      if (avail < r.qty) { showToast(`Only ${avail} "${r.product}" in stock!`, 'error'); return; }
+    } else if (found && found.prod) {
+      if (found.prod.balance < r.qty) { showToast(`Only ${found.prod.balance} "${r.product}" in stock!`, 'error'); return; }
     }
   }
 
   const isReseller = document.getElementById('s-reseller')?.checked || false;
   const total = _saleRows.reduce((a, r) => a + r.total, 0);
   const profit = _saleRows.reduce((a, r) => {
-    const prod = DB.products.find(p => p.name === r.product);
-    if (!prod) return a;
-    // Profit = actual sell price (reseller or normal) minus full CPU (incl. sticker+pack)
-    return a + (r.qty * (r.price - prod.cpu)) - (r.disc || 0);
+    let cpu = r._cpu;
+    if (cpu === undefined) {
+      const found = findProductVariant(r.product);
+      cpu = found ? (found.variant ? found.variant.fullCpu : found.prod.cpu) : 0;
+    }
+    return a + (r.qty * (r.price - (cpu || 0))) - (r.disc || 0);
   }, 0);
   const received = +v('s-received') || 0;
   const pending = Math.max(total - received, 0);
@@ -3341,12 +3783,18 @@ function saveSale(andInvoice = false) {
 
   DB.sales.push(sale);
 
-  // Update stock
+  // Update stock (supports pack variants)
   _saleRows.forEach(r => {
-    const prod = DB.products.find(p => p.name === r.product);
-    if (prod) {
-      prod.sold = (prod.sold || 0) + r.qty;
-      prod.balance = Math.max(prod.balance - r.qty, 0);
+    const found = findProductVariant(r.product);
+    if (!found) return;
+    if (found.variant) {
+      found.variant.stock = Math.max((found.variant.stock || 0) - r.qty, 0);
+      found.prod.sold = (found.prod.sold || 0) + r.qty;
+      // Recalc parent balance as sum of all variants
+      found.prod.balance = found.prod.packVariants.reduce((a,pv) => a + (pv.stock||0), 0);
+    } else {
+      found.prod.sold = (found.prod.sold || 0) + r.qty;
+      found.prod.balance = Math.max(found.prod.balance - r.qty, 0);
     }
   });
 
@@ -5896,14 +6344,31 @@ function set(id, val) { const el = document.getElementById(id); if (el) el.textC
 function set2(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
 
 function populateProductDropdowns() {
+  // Build flat list: variants first, then single-unit products
+  const flatOptions = [];
+  DB.products.forEach(p => {
+    if (p.packVariants && p.packVariants.length) {
+      p.packVariants.forEach(pv => {
+        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
+        flatOptions.push({ value: label, stock: pv.stock || 0 });
+      });
+    } else {
+      flatOptions.push({ value: p.name, stock: p.balance || 0 });
+    }
+  });
   const dropdowns = ['s-product', 'inv-product', 'c-product'];
   dropdowns.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const current = el.value;
-    el.innerHTML = `<option value="">Select Product</option>` + DB.products.map(p => `<option value="${p.name}">${p.name} (${p.balance} left)</option>`).join('');
+    el.innerHTML = `<option value="">Select Product</option>` +
+      flatOptions.map(o => `<option value="${o.value}">${o.value} (${o.stock} left)</option>`).join('');
     if (current) el.value = current;
   });
+  // Also update sale row selects if any exist
+  const saleSelects = document.querySelectorAll('#sale-items-tbody select');
+  const opts = `<option value="">Select...</option>` + flatOptions.map(o => `<option value="${o.value}">${o.value} (${o.stock} left)</option>`).join('');
+  saleSelects.forEach(sel => { const cur = sel.value; sel.innerHTML = opts; if(cur) sel.value = cur; });
 }
 
 function populateCustomerDatalist() {

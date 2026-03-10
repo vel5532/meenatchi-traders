@@ -518,7 +518,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     </div>
     <div class="table-wrap">
       <table id="prod-table">
-        <thead><tr><th>Product</th><th>Buy Qty</th><th>Buy Price</th><th>Ship Cost</th><th>Cost/Unit</th><th>Sell Price</th><th>Profit/Unit</th><th>Stock</th><th>Sold</th><th>Balance</th><th>Alert</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Product</th><th>Buy Qty</th><th>Buy Price</th><th>Ship Cost</th><th>Sticker</th><th>Pack/Cover</th><th>Full CPU</th><th>Sell Price</th><th>Reseller</th><th>Profit/Unit</th><th>Stock</th><th>Sold</th><th>Balance</th><th>Alert</th><th>Actions</th></tr></thead>
         <tbody id="prod-tbody"></tbody>
       </table>
     </div>
@@ -537,10 +537,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Purchase Quantity</label><input type="number" id="p-qty" placeholder="0" oninput="calcProductCost()"></div>
         <div class="form-group"><label>Purchase Price (₹)</label><input type="number" id="p-buy" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
         <div class="form-group"><label>Shipping Cost (₹)</label><input type="number" id="p-ship" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Sticker Cost / unit (₹)</label><input type="number" id="p-sticker" placeholder="0.00" step="0.01" oninput="calcProductCost()" title="Cost of label/sticker per unit"></div>
+        <div class="form-group"><label>Pack / Cover Cost / unit (₹)</label><input type="number" id="p-pack" placeholder="0.00" step="0.01" oninput="calcProductCost()" title="Box, cover, bag cost per unit"></div>
         <div class="form-group"><label>Total Cost (₹)</label><input type="number" id="p-total" placeholder="Auto" readonly style="opacity:0.6"></div>
-        <div class="form-group"><label>Cost per Unit (₹)</label><input type="number" id="p-cpu" placeholder="Auto" readonly style="opacity:0.6"></div>
+        <div class="form-group"><label>Full CPU (incl. sticker+pack) ₹</label><input type="number" id="p-cpu" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent)"></div>
         <div class="form-group"><label>Selling Price (₹)</label><input type="number" id="p-sell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
-        <div class="form-group"><label>Profit per Unit (₹)</label><input type="number" id="p-profit" placeholder="Auto" readonly style="opacity:0.6"></div>
+        <div class="form-group"><label>Reseller Price (₹)</label><input type="number" id="p-resell" placeholder="0.00" step="0.01" oninput="calcProductProfit()" title="Special price for resellers"></div>
+        <div class="form-group"><label>Profit per Unit (₹)</label><input type="number" id="p-profit" placeholder="Auto" readonly style="opacity:0.6;color:var(--green)"></div>
+        <div class="form-group"><label>Reseller Profit / unit (₹)</label><input type="number" id="p-resprofit" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent4)"></div>
         <div class="form-group"><label>Low Stock Alert At</label><input type="number" id="p-alert" placeholder="10"></div>
         <div class="form-group"><label>Unit Type</label><select id="p-unit"><option>pcs</option><option>kg</option><option>g</option><option>packs</option><option>bottles</option></select></div>
       </div>
@@ -666,6 +670,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Phone Number *</label><input type="tel" id="s-phone" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')"></div>
         <div class="form-group"><label>Payment Mode</label><select id="s-payment"><option>Cash</option><option>UPI</option><option>GPay</option><option>Online</option><option>Credit</option></select></div>
         <div class="form-group"><label>Order Status</label><select id="s-status"><option>Pending</option><option>Processing</option><option>Ready</option><option>Delivered</option></select></div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:0.88rem;color:var(--text)">
+            <input type="checkbox" id="s-reseller" onchange="onResellerToggle()" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent4)">
+            🤝 Reseller Sale
+          </label>
+          <span id="s-reseller-badge" style="display:none;background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">RESELLER PRICE</span>
+        </div>
       </div>
 
       <!-- Multi-product item rows -->
@@ -710,6 +721,21 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     </div>
   </div>
 
+  <!-- ══ PENDING PAYMENTS ══ -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">💸 Pending Payments</span>
+      <button class="wa-btn" style="padding:5px 14px;font-size:0.78rem" onclick="sendAllReminders()">💬 Remind All</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Customer</th><th>Phone</th><th>Total</th><th>Paid</th><th>Pending</th><th>Days</th><th>Action</th></tr></thead>
+        <tbody id="sales-pending-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ SALES HISTORY ══ -->
   <div class="card">
     <div class="card-header"><span class="card-title">📜 Sales History</span>
       <div class="card-actions">
@@ -2297,13 +2323,27 @@ function refreshAllViews() {
 
 function seedDefaultProducts() {
   DB.products = [
-    { id: 'p1', name: 'Tea n31 – Sample 10g', category: 'Tea', buyQty: 10, buyPrice: 500, shipCost: 50, totalCost: 550, cpu: 5.5, sellPrice: 10, profitPerUnit: 4.5, stock: 10, sold: 0, balance: 10, alertAt: 5, unit: 'packs' },
-    { id: 'p2', name: 'Tea n31 – 100g', category: 'Tea', buyQty: 10, buyPrice: 1800, shipCost: 50, totalCost: 1850, cpu: 18.5, sellPrice: 45, profitPerUnit: 26.5, stock: 40, sold: 12, balance: 28, alertAt: 10, unit: 'packs' },
-    { id: 'p3', name: 'Tea n31 – 250g', category: 'Tea', buyQty: 10, buyPrice: 2500, shipCost: 50, totalCost: 2550, cpu: 42.5, sellPrice: 110, profitPerUnit: 67.5, stock: 25, sold: 8, balance: 17, alertAt: 8, unit: 'packs' },
-    { id: 'p4', name: 'Nattu Sakkarai 500g', category: 'Nattu Sakkarai', buyQty: 20, buyPrice: 1400, shipCost: 80, totalCost: 1480, cpu: 27, sellPrice: 50, profitPerUnit: 23, stock: 20, sold: 5, balance: 15, alertAt: 5, unit: 'packs' },
-    { id: 'p5', name: 'Scrubber Pro', category: 'Scrubber', buyQty: 215, buyPrice: 1720, shipCost: 200, totalCost: 1920, cpu: 8.93, sellPrice: 20, profitPerUnit: 11.07, stock: 180, sold: 35, balance: 145, alertAt: 20, unit: 'pcs' },
-    { id: 'p6', name: 'MCS Item', category: 'MCS Items', buyQty: 845, buyPrice: 2535, shipCost: 300, totalCost: 2835, cpu: 3.35, sellPrice: 6, profitPerUnit: 2.65, stock: 700, sold: 145, balance: 555, alertAt: 50, unit: 'pcs' },
-    { id: 'p7', name: 'GNS Nattu Sakkarai 1kg', category: 'Nattu Sakkarai', buyQty: 20, buyPrice: 2600, shipCost: 100, totalCost: 2700, cpu: 135, sellPrice: 200, profitPerUnit: 65, stock: 18, sold: 2, balance: 16, alertAt: 4, unit: 'kg' },
+    // ── TEA n31 (10kg @ ₹275, Ship ₹200, Total ₹2950, CPU ₹295/kg) ──
+    // Sample 10g: cpu=2.95, sell=10
+    { id: 'p1', name: 'Tea n31 – Sample 10g', category: 'Tea', buyQty: 1000, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 2.95, sellPrice: 10, profitPerUnit: 7.05, stock: 100, sold: 0, balance: 100, alertAt: 20, unit: 'packs' },
+    // 100g: cpu=29.5, sell=55 (own price from sheet)
+    { id: 'p2', name: 'Tea n31 – 100g', category: 'Tea', buyQty: 100, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 29.5, sellPrice: 55, profitPerUnit: 25.5, stock: 40, sold: 0, balance: 40, alertAt: 10, unit: 'packs' },
+    // 250g: cpu=73.75, sell=135
+    { id: 'p3', name: 'Tea n31 – 250g', category: 'Tea', buyQty: 40, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 73.75, sellPrice: 135, profitPerUnit: 61.25, stock: 25, sold: 0, balance: 25, alertAt: 8, unit: 'packs' },
+    // 500g: cpu=147.5, sell=265
+    { id: 'p8', name: 'Tea n31 – 500g', category: 'Tea', buyQty: 20, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 147.5, sellPrice: 265, profitPerUnit: 117.5, stock: 20, sold: 0, balance: 20, alertAt: 5, unit: 'packs' },
+
+    // ── NATTU SAKKARAI (20kg @ ₹60, Ship ₹240, Total ₹1440, CPU ₹72/kg) ──
+    // 500g pack: cpu=36, sell=60 (SP from sheet row18)
+    { id: 'p4', name: 'Nattu Sakkarai 500g', category: 'Nattu Sakkarai', buyQty: 40, buyPrice: 1200, shipCost: 240, totalCost: 1440, cpu: 36, sellPrice: 60, profitPerUnit: 24, stock: 40, sold: 0, balance: 40, alertAt: 5, unit: 'packs' },
+    // 1kg pack: cpu=72, sell=110
+    { id: 'p7', name: 'Nattu Sakkarai 1kg', category: 'Nattu Sakkarai', buyQty: 20, buyPrice: 1200, shipCost: 240, totalCost: 1440, cpu: 72, sellPrice: 110, profitPerUnit: 38, stock: 20, sold: 0, balance: 20, alertAt: 4, unit: 'packs' },
+
+    // ── SCRUBBER (215 units @ ₹2, Ship ₹0, Total ₹430, CPU ₹2) ──
+    { id: 'p5', name: 'Scrubber', category: 'Scrubber', buyQty: 215, buyPrice: 430, shipCost: 0, totalCost: 430, cpu: 2, sellPrice: 10, profitPerUnit: 8, stock: 215, sold: 0, balance: 215, alertAt: 20, unit: 'pcs' },
+
+    // ── MCS (845 units @ ₹2, Ship ₹0, Total ₹1690, CPU ₹2) ──
+    { id: 'p6', name: 'MCS', category: 'MCS', buyQty: 845, buyPrice: 1690, shipCost: 0, totalCost: 1690, cpu: 2, sellPrice: 5, profitPerUnit: 3, stock: 845, sold: 0, balance: 845, alertAt: 50, unit: 'pcs' },
   ];
   saveData();
 }
@@ -2613,17 +2653,23 @@ function calcProductCost() {
   const qty = +v('p-qty') || 1;
   const buy = +v('p-buy') || 0;
   const ship = +v('p-ship') || 0;
+  const sticker = +v('p-sticker') || 0;
+  const pack = +v('p-pack') || 0;
   const total = buy + ship;
-  const cpu = total / qty;
+  const baseCpu = total / qty;
+  const fullCpu = baseCpu + sticker + pack;  // full cost including sticker & pack per unit
   set2('p-total', total.toFixed(2));
-  set2('p-cpu', cpu.toFixed(2));
+  set2('p-cpu', fullCpu.toFixed(2));
   calcProductProfit();
 }
 
 function calcProductProfit() {
   const cpu = +v('p-cpu') || 0;
   const sell = +v('p-sell') || 0;
+  const resell = +v('p-resell') || 0;
   set2('p-profit', (sell - cpu).toFixed(2));
+  if (resell > 0) set2('p-resprofit', (resell - cpu).toFixed(2));
+  else set2('p-resprofit', '');
 }
 
 function saveProduct() {
@@ -2633,9 +2679,13 @@ function saveProduct() {
   const qty = +v('p-qty') || 0;
   const buy = +v('p-buy') || 0;
   const ship = +v('p-ship') || 0;
+  const sticker = +v('p-sticker') || 0;
+  const pack = +v('p-pack') || 0;
   const total = buy + ship;
-  const cpu = qty ? total / qty : 0;
+  const baseCpu = qty ? total / qty : 0;
+  const cpu = baseCpu + sticker + pack;   // full CPU including sticker & pack
   const sell = +v('p-sell') || 0;
+  const resellerPrice = +v('p-resell') || 0;
 
   if (editId) {
     // UPDATE existing product
@@ -2651,8 +2701,11 @@ function saveProduct() {
       DB.products[idx] = {
         ...existing, name, category: v('p-cat'),
         buyQty: qty, buyPrice: buy, shipCost: ship,
+        stickerCost: sticker, packCost: pack,
         totalCost: total, cpu, sellPrice: sell,
+        resellerPrice,
         profitPerUnit: sell - cpu,
+        resellerProfit: resellerPrice > 0 ? resellerPrice - cpu : 0,
         stock: newStock,
         balance: newBalance,
         alertAt: +v('p-alert') || 10,
@@ -2695,8 +2748,11 @@ function saveProduct() {
     const prod = {
       id: uid(), name, category: v('p-cat'),
       buyQty: qty, buyPrice: buy, shipCost: ship,
+      stickerCost: sticker, packCost: pack,
       totalCost: total, cpu, sellPrice: sell,
+      resellerPrice,
       profitPerUnit: sell - cpu,
+      resellerProfit: resellerPrice > 0 ? resellerPrice - cpu : 0,
       stock: qty, sold: 0, balance: qty,
       alertAt: +v('p-alert') || 10,
       unit: v('p-unit') || 'pcs'
@@ -2754,10 +2810,14 @@ function editProduct(id) {
   set2('p-qty', p.buyQty);
   set2('p-buy', p.buyPrice);
   set2('p-ship', p.shipCost);
+  set2('p-sticker', p.stickerCost || 0);
+  set2('p-pack', p.packCost || 0);
   set2('p-total', p.totalCost ? p.totalCost.toFixed(2) : '');
   set2('p-cpu', p.cpu ? p.cpu.toFixed(2) : '');
   set2('p-sell', p.sellPrice);
+  set2('p-resell', p.resellerPrice || '');
   set2('p-profit', p.profitPerUnit ? p.profitPerUnit.toFixed(2) : '');
+  set2('p-resprofit', p.resellerProfit ? p.resellerProfit.toFixed(2) : '');
   set2('p-alert', p.alertAt);
   set2('p-add-stock', '');  // clear add-stock field
   const unit = document.getElementById('p-unit');
@@ -2789,7 +2849,7 @@ function renderProductTable() {
   const tbody = document.getElementById('prod-tbody');
   if (!tbody) return;
   if (!DB.products.length) {
-    tbody.innerHTML = `<tr><td colspan="12" style="padding:32px"><div class="empty-state">📦<p>No products yet. Add your first product!</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15" style="padding:32px"><div class="empty-state">📦<p>No products yet. Add your first product!</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = DB.products.map(p => {
@@ -2799,8 +2859,11 @@ function renderProductTable() {
       <td>${p.buyQty} ${p.unit}</td>
       <td>${formatCurrency(p.buyPrice)}</td>
       <td>${formatCurrency(p.shipCost)}</td>
-      <td>${formatCurrency(p.cpu)}</td>
+      <td>${p.stickerCost > 0 ? formatCurrency(p.stickerCost) : '—'}</td>
+      <td>${p.packCost > 0 ? formatCurrency(p.packCost) : '—'}</td>
+      <td style="color:var(--accent)">${formatCurrency(p.cpu)}</td>
       <td class="text-green">${formatCurrency(p.sellPrice)}</td>
+      <td>${p.resellerPrice > 0 ? formatCurrency(p.resellerPrice) : '—'}</td>
       <td class="highlight">${formatCurrency(p.profitPerUnit)}</td>
       <td>${p.stock}</td>
       <td>${p.sold || 0}</td>
@@ -2899,7 +2962,7 @@ function deleteProduct(id) {
 }
 
 function clearProductForm() {
-  ['p-name','p-qty','p-buy','p-ship','p-total','p-cpu','p-sell','p-profit','p-alert','p-edit-id','p-add-stock'].forEach(id => set2(id, ''));
+  ['p-name','p-qty','p-buy','p-ship','p-sticker','p-pack','p-total','p-cpu','p-sell','p-resell','p-profit','p-resprofit','p-alert','p-edit-id','p-add-stock'].forEach(id => set2(id, ''));
   const badge = document.getElementById('prod-edit-badge');
   const title = document.getElementById('prod-form-title');
   const btn = document.getElementById('prod-save-btn');
@@ -3174,15 +3237,31 @@ function renderSaleRows() {
   calcSaleSummary();
 }
 
+function onResellerToggle() {
+  const isReseller = document.getElementById('s-reseller')?.checked;
+  const badge = document.getElementById('s-reseller-badge');
+  if (badge) badge.style.display = isReseller ? 'inline-block' : 'none';
+  // Re-price all rows with reseller / normal price
+  _saleRows.forEach(r => {
+    if (!r.product) return;
+    const prod = DB.products.find(p => p.name === r.product);
+    if (!prod) return;
+    r.price = isReseller && prod.resellerPrice > 0 ? prod.resellerPrice : prod.sellPrice;
+    r.total = Math.max((r.qty * r.price) - r.disc, 0);
+  });
+  renderSaleRows();
+}
+
 function onSaleRowProductChange(el, id) {
   const r = _saleRows.find(x => x.id === id);
   if (!r) return;
   r.product = el.value;
   const prod = DB.products.find(p => p.name === el.value);
   if (prod) {
-    r.price = prod.sellPrice;
+    const isReseller = document.getElementById('s-reseller')?.checked;
+    r.price = isReseller && prod.resellerPrice > 0 ? prod.resellerPrice : prod.sellPrice;
     r.disc = 0;
-    r.total = r.qty * prod.sellPrice;
+    r.total = r.qty * r.price;
     renderSaleRows();
   }
 }
@@ -3206,7 +3285,10 @@ function calcSaleSummary() {
   const subtotal = _saleRows.reduce((a, r) => a + (r.total || 0), 0);
   const profit = _saleRows.reduce((a, r) => {
     const prod = DB.products.find(p => p.name === r.product);
-    return a + (prod ? (r.qty * prod.profitPerUnit) - r.disc : 0);
+    if (!prod) return a;
+    // Use actual sell price (which may be reseller price) minus full CPU
+    const unitProfit = r.price - prod.cpu;
+    return a + (r.qty * unitProfit) - (r.disc || 0);
   }, 0);
   set2('s-total', subtotal.toFixed(2));
   set2('s-profit', profit.toFixed(2));
@@ -3231,10 +3313,13 @@ function saveSale(andInvoice = false) {
     }
   }
 
+  const isReseller = document.getElementById('s-reseller')?.checked || false;
   const total = _saleRows.reduce((a, r) => a + r.total, 0);
   const profit = _saleRows.reduce((a, r) => {
     const prod = DB.products.find(p => p.name === r.product);
-    return a + (prod ? (r.qty * prod.profitPerUnit) - r.disc : 0);
+    if (!prod) return a;
+    // Profit = actual sell price (reseller or normal) minus full CPU (incl. sticker+pack)
+    return a + (r.qty * (r.price - prod.cpu)) - (r.disc || 0);
   }, 0);
   const received = +v('s-received') || 0;
   const pending = Math.max(total - received, 0);
@@ -3250,7 +3335,8 @@ function saveSale(andInvoice = false) {
     price: total / Math.max(_saleRows.reduce((a,r) => a + r.qty, 0), 1),
     disc: _saleRows.reduce((a,r) => a + r.disc, 0),
     total, received, pending,
-    payment: v('s-payment'), status: v('s-status'), profit
+    payment: v('s-payment'), status: v('s-status'), profit,
+    isReseller
   };
 
   DB.sales.push(sale);
@@ -3342,6 +3428,69 @@ function saveSale(andInvoice = false) {
 
 function saveSaleAndInvoice() { saveSale(true); }
 
+function renderSalesPendingTable() {
+  const tbody = document.getElementById('sales-pending-tbody');
+  if (!tbody) return;
+  const pending = DB.customers.filter(c => c.pending > 0).sort((a,b) => (b.pending||0)-(a.pending||0));
+  if (!pending.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--green)">🎉 No pending payments! All clear.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pending.map(c => {
+    const days = Math.floor((new Date() - new Date(c.lastSale || c.date || today())) / 86400000);
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td><a href="tel:${c.phone}" style="color:var(--accent4)">${c.phone||'—'}</a></td>
+      <td>${formatCurrency(c.total||0)}</td>
+      <td class="text-green">${formatCurrency(c.paid||0)}</td>
+      <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
+      <td>${days}d ago</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <input type="number" id="sp-recv-${c.id}" placeholder="₹ Amount" step="0.01" min="0" max="${c.pending}"
+            style="width:95px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:0.8rem"
+            onkeyup="if(event.key==='Enter')receivePaymentFromSales('${c.id}')">
+          <button class="btn btn-success btn-sm" onclick="receivePaymentFromSales('${c.id}')">✅ Receive</button>
+          <button class="wa-btn" style="padding:4px 8px;font-size:0.72rem" onclick="sendSaleReminderWA('${c.id}')">💬</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function receivePaymentFromSales(custId) {
+  const c = DB.customers.find(x => x.id === custId);
+  if (!c) return;
+  const inputEl = document.getElementById('sp-recv-' + custId);
+  if (!inputEl) return;
+  const amount = parseFloat(inputEl.value);
+  if (!amount || amount <= 0) { showToast('Enter a valid amount!', 'error'); return; }
+  if (amount > c.pending) { showToast('Max: ' + formatCurrency(c.pending), 'error'); return; }
+
+  c.paid = (c.paid || 0) + amount;
+  c.pending = Math.max((c.pending || 0) - amount, 0);
+  if (c.pending === 0) c.status = 'Paid';
+
+  // Update matching sale records (most recent first)
+  let remaining = amount;
+  DB.sales.filter(s => s.customer.toLowerCase() === c.name.toLowerCase() && s.pending > 0)
+    .sort((a,b) => new Date(b.date) - new Date(a.date))
+    .forEach(sale => {
+      if (remaining <= 0) return;
+      const apply = Math.min(sale.pending, remaining);
+      sale.received = (sale.received || 0) + apply;
+      sale.pending  = Math.max(sale.pending - apply, 0);
+      remaining -= apply;
+    });
+
+  saveData();
+  renderSalesTable();
+  renderSalesPendingTable();
+  renderDashboard();
+  syncCustomerToSheet(c);
+  showToast('✅ ₹' + amount + ' received from ' + c.name + '!', 'success');
+}
+
 function renderSalesTable() {
   const tbody = document.getElementById('sales-tbody');
   if (!tbody) return;
@@ -3358,7 +3507,7 @@ function renderSalesTable() {
     <td class="text-green">${formatCurrency(s.received)}</td>
     <td class="${s.pending > 0 ? 'text-red' : ''}">${s.pending > 0 ? formatCurrency(s.pending) : '—'}</td>
     <td>${s.payment}</td>
-    <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
+    <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
     <td class="text-green">${formatCurrency(s.profit)}</td>
     <td>
       <button class="wa-btn" style="padding:4px 10px;font-size:0.72rem" onclick="sendSaleWhatsApp('${s.id}')">💬</button>
@@ -3369,6 +3518,7 @@ function renderSalesTable() {
 
   updateSalesQuickStats();
   updateDailySummary();
+  renderSalesPendingTable();
 }
 
 function updateSalesQuickStats() {
@@ -3431,6 +3581,7 @@ function filterSalesByDate() {
 function clearSaleForm() {
   _saleRows = [];
   renderSaleRows();
+  const resellerCb = document.getElementById('s-reseller'); if(resellerCb) { resellerCb.checked = false; onResellerToggle(); }
   ['s-customer','s-qty','s-price','s-disc','s-total','s-received','s-pending','s-profit'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.value = id === 's-qty' ? 1 : id === 's-disc' ? 0 : ''; }
@@ -4795,7 +4946,7 @@ function renderOrders() {
       <td>${(s.product||'').substr(0,16)}</td>
       <td style="text-align:center">${s.qty}</td>
       <td class="highlight">${formatCurrency(s.total)}</td>
-      <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
+      <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
       <td>
         <select onchange="updateOrderStatus('${s.id}',this.value,this)" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:0.75rem">
           ${['Pending','Processing','Ready','Delivered','Cancelled'].map(st => `<option ${s.status===st?'selected':''}>${st}</option>`).join('')}
@@ -6299,7 +6450,7 @@ function generateDailyReport() {
             <td>${s.customer}</td><td>${(s.product||'').substr(0,16)}</td>
             <td>${s.qty}</td><td>${formatCurrency(s.total)}</td>
             <td style="color:var(--green)">${formatCurrency(s.profit||0)}</td>
-            <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
+            <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
           </tr>`).join('')}</tbody>
         </table></div>
       </div>` : '<div style="padding:12px;color:var(--text-dim);text-align:center">No sales recorded for this date</div>'}
@@ -6534,7 +6685,7 @@ function renderCustomerHistory(query) {
           <td>${s.product||'—'}</td>
           <td>${s.qty}</td>
           <td>${formatCurrency(s.total)}</td>
-          <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
+          <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
         </tr>`).join('')}</tbody>
       </table></div>
     </div>`;

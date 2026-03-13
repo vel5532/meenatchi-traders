@@ -599,7 +599,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
           <div class="form-group">
             <label>Total Quantity Purchased</label>
             <div style="display:flex;gap:6px">
-              <input type="number" id="p-qty" placeholder="e.g. 20" oninput="wzStep1Calc()" style="flex:1">
+              <input type="number" id="p-qty" placeholder="e.g. 20" oninput="wzCalcTotalCost()" style="flex:1">
               <select id="p-bulk-unit" onchange="wzStep1Calc()" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
                 <option value="kg">kg</option>
                 <option value="g">g</option>
@@ -610,8 +610,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
             </div>
           </div>
           <div class="form-group">
-            <label>Purchase Price (₹)</label>
-            <input type="number" id="p-buy" placeholder="e.g. 1200" step="0.01" oninput="wzStep1Calc()">
+            <label>Price per <span id="p-unit-label">kg</span> (₹)</label>
+            <input type="number" id="p-per-unit" placeholder="e.g. 65" step="0.01" oninput="wzCalcTotalCost()">
+          </div>
+          <div class="form-group">
+            <label>Total Purchase Cost (₹) <small style="color:var(--accent)">(auto-calculated)</small></label>
+            <input type="number" id="p-buy" placeholder="auto" step="0.01" oninput="wzStep1Calc()" style="background:var(--bg2)">
           </div>
           <div class="form-group">
             <label>Shipping Cost (₹)</label>
@@ -860,7 +864,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Amount Received (₹)</label><input type="number" id="s-received" step="0.01" oninput="calcSaleSummary()"></div>
         <div class="form-group"><label>Total Amount (₹)</label><input type="number" id="s-total" readonly style="opacity:0.6;font-weight:700"></div>
         <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="s-pending" readonly style="opacity:0.6"></div>
-        <div class="form-group"><label>Est. Profit (₹)</label><input type="number" id="s-profit" readonly style="opacity:0.6;color:var(--green)"></div>
+        <div class="form-group"><label>Est. Profit (₹)</label><input type="number" id="s-profit" readonly style="opacity:0.9;font-weight:700;color:var(--green)"></div>
       </div>
       <div class="form-actions" style="align-items:center">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;color:var(--text);user-select:none">
@@ -2255,7 +2259,7 @@ const SheetsAPI = {
 //  Invoices, Tea Shop, Tuition, Reminders, Reports
 // ═══════════════════════════════════════════════════════
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 const STORAGE_KEY = 'meenatchi_traders_data';
 
 // ── HARDCODED FALLBACK — WebView/APK data recovery ──
@@ -2929,6 +2933,7 @@ function switchDashTab(tab) {
 }
 
 function renderDashboard() {
+  sanitizeData(); // Always clean corrupted values before displaying
   const t = today();
   const thisMonth = t.substr(0, 7);
 
@@ -3136,6 +3141,17 @@ function recalcVariant(pv) {
 }
 
 // ── STEP 1 ──
+function wzCalcTotalCost() {
+  const qty     = +v('p-qty')      || 0;
+  const perUnit = +v('p-per-unit') || 0;
+  if (qty > 0 && perUnit > 0) {
+    const totalBuy = qty * perUnit;
+    const el = document.getElementById('p-buy');
+    if (el) { el.value = totalBuy.toFixed(2); el.style.color = 'var(--accent)'; }
+  }
+  wzStep1Calc();
+}
+
 function wzStep1Calc() {
   const qty  = +v('p-qty')  || 0;
   const buy  = +v('p-buy')  || 0;
@@ -3143,6 +3159,10 @@ function wzStep1Calc() {
   const unit = v('p-bulk-unit') || 'kg';
   const total = buy + ship;
   set2('p-total', total > 0 ? total.toFixed(2) : '');
+
+  // Update unit label in price field
+  const unitLabel = document.getElementById('p-unit-label');
+  if (unitLabel) unitLabel.textContent = unit === 'pcs' ? 'pc' : unit;
 
   const preview = document.getElementById('wz-pack-preview');
   const grid    = document.getElementById('wz-pack-preview-grid');
@@ -3437,12 +3457,17 @@ function renderProductTable() {
       cpuDisplay    = p.packVariants.map(pv => '₹'+(pv.fullCpu||0).toFixed(2)).join(' / ');
       sellDisplay   = p.packVariants.map(pv => '₹'+(pv.sellPrice||0).toFixed(2)).join(' / ');
       resellerDisplay = p.packVariants.map(pv => pv.resellerPrice ? '₹'+pv.resellerPrice.toFixed(2) : '—').join(' / ');
-      profitDisplay = p.packVariants.map(pv => '₹'+(pv.profit||0).toFixed(2)).join(' / ');
+      profitDisplay = p.packVariants.map(pv => {
+        const liveProfit = (pv.sellPrice||0) - (pv.fullCpu||0);
+        const sign = liveProfit < 0 ? '-' : '+';
+        return sign + '₹' + Math.abs(liveProfit).toFixed(2);
+      }).join(' / ');
     } else {
       cpuDisplay      = p.cpu         ? '₹'+p.cpu.toFixed(2)         : '—';
       sellDisplay     = p.sellPrice   ? '₹'+p.sellPrice.toFixed(2)   : '—';
       resellerDisplay = p.resellerPrice ? '₹'+p.resellerPrice.toFixed(2) : '—';
-      profitDisplay   = p.profitPerUnit ? '₹'+p.profitPerUnit.toFixed(2) : '—';
+      const liveProfit2 = (p.sellPrice||0) - (p.cpu||0);
+      profitDisplay = p.cpu && p.sellPrice ? (liveProfit2 < 0 ? '-' : '+') + '₹' + Math.abs(liveProfit2).toFixed(2) : '—';
     }
     return `<tr>
       <td><strong>${p.name}</strong><br><small style="color:var(--text-dim)">${p.category||''}</small></td>
@@ -3454,7 +3479,7 @@ function renderProductTable() {
       <td style="color:var(--accent);font-size:0.78rem">${cpuDisplay}</td>
       <td style="color:var(--green);font-size:0.78rem">${sellDisplay}</td>
       <td style="color:var(--accent4);font-size:0.78rem">${resellerDisplay}</td>
-      <td style="color:var(--green);font-size:0.78rem">${profitDisplay}</td>
+      <td style="color:${profitDisplay.startsWith('-') ? 'var(--red,#e17055)' : 'var(--green)'};font-size:0.78rem;font-weight:600">${profitDisplay}</td>
       <td>${p.stock||0}</td>
       <td>${p.sold||0}</td>
       <td style="color:${stockColor};font-weight:700">${p.balance||0} <small>${status}</small></td>
@@ -4070,6 +4095,9 @@ function calcSaleSummary() {
   }, 0);
   set2('s-total', subtotal.toFixed(2));
   set2('s-profit', profit.toFixed(2));
+  // Color profit red if negative, green if positive
+  const profitEl = document.getElementById('s-profit');
+  if (profitEl) profitEl.style.color = profit < 0 ? '#e17055' : 'var(--green)';
   const received = +v('s-received') || 0;
   set2('s-pending', Math.max(subtotal - received, 0).toFixed(2));
 }

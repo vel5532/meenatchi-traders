@@ -167,10 +167,51 @@ function upsertRow(sheetName, headers, rowData, recordId) {
 
 function rewriteSheet(sheetName, headers, rows) {
   var sheet = getOrCreateSheet(sheetName, headers);
+  // Always enforce correct headers (fixes column mismatch from old sheets)
+  if (headers && sheet.getLastRow() >= 1) {
+    var existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    // If header count differs or first headers don't match, rewrite headers
+    if (existingHeaders.length !== headers.length || existingHeaders[0] !== headers[0] || existingHeaders[2] !== headers[2]) {
+      // Delete entire sheet content and rewrite with correct headers
+      sheet.clearContents();
+      var hr = sheet.getRange(1,1,1,headers.length);
+      hr.setValues([headers]);
+      hr.setBackground('#1a0a2e').setFontColor('#f7c948').setFontWeight('bold').setFontSize(10);
+      sheet.setFrozenRows(1);
+    }
+  }
   var lastRow = sheet.getLastRow();
   if (lastRow > 1) sheet.deleteRows(2, lastRow-1);
   if (rows.length > 0) sheet.getRange(2,1,rows.length,rows[0].length).setValues(rows);
   return rows.length;
+}
+
+// Run this ONCE from Apps Script editor to fix all column headers
+function fixAllSheetHeaders() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetConfigs = [
+    { name: 'APP_SALES',     headers: HEADERS.sales },
+    { name: 'APP_INVOICES',  headers: HEADERS.invoices },
+    { name: 'APP_PRODUCTS',  headers: HEADERS.products },
+    { name: 'APP_CUSTOMERS', headers: HEADERS.customers },
+    { name: 'APP_TEA',       headers: HEADERS.tea },
+    { name: 'APP_STUDENTS',  headers: HEADERS.students },
+    { name: 'APP_STAFF',     headers: HEADERS.staff },
+    { name: 'APP_SUPPLIERS', headers: HEADERS.suppliers },
+    { name: 'APP_META',      headers: HEADERS.meta }
+  ];
+  sheetConfigs.forEach(function(cfg) {
+    var sheet = ss.getSheetByName(cfg.name);
+    if (sheet) {
+      sheet.clearContents();
+      var hr = sheet.getRange(1,1,1,cfg.headers.length);
+      hr.setValues([cfg.headers]);
+      hr.setBackground('#1a0a2e').setFontColor('#f7c948').setFontWeight('bold').setFontSize(10);
+      sheet.setFrozenRows(1);
+      Logger.log('Reset headers: ' + cfg.name);
+    }
+  });
+  return 'Done! All sheet headers fixed. Now sync from the app.';
 }
 
 function getAllSheetNames() {

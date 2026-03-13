@@ -2599,6 +2599,12 @@ async function loadFromSheets() {
       if (restored) {
         const maxInv = DB.invoices.reduce((a,i) => Math.max(a, parseInt(i.invNo)||0), 1000);
         if (maxInv > 1000) DB.invoiceCounter = maxInv + 1;
+        // Sanitize restored sales — remove corrupted totals (phone numbers as totals)
+        DB.sales = DB.sales.map(s => {
+          if ((s.total||0) > 1000000) { s.total = 0; s.received = 0; s.pending = 0; s.profit = 0; }
+          if ((s.price||0) > 100000)  { s.price  = 0; }
+          return s;
+        });
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); } catch(e){}
         refreshAllViews();
         if (indicator) { indicator.textContent = 'Data restored!'; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
@@ -2629,12 +2635,45 @@ function parseSheetSales(rows) {
   return rows.map(r => {
     let items = [];
     try { items = JSON.parse(_s(r.Items||r.items||'[]')); } catch(e) {}
+    // Detect old sheet format (no Phone column) — phone number ends up as total
+    // Old headers: ID,Date,Customer,Product,Items,Qty,Price,Discount,Total,Received,Pending,Payment,Status,Profit
+    // New headers: ID,Date,Customer,Phone,Product,Items,Qty,Price,Discount,Total,Received,Pending,Payment,Status,Profit
+    const hasPhoneCol = r.Phone !== undefined || r.phone !== undefined;
+    let phone = '', product = '', total = 0, qty = 0, price = 0, disc = 0,
+        received = 0, pending = 0, payment = '', status = '', profit = 0;
+    if (hasPhoneCol) {
+      // New format — columns are correct
+      phone    = _s(r.Phone||r.phone||'');
+      product  = _s(r.Product||r.product||'');
+      qty      = _n(r.Qty);
+      price    = _n(r.Price);
+      disc     = _n(r.Discount);
+      total    = _n(r.Total);
+      received = _n(r.Received);
+      pending  = _n(r.Pending);
+      payment  = _s(r.Payment);
+      status   = _s(r.Status);
+      profit   = _n(r.Profit);
+    } else {
+      // Old format — phone is missing, everything shifted by 1
+      phone    = '';
+      product  = _s(r.Product||r.product||'');
+      qty      = _n(r.Qty);
+      price    = _n(r.Price);
+      disc     = _n(r.Discount||0);
+      total    = _n(r.Total);
+      received = _n(r.Received);
+      pending  = _n(r.Pending);
+      payment  = _s(r.Payment);
+      status   = _s(r.Status);
+      profit   = _n(r.Profit);
+    }
+    // Sanity check: total should never exceed 10 lakhs (1,000,000) for a single sale
+    // If it does, it's corrupted data (phone number in wrong column)
+    if (total > 1000000) { total = 0; received = 0; pending = 0; profit = 0; }
     return {
       id: _s(r.ID||r.id), date: _s(r.Date||r.date), customer: _s(r.Customer||r.customer),
-      phone: _s(r.Phone||r.phone||''), product: _s(r.Product||r.product),
-      items, qty: _n(r.Qty), price: _n(r.Price), disc: _n(r.Discount),
-      total: _n(r.Total), received: _n(r.Received), pending: _n(r.Pending),
-      payment: _s(r.Payment), status: _s(r.Status), profit: _n(r.Profit)
+      phone, product, items, qty, price, disc, total, received, pending, payment, status, profit
     };
   }).filter(r => r.customer);
 }

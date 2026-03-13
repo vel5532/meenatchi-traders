@@ -2258,6 +2258,26 @@ const SheetsAPI = {
 const APP_VERSION = '1.0.0';
 const STORAGE_KEY = 'meenatchi_traders_data';
 
+// ── HARDCODED FALLBACK — WebView/APK data recovery ──
+// This URL is saved here permanently so even if localStorage clears,
+// the app can always reconnect and restore all data from Google Sheets.
+const SHEETS_URL_FALLBACK = 'https://script.google.com/macros/s/AKfycbw0nAmpqTiLULimMZX1wPXKARU5KKTKLwQQKYsg60OaiOZ1jMn63IzYXcle_jIaT5MV/exec';
+
+// ── Persistent URL storage — uses all available mechanisms ──
+function getAppsScriptUrl() {
+  // Priority: 1) DB.settings 2) sessionStorage 3) hardcoded fallback
+  return DB.settings.appsScriptUrl ||
+         sessionStorage.getItem('mt_sheets_url') ||
+         SHEETS_URL_FALLBACK;
+}
+
+function persistAppsScriptUrl(url) {
+  if (!url) return;
+  DB.settings.appsScriptUrl = url;
+  try { sessionStorage.setItem('mt_sheets_url', url); } catch(e) {}
+  try { localStorage.setItem('mt_sheets_url_backup', url); } catch(e) {}
+}
+
 // ─── DATA STORE ───────────────────────────────────────
 let DB = {
   products: [],
@@ -2330,13 +2350,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 500);
 
   // Check if first load - show sheets banner if not connected
-  if (!DB.settings.appsScriptUrl) {
-    document.getElementById('sheets-banner').style.display = 'flex';
+  if (!getAppsScriptUrl()) {
+    const banner = document.getElementById('sheets-banner');
+    if (banner) banner.style.display = 'flex';
   }
   // Auto backup on every app open (3 second delay)
   setTimeout(autoJsonBackup, 3000);
-  // Cloud restore: load from Google Sheets on startup (2s delay so UI loads first)
-  setTimeout(loadFromSheets, 2000);
+  // Cloud restore: ALWAYS load from Google Sheets on startup
+  // Critical for WebView/APK — localStorage may have been cleared
+  const noLocalData = !DB.sales.length && !DB.products.length && !DB.customers.length;
+  if (noLocalData) {
+    // Show immediate feedback so user knows app is loading
+    const ind = document.getElementById('sync-indicator');
+    if (ind) { ind.textContent = 'Loading your data...'; ind.style.display = 'inline'; }
+    showToast('Connecting to Google Sheets...', 'info');
+  }
+  setTimeout(loadFromSheets, 1000);
+  // Retry after 10s if still empty (slow network)
+  setTimeout(() => {
+    const stillEmpty = !DB.sales.length && !DB.products.length && !DB.customers.length;
+    if (stillEmpty) {
+      console.log('No data yet — retrying cloud restore...');
+      loadFromSheets();
+    }
+  }, 10000);
 });
 
 // ─── PERSISTENCE ──────────────────────────────────────
@@ -2375,7 +2412,7 @@ let _syncTimeout = null;
 
 async function autoSyncToSheets() {
   if (_isSyncing) return;
-  if (!DB.settings.appsScriptUrl) return;
+  if (!getAppsScriptUrl()) return;
   _isSyncing = true;
   // Safety: force reset after 15s so app never gets stuck
   if (_syncTimeout) clearTimeout(_syncTimeout);
@@ -2386,18 +2423,27 @@ async function autoSyncToSheets() {
   if (indicator) { indicator.textContent = 'Syncing...'; indicator.style.display = 'inline'; }
 
   try {
-    const res = await fetch(DB.settings.appsScriptUrl, {
+    const res = await fetch(getAppsScriptUrl(), {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' }, // Apps Script needs text/plain for CORS
       body: JSON.stringify({
         action: 'syncAll',
-        sales:      DB.sales,
-        products:   DB.products,
-        customers:  DB.customers,
-        invoices:   DB.invoices,
-        teaEntries: DB.teaEntries,
-        students:   DB.students,
-        staff:      DB.staff
+        sales:            DB.sales,
+        products:         DB.products,
+        customers:        DB.customers,
+        invoices:         DB.invoices,
+        teaEntries:       DB.teaEntries,
+        students:         DB.students,
+        staff:            DB.staff,
+        suppliers:        DB.suppliers        || [],
+        referrals:        DB.referrals        || [],
+        rewardPacks:      DB.rewardPacks      || [],
+        rewardRedemptions:DB.rewardRedemptions|| [],
+        birthdays:        DB.birthdays        || {},
+        productRules:     DB.productRules     || [],
+        profitTargets:    DB.profitTargets    || [],
+        invoiceCounter:   DB.invoiceCounter   || 1001,
+        settings:         DB.settings         || {}
       })
     });
     if (!res.ok) {
@@ -2455,20 +2501,41 @@ function loadData() {
       DB.profitTargets  = parsed.profitTargets  || DB.profitTargets;
       if (!DB.products.length) seedDefaultProducts();
     } else {
-      seedDefaultProducts();
-      seedDefaultCustomers();
+      // localStorage empty — don't seed demo data yet.
+      // loadFromSheets() will run next and restore real data from cloud.
+      // If cloud also fails (offline), we stay empty rather than show wrong demo data.
     }
   } catch(e) {
     console.warn('Failed to load data:', e);
-    seedDefaultProducts();
+  }
+
+  // ── Always restore Sheets URL — WebView/APK resilience ──
+  // If localStorage was cleared, recover URL from sessionStorage or hardcoded fallback
+  if (!DB.settings.appsScriptUrl) {
+    const recovered = sessionStorage.getItem('mt_sheets_url') ||
+                      localStorage.getItem('mt_sheets_url_backup') ||
+                      SHEETS_URL_FALLBACK;
+    if (recovered) {
+      DB.settings.appsScriptUrl = recovered;
+      console.log('Sheets URL recovered from fallback');
+    }
+  }
+  // Always persist URL to all mechanisms for next time
+  if (DB.settings.appsScriptUrl) {
+    persistAppsScriptUrl(DB.settings.appsScriptUrl);
   }
 }
 
 // ── Cloud Restore: loads data from Google Sheets on startup ──
 // After app reinstall or new device, this restores all data automatically
 async function loadFromSheets() {
-  const url = DB.settings.appsScriptUrl;
+  const url = getAppsScriptUrl();
   if (!url) return;
+  // Always ensure URL is set in settings (WebView recovery)
+  if (!DB.settings.appsScriptUrl) {
+    DB.settings.appsScriptUrl = url;
+    persistAppsScriptUrl(url);
+  }
   const indicator = document.getElementById('sync-indicator');
   if (indicator) { indicator.textContent = 'Loading from cloud...'; indicator.style.display = 'inline'; }
   try {
@@ -2480,8 +2547,16 @@ async function loadFromSheets() {
       return;
     }
     const d = json.data;
-    const localEmpty = !DB.sales.length && !DB.products.length;
-    const sheetsHasMore = d.sales && d.sales.length > DB.sales.length;
+    // localEmpty: no real user data (demo products have id starting with 'p1','p2' etc)
+    const hasRealSales = DB.sales.length > 0;
+    const hasRealCustomers = DB.customers.length > 0;
+    const hasRealProducts = DB.products.filter(p => !['p1','p2','p3','p4','p5','p6','p7','p8'].includes(p.id)).length > 0;
+    const localEmpty = !hasRealSales && !hasRealCustomers && !hasRealProducts;
+    const sheetsHasMore = (d.sales && d.sales.length > DB.sales.length) ||
+                          (d.products && d.products.length > DB.products.length);
+
+    // Always restore when local is empty (WebView cleared localStorage)
+    // Also restore if sheets has newer/more data
     if (localEmpty || sheetsHasMore) {
       let restored = false;
       if (d.products   && d.products.length)   { DB.products   = parseSheetProducts(d.products);   restored = true; }
@@ -2491,13 +2566,23 @@ async function loadFromSheets() {
       if (d.teaEntries && d.teaEntries.length)  { DB.teaEntries = parseSheetTea(d.teaEntries);      restored = true; }
       if (d.students   && d.students.length)    { DB.students   = parseSheetStudents(d.students);   restored = true; }
       if (d.staff      && d.staff.length)       { DB.staff      = parseSheetStaff(d.staff);         restored = true; }
+      if (d.suppliers  && d.suppliers.length)   { DB.suppliers  = parseSheetSuppliers(d.suppliers); restored = true; }
+      // Restore JSON-blob fields
+      if (d.referrals        ) { try { DB.referrals         = JSON.parse(d.referrals);         } catch(e){} restored = true; }
+      if (d.rewardPacks      ) { try { DB.rewardPacks       = JSON.parse(d.rewardPacks);       } catch(e){} restored = true; }
+      if (d.rewardRedemptions) { try { DB.rewardRedemptions = JSON.parse(d.rewardRedemptions); } catch(e){} restored = true; }
+      if (d.birthdays        ) { try { DB.birthdays         = JSON.parse(d.birthdays);         } catch(e){} restored = true; }
+      if (d.productRules     ) { try { DB.productRules      = JSON.parse(d.productRules);      } catch(e){} restored = true; }
+      if (d.profitTargets    ) { try { DB.profitTargets     = JSON.parse(d.profitTargets);     } catch(e){} restored = true; }
+      if (d.invoiceCounter   ) { DB.invoiceCounter = parseInt(d.invoiceCounter) || DB.invoiceCounter; restored = true; }
+      if (d.settings         ) { try { DB.settings = { ...DB.settings, ...JSON.parse(d.settings) }; persistAppsScriptUrl(DB.settings.appsScriptUrl); } catch(e){} }
       if (restored) {
         const maxInv = DB.invoices.reduce((a,i) => Math.max(a, parseInt(i.invNo)||0), 1000);
-        DB.invoiceCounter = maxInv + 1;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+        if (maxInv > 1000) DB.invoiceCounter = maxInv + 1;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); } catch(e){}
         refreshAllViews();
         if (indicator) { indicator.textContent = 'Data restored!'; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
-        showToast('Data restored from Google Sheets!', 'success');
+        showToast('✅ Data restored from Google Sheets!', 'success');
         return;
       }
     }
@@ -2576,19 +2661,15 @@ function parseSheetStaff(rows) {
   })).filter(r => r.name);
 }
 
-// ── Reload all UI whenever the tab becomes visible again ──
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    loadData();
-    refreshAllViews();
-  }
-});
+function parseSheetSuppliers(rows) {
+  return rows.map(r => ({
+    id: _s(r.ID||r.id), name: _s(r.Name||r.name), phone: _s(r.Phone||r.phone||''),
+    products: _s(r.Products||r.products||''), city: _s(r.City||r.city||''),
+    terms: _s(r.Terms||r.terms||''), minOrder: _n(r.MinOrder||r['Min Order']||0),
+    notes: _s(r.Notes||r.notes||''), totalPurchased: _n(r.TotalPurchased||r['Total Purchased']||0)
+  })).filter(r => r.name);
+}
 
-// ── Also reload when window gains focus ──
-window.addEventListener('focus', () => {
-  loadData();
-  refreshAllViews();
-});
 
 function refreshAllViews() {
   renderDashboard();
@@ -5888,6 +5969,7 @@ function connectSheets() {
   DB.settings.appsScriptUrl = url;
   DB.settings.sheetUrl = sheetUrl;
   DB.settings.sheetTabs = v('sheet-tabs') || DB.settings.sheetTabs;
+  persistAppsScriptUrl(url); // Save to all storage mechanisms
   saveData();
 
   const status = document.getElementById('sheets-status');
@@ -5929,8 +6011,12 @@ function disconnectSheets() {
 }
 
 function checkSheetsConnection() {
-  if (!DB.settings.appsScriptUrl) {
-    document.getElementById('sheets-banner').style.display = 'flex';
+  if (!getAppsScriptUrl()) {
+    const b = document.getElementById('sheets-banner');
+    if (b) b.style.display = 'flex';
+  } else {
+    const b = document.getElementById('sheets-banner');
+    if (b) b.style.display = 'none';
   }
 }
 

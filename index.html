@@ -2684,7 +2684,7 @@ function showPage(id, el, isMobile = false) {
 
   // Built-in page renders
   if (id === 'dashboard')    { renderDashboard(); }
-  if (id === 'products')    { populateCategoryDropdown('p-cat'); }
+  if (id === 'products')    { populateCategoryDropdown('p-cat'); renderProductTable(); populateProductDropdowns(); }
   if (id === 'reports')      { generateProductReport(); generateCustomerPendingReport(); generateTuitionReport(); }
 
   // New intelligence & CRM modules
@@ -2692,7 +2692,10 @@ function showPage(id, el, isMobile = false) {
   if (id === 'smartprofit')   { setTimeout(renderSmartProfit, 80); }
   if (id === 'demand')        { setTimeout(renderDemandPrediction, 80); }
   if (id === 'autoreport')    { setTimeout(generateDailyReport, 80); }
-  if (id === 'custrem') { setTimeout(renderCustomerReminders, 80); }
+  if (id === 'custrem')      { setTimeout(renderCustomerReminders, 80); }
+  if (id === 'loyalty')      { renderLoyalty(); }
+  if (id === 'sales')        { renderSalesTable(); populateProductDropdowns(); populateCustomerDatalist(); }
+  if (id === 'customers')    { renderCustomerTable(); populateCustomerDatalist(); }
   if (id === 'bulkwa')        { setTimeout(renderBulkWhatsApp, 80); }
   if (id === 'profittarget')  { setTimeout(renderProfitTarget, 80); }
   if (id === 'settings')      { setTimeout(renderBackupStatus, 80); setTimeout(renderCategoryManager, 80); }
@@ -3255,6 +3258,77 @@ function wzRenderReview() {
 }
 
 // ── SAVE ──
+function renderProductTable() {
+  const tbody = document.getElementById('prod-tbody');
+  if (!tbody) return;
+  if (!DB.products || !DB.products.length) {
+    tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--text-dim);padding:24px">No products yet. Click "Add Product" to get started.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = DB.products.map(p => {
+    const stockColor = p.balance <= 0 ? 'var(--red)' : p.balance <= p.alertAt ? '#fd9644' : 'var(--green)';
+    const status = p.balance <= 0 ? 'OUT' : p.balance <= p.alertAt ? 'LOW' : 'OK';
+    // For pack variants show a summary
+    let cpuDisplay = '—', sellDisplay = '—', resellerDisplay = '—', profitDisplay = '—';
+    if (p.packVariants && p.packVariants.length) {
+      const sizes = p.packVariants.map(pv => pv.size + (pv.sizeUnit||'g')).join(', ');
+      cpuDisplay    = p.packVariants.map(pv => '₹'+(pv.fullCpu||0).toFixed(2)).join(' / ');
+      sellDisplay   = p.packVariants.map(pv => '₹'+(pv.sellPrice||0).toFixed(2)).join(' / ');
+      resellerDisplay = p.packVariants.map(pv => pv.resellerPrice ? '₹'+pv.resellerPrice.toFixed(2) : '—').join(' / ');
+      profitDisplay = p.packVariants.map(pv => '₹'+(pv.profit||0).toFixed(2)).join(' / ');
+    } else {
+      cpuDisplay      = p.cpu         ? '₹'+p.cpu.toFixed(2)         : '—';
+      sellDisplay     = p.sellPrice   ? '₹'+p.sellPrice.toFixed(2)   : '—';
+      resellerDisplay = p.resellerPrice ? '₹'+p.resellerPrice.toFixed(2) : '—';
+      profitDisplay   = p.profitPerUnit ? '₹'+p.profitPerUnit.toFixed(2) : '—';
+    }
+    return `<tr>
+      <td><strong>${p.name}</strong><br><small style="color:var(--text-dim)">${p.category||''}</small></td>
+      <td>${p.buyQty||0} ${p.bulkUnit||''}</td>
+      <td>₹${(p.buyPrice||0).toFixed(2)}</td>
+      <td>₹${(p.shipCost||0).toFixed(2)}</td>
+      <td>₹${(p.stickerCost||0).toFixed(2)}</td>
+      <td>₹${(p.packCost||0).toFixed(2)}</td>
+      <td style="color:var(--accent);font-size:0.78rem">${cpuDisplay}</td>
+      <td style="color:var(--green);font-size:0.78rem">${sellDisplay}</td>
+      <td style="color:var(--accent4);font-size:0.78rem">${resellerDisplay}</td>
+      <td style="color:var(--green);font-size:0.78rem">${profitDisplay}</td>
+      <td>${p.stock||0}</td>
+      <td>${p.sold||0}</td>
+      <td style="color:${stockColor};font-weight:700">${p.balance||0} <small>${status}</small></td>
+      <td>${p.alertAt||5}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button onclick="editProduct('${p.id}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem">✏️ Edit</button>
+        <button onclick="deleteProduct('${p.id}')" style="background:rgba(255,80,80,0.1);color:var(--red);border:1px solid rgba(255,80,80,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function quickAddStock() {
+  const editId = v('p-edit-id');
+  if (!editId) { showToast('Select a product to edit first!', 'error'); return; }
+  const addQty = parseInt(v('p-add-stock')) || 0;
+  if (addQty <= 0) { showToast('Enter quantity to add!', 'error'); return; }
+  const idx = DB.products.findIndex(p => p.id === editId);
+  if (idx === -1) { showToast('Product not found!', 'error'); return; }
+  DB.products[idx].stock   = (DB.products[idx].stock   || 0) + addQty;
+  DB.products[idx].balance = (DB.products[idx].balance || 0) + addQty;
+  saveData();
+  renderProductTable();
+  set2('p-add-stock', '');
+  showToast('✅ Stock added: +' + addQty + ' units', 'success');
+}
+
+function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  DB.products = DB.products.filter(p => p.id !== id);
+  saveData();
+  renderProductTable();
+  populateProductDropdowns();
+  showToast('Product deleted', 'info');
+}
+
 function saveProduct() {
   const name = v('p-name');
   if (!name.trim()) { showToast('Product name required!','error'); return; }

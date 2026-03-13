@@ -325,6 +325,27 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 /* ── PRODUCT EDIT HIGHLIGHT ── */
 .editing-row td { background: rgba(247,201,72,0.04) !important; }
 
+/* ── PRODUCT WIZARD ── */
+.wz-step { display:flex;flex-direction:column;align-items:center;cursor:pointer;min-width:64px }
+.wz-circle { width:34px;height:34px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--text-dim);transition:.3s;background:var(--bg) }
+.wz-label { font-size:0.68rem;color:var(--text-dim);margin-top:4px;text-align:center;transition:.3s }
+.wz-step.active .wz-circle { border-color:var(--accent);color:var(--accent);background:rgba(247,201,72,0.12);box-shadow:0 0 0 4px rgba(247,201,72,0.1) }
+.wz-step.active .wz-label { color:var(--accent);font-weight:600 }
+.wz-step.done .wz-circle { border-color:var(--green);color:var(--green);background:rgba(85,239,196,0.1) }
+.wz-step.done .wz-label { color:var(--green) }
+.wz-line { flex:1;height:2px;background:var(--border);margin:0 4px;margin-bottom:18px;transition:.3s }
+.wz-line.done { background:var(--green) }
+.wz-pack-card { background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;transition:.2s }
+.wz-pack-card:hover { border-color:rgba(162,155,254,0.4) }
+.wz-pack-card.has-data { border-color:rgba(85,239,196,0.35);background:rgba(85,239,196,0.04) }
+.wz-cpu-badge { display:inline-block;background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.25);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700 }
+.wz-profit-badge { display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:700 }
+.wz-profit-pos { background:rgba(85,239,196,0.12);color:var(--green);border:1px solid rgba(85,239,196,0.25) }
+.wz-profit-neg { background:rgba(255,80,80,0.12);color:var(--red);border:1px solid rgba(255,80,80,0.25) }
+.wz-review-row { display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:0.85rem }
+.wz-review-row:last-child { border-bottom:none }
+.pack-count-tile { background:rgba(162,155,254,0.08);border:1px solid rgba(162,155,254,0.2);border-radius:10px;padding:10px 14px;text-align:center }
+
 </style>
 </head>
 <body>
@@ -527,121 +548,187 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
   <div class="tab-content" id="products-add">
     <input type="hidden" id="p-edit-id">
 
-    <!-- SECTION 1: Bulk Purchase Details -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title" id="prod-form-title">📦 Bulk Purchase Details</span>
-        <span id="prod-edit-badge" style="display:none;background:rgba(247,201,72,0.15);color:var(--accent);border:1px solid rgba(247,201,72,0.3);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">✏️ EDITING</span>
+    <!-- ══ STEP PROGRESS BAR ══ -->
+    <div style="display:flex;align-items:center;margin-bottom:20px;gap:0" id="prod-step-bar">
+      <div class="wz-step active" id="wz-dot-1" onclick="wzGo(1)" title="Step 1">
+        <div class="wz-circle">1</div><div class="wz-label">Purchase</div>
       </div>
-      <div class="form-grid">
-        <div class="form-group"><label>Product Base Name</label><input type="text" id="p-name" placeholder="e.g. Tea n31, Nattu Sakkarai" oninput="calcProductCost()"></div>
-        <div class="form-group">
-          <label>Category</label>
-          <div style="display:flex;gap:6px;align-items:center">
-            <select id="p-cat" style="flex:1"></select>
-            <button type="button" onclick="showAddCategoryInline()" title="Add new category"
-              style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:8px;padding:7px 11px;cursor:pointer;font-size:1rem;white-space:nowrap">＋</button>
+      <div class="wz-line" id="wz-line-1"></div>
+      <div class="wz-step" id="wz-dot-2" onclick="wzGo(2)" title="Step 2">
+        <div class="wz-circle">2</div><div class="wz-label">Pack Sizes</div>
+      </div>
+      <div class="wz-line" id="wz-line-2"></div>
+      <div class="wz-step" id="wz-dot-3" onclick="wzGo(3)" title="Step 3">
+        <div class="wz-circle">3</div><div class="wz-label">Pricing</div>
+      </div>
+      <div class="wz-line" id="wz-line-3"></div>
+      <div class="wz-step" id="wz-dot-4" onclick="wzGo(4)" title="Step 4">
+        <div class="wz-circle">4</div><div class="wz-label">Review</div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Purchase Info ══ -->
+    <div class="wz-panel" id="wz-panel-1">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📦 Step 1 — What did you purchase?</span>
+          <span id="prod-edit-badge" style="display:none;background:rgba(247,201,72,0.15);color:var(--accent);border:1px solid rgba(247,201,72,0.3);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">✏️ EDITING</span>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product Base Name</label>
+            <input type="text" id="p-name" placeholder="e.g. Nattu Sakkarai, Tea n31">
           </div>
-          <div id="new-cat-row" style="display:none;margin-top:6px;display:none">
-            <div style="display:flex;gap:6px">
-              <input type="text" id="new-cat-input" placeholder="e.g. Honey, Spices..."
-                style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--accent4);border-radius:8px;padding:6px 10px;font-size:0.85rem"
-                onkeydown="if(event.key==='Enter')saveNewCategory()">
-              <button onclick="saveNewCategory()" class="btn btn-primary btn-sm">Add</button>
-              <button onclick="hideAddCategoryInline()" class="btn btn-secondary btn-sm">✕</button>
+          <div class="form-group">
+            <label>Category</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="p-cat" style="flex:1"></select>
+              <button type="button" onclick="showAddCategoryInline()"
+                style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:8px;padding:7px 11px;cursor:pointer;font-size:1rem">＋</button>
+            </div>
+            <div id="new-cat-row" style="display:none;margin-top:6px">
+              <div style="display:flex;gap:6px">
+                <input type="text" id="new-cat-input" placeholder="New category..."
+                  style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--accent4);border-radius:8px;padding:6px 10px;font-size:0.85rem"
+                  onkeydown="if(event.key==='Enter')saveNewCategory()">
+                <button onclick="saveNewCategory()" class="btn btn-primary btn-sm">Add</button>
+                <button onclick="hideAddCategoryInline()" class="btn btn-secondary btn-sm">✕</button>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Purchase Quantity</label>
-          <div style="display:flex;gap:6px">
-            <input type="number" id="p-qty" placeholder="e.g. 10" oninput="calcProductCost()" style="flex:1">
-            <select id="p-bulk-unit" onchange="calcProductCost()" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
-              <option value="kg">kg</option>
-              <option value="g">g</option>
-              <option value="ml">ml</option>
-              <option value="l">L</option>
-              <option value="pcs">pcs</option>
-            </select>
+          <div class="form-group">
+            <label>Total Quantity Purchased</label>
+            <div style="display:flex;gap:6px">
+              <input type="number" id="p-qty" placeholder="e.g. 20" oninput="wzStep1Calc()" style="flex:1">
+              <select id="p-bulk-unit" onchange="wzStep1Calc()" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="l">L</option>
+                <option value="ml">ml</option>
+                <option value="pcs">pcs</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Purchase Price (₹)</label>
+            <input type="number" id="p-buy" placeholder="e.g. 1200" step="0.01" oninput="wzStep1Calc()">
+          </div>
+          <div class="form-group">
+            <label>Shipping Cost (₹)</label>
+            <input type="number" id="p-ship" placeholder="e.g. 240" step="0.01" oninput="wzStep1Calc()">
+          </div>
+          <div class="form-group">
+            <label>Total Cost (₹)</label>
+            <input type="number" id="p-total" readonly style="opacity:0.6;font-weight:700;color:var(--accent)">
           </div>
         </div>
-        <div class="form-group"><label>Purchase Price (₹ total)</label><input type="number" id="p-buy" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Shipping Cost (₹ total)</label><input type="number" id="p-ship" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Total Cost (₹)</label><input type="number" id="p-total" placeholder="Auto" readonly style="opacity:0.6"></div>
-      </div>
-      <!-- Cost per unit breakdown -->
-      <div id="p-cost-breakdown" style="margin-top:10px;padding:12px 16px;background:rgba(247,201,72,0.06);border:1px solid rgba(247,201,72,0.2);border-radius:10px;font-size:0.82rem;display:none">
-        <strong style="color:var(--accent)">📊 Cost Breakdown</strong>
-        <div id="p-cost-breakdown-content" style="margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px"></div>
-      </div>
-    </div>
 
-    <!-- SECTION 2: Pack Variants -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">🎁 Pack Variants (500g, 250g, 100g...)</span>
-        <button class="btn btn-primary btn-sm" onclick="addPackVariant()">+ Add Pack Size</button>
-      </div>
-      <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:14px">Each pack size gets its own cost per unit (based on weight/qty), sticker, cover — and sell & reseller price.</p>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;min-width:720px">
-          <thead>
-            <tr style="background:rgba(162,155,254,0.08)">
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:left">Pack Size</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:left">Unit</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Base CPU ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Sticker ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Cover ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Full CPU ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Sell ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Reseller ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Profit ₹</th>
-              <th style="padding:8px;font-size:0.72rem;color:var(--accent4);text-align:right">Stock</th>
-              <th style="padding:8px;width:32px"></th>
-            </tr>
-          </thead>
-          <tbody id="pack-variants-tbody"></tbody>
-        </table>
-      </div>
-      <p style="font-size:0.72rem;color:var(--text-dim);margin-top:10px">💡 Base CPU is auto-calculated from bulk purchase cost ÷ pack size. Add sticker & cover to get Full CPU.</p>
-    </div>
-
-    <!-- SECTION 3: Single Unit Product (for items like Scrubber, MCS) -->
-    <div class="card">
-      <div class="card-header"><span class="card-title">🔹 Single Unit Product</span><span style="font-size:0.75rem;color:var(--text-dim)">Use this if product is sold as individual units (not pack variants)</span></div>
-      <div class="form-grid">
-        <div class="form-group"><label>Sticker Cost / unit (₹)</label><input type="number" id="p-sticker" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Pack / Cover Cost / unit (₹)</label><input type="number" id="p-pack" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
-        <div class="form-group"><label>Full CPU (₹)</label><input type="number" id="p-cpu" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent)"></div>
-        <div class="form-group"><label>Selling Price (₹)</label><input type="number" id="p-sell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
-        <div class="form-group"><label>Reseller Price (₹)</label><input type="number" id="p-resell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
-        <div class="form-group"><label>Profit / unit (₹)</label><input type="number" id="p-profit" placeholder="Auto" readonly style="opacity:0.6;color:var(--green)"></div>
-        <div class="form-group"><label>Reseller Profit / unit (₹)</label><input type="number" id="p-resprofit" placeholder="Auto" readonly style="opacity:0.6;color:var(--accent4)"></div>
-        <div class="form-group"><label>Low Stock Alert At</label><input type="number" id="p-alert" placeholder="10"></div>
-        <div class="form-group"><label>Unit</label><select id="p-unit"><option>pcs</option><option>kg</option><option>g</option><option>packs</option><option>bottles</option></select></div>
-      </div>
-    </div>
-
-    <!-- Stock info (edit mode) -->
-    <div id="p-stock-info" style="display:none;margin-top:4px"></div>
-
-    <!-- Add Stock -->
-    <div class="card" style="background:rgba(85,239,196,0.04);border:1px solid rgba(85,239,196,0.2)">
-      <div class="card-header"><span class="card-title" style="color:var(--green)">➕ Add Stock</span><span style="font-size:0.75rem;color:var(--text-dim)">Use when editing an existing product</span></div>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div class="form-group" style="flex:1;min-width:160px;margin:0">
-          <label style="color:var(--text-dim)">Quantity to Add</label>
-          <input type="number" id="p-add-stock" placeholder="e.g. 50" min="0">
+        <!-- Pack count preview — shown after qty+cost entered -->
+        <div id="wz-pack-preview" style="display:none;margin-top:14px">
+          <div style="font-size:0.8rem;color:var(--accent);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">
+            📊 How many packs can you make from <span id="wz-qty-label">—</span>?
+          </div>
+          <div id="wz-pack-preview-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
+          <p style="font-size:0.72rem;color:var(--text-dim);margin-top:10px">👆 These are calculated automatically. Go to Step 2 to choose which pack sizes to sell.</p>
         </div>
-        <div style="padding-top:18px">
-          <button class="btn btn-success btn-sm" onclick="quickAddStock()">➕ Add Stock Only</button>
+
+        <div style="margin-top:18px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" onclick="wzNext(1)">Next: Choose Pack Sizes →</button>
         </div>
       </div>
     </div>
 
-    <div class="form-actions" style="margin-top:14px">
-      <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">💾 Save Product</button>
-      <button class="btn btn-secondary" onclick="clearProductForm()">Clear</button>
+    <!-- ══ STEP 2: Choose Pack Sizes ══ -->
+    <div class="wz-panel" id="wz-panel-2" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🎁 Step 2 — Choose Pack Sizes</span>
+          <button class="btn btn-secondary btn-sm" onclick="wzBack(2)">← Back</button>
+        </div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px">
+          Select the pack sizes you want to sell. Enter <strong>how many packs you are making</strong>, sticker cost, and cover/bag cost for each.
+        </p>
+
+        <!-- Quick-add common sizes -->
+        <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:0.78rem;color:var(--text-dim)">Quick add:</span>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(20,'g')">20g</button>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(50,'g')">50g</button>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(100,'g')">100g</button>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(250,'g')">250g</button>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(500,'g')">500g</button>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(1,'kg')">1kg</button>
+          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(1,'pcs')">1 pc</button>
+          <button class="btn btn-primary btn-sm" onclick="wzAddPack(0,'g')">＋ Custom</button>
+        </div>
+
+        <div id="wz-packs-container"></div>
+        <p style="font-size:0.72rem;color:var(--text-dim);margin-top:8px">💡 Base Cost is auto-calculated from your purchase. Just add sticker & cover cost per pack.</p>
+
+        <div style="margin-top:18px;display:flex;justify-content:space-between">
+          <button class="btn btn-secondary" onclick="wzBack(2)">← Back</button>
+          <button class="btn btn-primary" onclick="wzNext(2)">Next: Set Prices →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Pricing ══ -->
+    <div class="wz-panel" id="wz-panel-3" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">💰 Step 3 — Set Selling Prices</span>
+          <button class="btn btn-secondary btn-sm" onclick="wzBack(3)">← Back</button>
+        </div>
+        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px">
+          Enter selling price and reseller price for each pack. Profit is calculated automatically.
+        </p>
+        <div id="wz-pricing-container"></div>
+
+        <!-- Single unit fallback (for pcs products) -->
+        <input type="hidden" id="p-cpu">
+        <input type="hidden" id="p-sell">
+        <input type="hidden" id="p-resell">
+        <input type="hidden" id="p-profit">
+        <input type="hidden" id="p-resprofit">
+        <input type="hidden" id="p-sticker">
+        <input type="hidden" id="p-pack">
+        <input type="hidden" id="p-unit">
+        <input type="hidden" id="p-alert">
+
+        <div style="margin-top:18px;display:flex;justify-content:space-between">
+          <button class="btn btn-secondary" onclick="wzBack(3)">← Back</button>
+          <button class="btn btn-primary" onclick="wzNext(3)">Next: Review & Save →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4: Review & Save ══ -->
+    <div class="wz-panel" id="wz-panel-4" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">✅ Step 4 — Review & Save</span>
+          <button class="btn btn-secondary btn-sm" onclick="wzBack(4)">← Back</button>
+        </div>
+        <div id="wz-review-content"></div>
+
+        <!-- Stock info edit mode -->
+        <div id="p-stock-info" style="display:none;margin-top:8px"></div>
+
+        <!-- Add Stock -->
+        <div id="wz-addstock-row" style="margin-top:14px;padding:12px 16px;background:rgba(85,239,196,0.05);border:1px solid rgba(85,239,196,0.2);border-radius:10px;display:none">
+          <div style="font-size:0.78rem;color:var(--green);font-weight:600;margin-bottom:8px">➕ Add Stock (Edit Mode)</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="number" id="p-add-stock" placeholder="Qty to add" min="0"
+              style="width:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px">
+            <button class="btn btn-success btn-sm" onclick="quickAddStock()">➕ Add Stock Only</button>
+          </div>
+        </div>
+
+        <div class="form-actions" style="margin-top:18px">
+          <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">💾 Save Product</button>
+          <button class="btn btn-secondary" onclick="clearProductForm()">🗑 Clear / Start Over</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1331,11 +1418,29 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div id="cr-rules-table"></div>
       <div class="card" style="margin-top:12px;background:rgba(247,201,72,0.05);border:1px solid rgba(247,201,72,0.15)">
         <div class="card-header"><span class="card-title">➕ Add / Edit Rule</span></div>
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px">
+          💡 <strong>Qty-based mode:</strong> If customer buys 10 MCS PKV + 5 MCS Pure = 15 total → remind after 15 days.<br>
+          Set <strong>Days per Unit = 1</strong> for MCS (1 unit = 1 day). Set <strong>Fixed Days</strong> for fixed interval products like Tea.
+        </p>
         <div class="form-grid">
-          <div class="form-group"><label>Product Name</label><input type="text" id="cr-rule-product" placeholder="e.g. Tea 100g" list="product-list"></div>
-          <div class="form-group"><label>Reminder Interval (Days)</label><input type="number" id="cr-rule-days" placeholder="e.g. 8" min="1"></div>
+          <div class="form-group"><label>Product / Category Name</label><input type="text" id="cr-rule-product" placeholder="e.g. MCS, Tea, Scrubber" list="product-list"></div>
+          <div class="form-group">
+            <label>Reminder Mode</label>
+            <select id="cr-rule-mode" onchange="onRuleModeChange()" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
+              <option value="fixed">Fixed Days (e.g. remind after 15 days)</option>
+              <option value="qty">Qty-Based (days = total qty bought)</option>
+            </select>
+          </div>
+          <div class="form-group" id="cr-rule-days-group"><label>Fixed Reminder Days</label><input type="number" id="cr-rule-days" placeholder="e.g. 15" min="1"></div>
+          <div class="form-group" id="cr-rule-dpq-group" style="display:none"><label>Days per Unit (e.g. 1 unit = 1 day)</label><input type="number" id="cr-rule-dpq" placeholder="e.g. 1" min="0.1" step="0.1"></div>
+          <div class="form-group"><label>Group by Category? (merge similar products)</label>
+            <select id="cr-rule-group" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
+              <option value="0">No — track each product separately</option>
+              <option value="1">Yes — group all products matching this name</option>
+            </select>
+          </div>
         </div>
-        <button class="btn btn-primary" onclick="saveProductRule()">Save Rule</button>
+        <button class="btn btn-primary" onclick="saveProductRule()">💾 Save Rule</button>
       </div>
     </div>
   </div>
@@ -1647,6 +1752,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="tab" onclick="switchLoyaltyTab('history')" id="ltab-history">🕐 Purchase History</div>
     <div class="tab" onclick="switchLoyaltyTab('birthdays')" id="ltab-birthdays">🎂 Birthdays</div>
     <div class="tab" onclick="switchLoyaltyTab('referrals')" id="ltab-referrals">👥 Referrals</div>
+    <div class="tab" onclick="switchLoyaltyTab('rewardpacks')" id="ltab-rewardpacks">🎁 Reward Packs</div>
+    <div class="tab" onclick="switchLoyaltyTab('redeem')" id="ltab-redeem">🔓 Redeem</div>
   </div>
   <!-- Leaderboard -->
   <div id="ltab-content-leaderboard">
@@ -1701,15 +1808,95 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
             <select id="ref-from" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%"><option value="">Select customer...</option></select>
           </div>
           <div class="form-group"><label>New Customer Referred</label><input type="text" id="ref-to" placeholder="New customer name"></div>
+          <div class="form-group"><label>Purchase Amount (₹) — min ₹250 for point</label><input type="number" id="ref-amount" placeholder="e.g. 300" min="0"></div>
           <div class="form-group"><label>Date</label><input type="date" id="ref-date"></div>
         </div>
-        <div class="form-actions"><button class="btn btn-primary" onclick="saveReferral()">Save Referral</button></div>
+        <div class="form-actions"><button class="btn btn-primary" onclick="saveReferral()">💾 Save Referral</button></div>
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title">🏅 Referral Champions</span></div>
         <div id="referral-list"></div>
       </div>
     </div>
+    <!-- Referral Codes per customer -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">🔑 Customer Referral Codes</span>
+        <button class="btn btn-secondary btn-sm" onclick="renderReferralCodes()">Refresh</button>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px">Each customer has a unique referral code. Share it to earn points when referred customers buy ≥ ₹250.</p>
+      <div class="search-bar"><input type="text" placeholder="🔍 Search customer..." onkeyup="renderReferralCodes(this.value)"></div>
+      <div id="referral-codes-table"></div>
+    </div>
+  </div>
+
+  <!-- Reward Packs (Admin) -->
+  <div id="ltab-content-rewardpacks" style="display:none">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎁 Create Reward Pack</span></div>
+        <input type="hidden" id="rp-edit-id">
+        <div class="form-grid" style="grid-template-columns:1fr">
+          <div class="form-group"><label>Pack Name</label><input type="text" id="rp-name" placeholder="e.g. Referral Special Pack"></div>
+          <div class="form-group"><label>Description</label><input type="text" id="rp-desc" placeholder="e.g. Premium combo for loyal referrers"></div>
+          <div class="form-group"><label>Points Required</label><input type="number" id="rp-points" placeholder="e.g. 5" min="1"></div>
+          <div class="form-group"><label>Status</label>
+            <select id="rp-status" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
+              <option value="active">✅ Active</option>
+              <option value="inactive">⛔ Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Product Picker -->
+        <div style="margin-top:14px">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--accent4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📦 Items Inside This Pack</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+            <select id="rp-prod-select" style="flex:1;min-width:180px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+              <option value="">— Select product —</option>
+            </select>
+            <input type="number" id="rp-prod-qty" placeholder="Qty" min="1" value="1"
+              style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center">
+            <button onclick="rpAddProduct()" class="btn btn-primary btn-sm">＋ Add</button>
+          </div>
+          <div id="rp-items-list" style="margin-bottom:10px"></div>
+          <input type="hidden" id="rp-items">
+        </div>
+
+        <div class="form-actions" style="margin-top:14px">
+          <button class="btn btn-primary" onclick="saveRewardPack()">💾 Save Pack</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearRewardPackForm()">🗑 Clear</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📦 Reward Pack Inventory</span></div>
+        <div id="reward-packs-list"></div>
+      </div>
+    </div>
+
+    <!-- Redemption Management -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">📋 Redemption Requests</span>
+        <span id="pending-redemptions-badge" style="background:rgba(253,121,168,0.2);color:var(--red);border:1px solid rgba(253,121,168,0.3);padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:700"></span>
+      </div>
+      <div id="redemptions-table"></div>
+    </div>
+  </div>
+
+  <!-- Redeem Tab (Customer View) -->
+  <div id="ltab-content-redeem" style="display:none">
+    <!-- Customer selector -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">👤 Select Customer</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="redeem-customer-select" onchange="renderRedeemDashboard()" style="flex:1;min-width:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+          <option value="">— Choose customer —</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="renderRedeemDashboard()">View</button>
+      </div>
+    </div>
+    <div id="redeem-dashboard"></div>
   </div>
 </div>
 
@@ -2083,6 +2270,8 @@ let DB = {
   suppliers: [],
   birthdays: {},
   referrals: [],
+  rewardPacks: [],
+  rewardRedemptions: [],
   settings: {
     bizName: 'Meenatchi Traders',
     bizOwner: '',
@@ -2257,7 +2446,9 @@ function loadData() {
       DB.staff          = parsed.staff          || DB.staff;
       DB.suppliers      = parsed.suppliers      || DB.suppliers  || [];
       DB.birthdays      = parsed.birthdays      || DB.birthdays  || {};
-      DB.referrals      = parsed.referrals      || DB.referrals  || [];
+      DB.referrals         = parsed.referrals         || DB.referrals         || [];
+      DB.rewardPacks       = parsed.rewardPacks       || DB.rewardPacks       || [];
+      DB.rewardRedemptions = parsed.rewardRedemptions || DB.rewardRedemptions || [];
       DB.settings       = { ...DB.settings, ...(parsed.settings || {}) };
       DB.invoiceCounter = parsed.invoiceCounter || DB.invoiceCounter;
       DB.productRules   = parsed.productRules   || DB.productRules;
@@ -2742,537 +2933,451 @@ function renderRecentOrders() {
 }
 
 // ─── PRODUCTS ─────────────────────────────────────────
-// ── Pack Variants state ──
-let _packVariants = [];  // [{id, size, sizeUnit, sticker, cover, sellPrice, resellerPrice, stock}]
+// ── Wizard state ──
+let _packVariants = [];   // [{id,size,sizeUnit,sticker,cover,sellPrice,resellerPrice,stock,baseCpu,fullCpu,profit}]
+let _wzStep = 1;
 
-function getPerGramCost() {
-  const qty = +v('p-qty') || 0;
-  const buy = +v('p-buy') || 0;
+// ── Helpers ──
+function toGrams(qty, unit) {
+  if (unit === 'kg') return qty * 1000;
+  if (unit === 'l')  return qty * 1000;
+  if (unit === 'g' || unit === 'ml') return qty;
+  return qty; // pcs
+}
+function costPerGram() {
+  const qty  = +v('p-qty')  || 0;
+  const buy  = +v('p-buy')  || 0;
   const ship = +v('p-ship') || 0;
-  const bulkUnit = v('p-bulk-unit') || 'kg';
-  if (!qty) return 0;
+  const unit = v('p-bulk-unit') || 'kg';
   const totalCost = buy + ship;
-  // convert everything to grams / ml base
-  let baseQtyInG = qty;
-  if (bulkUnit === 'kg') baseQtyInG = qty * 1000;
-  else if (bulkUnit === 'l') baseQtyInG = qty * 1000;
-  else if (bulkUnit === 'g' || bulkUnit === 'ml') baseQtyInG = qty;
-  else baseQtyInG = qty; // pcs — 1:1
-  return baseQtyInG > 0 ? totalCost / baseQtyInG : 0;
+  const totalG    = toGrams(qty, unit);
+  return totalG > 0 ? totalCost / totalG : 0;
 }
-
-function calcProductCost() {
-  const qty = +v('p-qty') || 0;
-  const buy = +v('p-buy') || 0;
-  const ship = +v('p-ship') || 0;
-  const sticker = +v('p-sticker') || 0;
-  const pack = +v('p-pack') || 0;
-  const total = buy + ship;
+function packBaseCpu(sizeVal, sizeUnit) {
   const bulkUnit = v('p-bulk-unit') || 'kg';
+  if (bulkUnit === 'pcs') {
+    const qty = +v('p-qty') || 1;
+    const total = (+v('p-buy')||0) + (+v('p-ship')||0);
+    return total / qty;
+  }
+  const sizeG = toGrams(sizeVal, sizeUnit);
+  return costPerGram() * sizeG;
+}
+function recalcVariant(pv) {
+  pv.baseCpu = packBaseCpu(pv.size, pv.sizeUnit);
+  pv.fullCpu = pv.baseCpu + (pv.sticker||0) + (pv.cover||0);
+  pv.profit  = pv.sellPrice > 0   ? pv.sellPrice   - pv.fullCpu : 0;
+  pv.resellerProfit = pv.resellerPrice > 0 ? pv.resellerPrice - pv.fullCpu : 0;
+}
 
-  set2('p-total', total.toFixed(2));
+// ── STEP 1 ──
+function wzStep1Calc() {
+  const qty  = +v('p-qty')  || 0;
+  const buy  = +v('p-buy')  || 0;
+  const ship = +v('p-ship') || 0;
+  const unit = v('p-bulk-unit') || 'kg';
+  const total = buy + ship;
+  set2('p-total', total > 0 ? total.toFixed(2) : '');
 
-  // Per-gram/ml cost for display
-  const pgCost = getPerGramCost();
+  const preview = document.getElementById('wz-pack-preview');
+  const grid    = document.getElementById('wz-pack-preview-grid');
+  const label   = document.getElementById('wz-qty-label');
+  if (!preview || !grid) return;
 
-  // Show cost breakdown panel
-  const brkDiv = document.getElementById('p-cost-breakdown');
-  const brkContent = document.getElementById('p-cost-breakdown-content');
-  if (brkDiv && pgCost > 0) {
-    brkDiv.style.display = 'block';
-    const unitLabel = (bulkUnit === 'kg' || bulkUnit === 'l') ? 'g/ml' : bulkUnit;
-    brkContent.innerHTML = [
-      {label:'Per ' + unitLabel, val: pgCost},
-      {label:'Per 100g/ml', val: pgCost * 100},
-      {label:'Per 250g/ml', val: pgCost * 250},
-      {label:'Per 500g/ml', val: pgCost * 500},
-      {label:'Per 1kg/L', val: pgCost * 1000},
-    ].map(x => `<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 12px;text-align:center">
-        <div style="font-size:0.7rem;color:var(--text-dim)">${x.label}</div>
-        <div style="font-weight:700;color:var(--accent);font-size:0.9rem">₹${x.val.toFixed(2)}</div>
-      </div>`).join('');
-  } else if (brkDiv) {
-    brkDiv.style.display = 'none';
+  if (qty <= 0 || total <= 0) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  if (label) label.textContent = qty + ' ' + unit;
+
+  const totalG = toGrams(qty, unit);
+  const cpg    = total / totalG;
+
+  let sizes = [];
+  if (unit === 'pcs') {
+    sizes = [{s:1,u:'pcs',label:'1 pc'}];
+  } else {
+    const isPcs = (unit === 'pcs');
+    sizes = [
+      {s:10,  u:'g',  label:'10g'},
+      {s:20,  u:'g',  label:'20g'},
+      {s:50,  u:'g',  label:'50g'},
+      {s:100, u:'g',  label:'100g'},
+      {s:250, u:'g',  label:'250g'},
+      {s:500, u:'g',  label:'500g'},
+      {s:1000,u:'g',  label:'1kg'},
+    ].filter(x => toGrams(x.s, x.u) <= totalG);
   }
 
-  // For single-unit section (pcs products like scrubber/MCS)
-  if (qty > 0) {
-    const baseCpu = total / qty;
-    const fullCpu = baseCpu + sticker + pack;
-    set2('p-cpu', fullCpu.toFixed(2));
+  grid.innerHTML = sizes.map(x => {
+    const sizeG  = toGrams(x.s, x.u);
+    const count  = Math.floor(totalG / sizeG);
+    const cpPack = cpg * sizeG;
+    return `<div class="pack-count-tile">
+      <div style="font-size:1rem;font-weight:800;color:var(--accent)">${count}</div>
+      <div style="font-size:0.78rem;font-weight:600;margin:2px 0">${x.label} packs</div>
+      <div style="font-size:0.7rem;color:var(--text-dim)">₹${cpPack.toFixed(2)}/pack</div>
+    </div>`;
+  }).join('');
+
+  // Recalc existing variants if bulk info changed
+  _packVariants.forEach(pv => { recalcVariant(pv); });
+  wzRenderStep2();
+  wzRenderStep3();
+}
+// keep old name working
+function calcProductCost() { wzStep1Calc(); }
+function calcProductProfit() {}
+
+function wzNext(step) {
+  if (step === 1) {
+    if (!v('p-name').trim()) { showToast('Enter product name!','error'); return; }
+    if (!+v('p-qty') || !+v('p-buy')) { showToast('Enter purchase quantity and price!','error'); return; }
   }
+  if (step === 2) {
+    if (!_packVariants.length) { showToast('Add at least one pack size!','error'); return; }
+  }
+  if (step === 3) {
+    const missing = _packVariants.find(pv => !pv.sellPrice || pv.sellPrice <= 0);
+    if (missing) { showToast('Enter selling price for all packs!','error'); return; }
+  }
+  wzGo(step + 1);
+}
+function wzBack(step) { wzGo(step - 1); }
 
-  // Recalc all pack variant rows
-  recalcPackVariants();
-  calcProductProfit();
+function wzGo(step) {
+  _wzStep = step;
+  for (let i = 1; i <= 4; i++) {
+    const panel = document.getElementById('wz-panel-' + i);
+    const dot   = document.getElementById('wz-dot-'   + i);
+    const line  = document.getElementById('wz-line-'  + i);
+    if (panel) panel.style.display = i === step ? '' : 'none';
+    if (dot) {
+      dot.classList.toggle('active', i === step);
+      dot.classList.toggle('done',   i < step);
+    }
+    if (line) line.classList.toggle('done', i < step);
+  }
+  if (step === 2) wzRenderStep2();
+  if (step === 3) wzRenderStep3();
+  if (step === 4) wzRenderReview();
+  document.getElementById('products-add')?.scrollIntoView({behavior:'smooth'});
 }
 
-function calcProductProfit() {
-  const cpu = +v('p-cpu') || 0;
-  const sell = +v('p-sell') || 0;
-  const resell = +v('p-resell') || 0;
-  set2('p-profit', (sell - cpu).toFixed(2));
-  if (resell > 0) set2('p-resprofit', (resell - cpu).toFixed(2));
-  else set2('p-resprofit', '');
+// ── STEP 2: pack size cards ──
+function wzAddPack(size, unit) {
+  const id = 'pv' + Date.now() + Math.random().toString(36).slice(2,5);
+  const pv = {id, size, sizeUnit: unit, sticker:0, cover:0, sellPrice:0, resellerPrice:0, stock:0};
+  recalcVariant(pv);
+  _packVariants.push(pv);
+  wzRenderStep2();
+  // scroll to new card
+  setTimeout(() => document.getElementById('pvc-'+id)?.scrollIntoView({behavior:'smooth',block:'center'}), 100);
 }
 
-function addPackVariant() {
-  const id = 'pv' + Date.now();
-  _packVariants.push({ id, size: '', sizeUnit: 'g', sticker: 0, cover: 0, sellPrice: 0, resellerPrice: 0, stock: 0 });
-  renderPackVariants();
+function wzRemovePack(id) {
+  _packVariants = _packVariants.filter(pv => pv.id !== id);
+  wzRenderStep2();
+  wzRenderStep3();
 }
 
-function removePackVariant(id) {
-  _packVariants = _packVariants.filter(v => v.id !== id);
-  renderPackVariants();
-}
-
-function onPackVariantInput(el, id, field) {
+function wzPackInput(id, field, val) {
   const pv = _packVariants.find(x => x.id === id);
   if (!pv) return;
-  pv[field] = field === 'sizeUnit' ? el.value : (parseFloat(el.value) || 0);
-  recalcPackVariants();
+  pv[field] = (field === 'sizeUnit') ? val : (parseFloat(val) || 0);
+  recalcVariant(pv);
+  // Update CPU badge live
+  const cpuEl = document.getElementById('cpu-badge-'+id);
+  if (cpuEl) cpuEl.textContent = '₹' + pv.fullCpu.toFixed(2) + ' full CPU';
+  // Update profit badge in step3 if open
+  wzRenderStep3Inline(id);
 }
 
-function recalcPackVariants() {
-  const pgCost = getPerGramCost();
-  const bulkUnit = v('p-bulk-unit') || 'kg';
-  const isPcs = (bulkUnit === 'pcs');
-  _packVariants.forEach(pv => {
-    // base CPU for this pack = cost_per_gram * pack_size_in_grams
-    let baseCpu = 0;
-    if (isPcs) {
-      // for pcs products use flat per-unit cost
-      const qty = +v('p-qty') || 1;
-      const total = (+v('p-buy') || 0) + (+v('p-ship') || 0);
-      baseCpu = total / qty;
-    } else {
-      // convert pack size to grams/ml
-      let sizeG = pv.size;
-      if (pv.sizeUnit === 'kg' || pv.sizeUnit === 'l') sizeG = pv.size * 1000;
-      else if (pv.sizeUnit === 'pcs') sizeG = pv.size;
-      baseCpu = pgCost * sizeG;
-    }
-    pv.baseCpu = baseCpu;
-    pv.fullCpu = baseCpu + (pv.sticker || 0) + (pv.cover || 0);
-    pv.profit = pv.sellPrice > 0 ? pv.sellPrice - pv.fullCpu : 0;
-    pv.resellerProfit = pv.resellerPrice > 0 ? pv.resellerPrice - pv.fullCpu : 0;
-  });
-  renderPackVariants();
-}
-
-function renderPackVariants() {
-  const tbody = document.getElementById('pack-variants-tbody');
-  if (!tbody) return;
+function wzRenderStep2() {
+  const cont = document.getElementById('wz-packs-container');
+  if (!cont) return;
   if (!_packVariants.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:18px;color:var(--text-dim);font-size:0.8rem">No pack variants yet — click "+ Add Pack Size"</td></tr>';
+    cont.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:24px">No packs added yet. Use the Quick Add buttons above.</p>';
     return;
   }
-  const unitOpts = ['g','ml','kg','l','pcs'].map(u => `<option value="${u}">${u}</option>`).join('');
-  tbody.innerHTML = _packVariants.map(pv => {
-    const profitColor = pv.profit > 0 ? 'var(--green)' : pv.profit < 0 ? 'var(--red)' : 'var(--text-dim)';
-    const inp = (field, val, w, placeholder) =>
-      `<input type="number" value="${val||''}" placeholder="${placeholder||'0'}" step="0.01"
-        onchange="onPackVariantInput(this,'${pv.id}','${field}')"
-        style="width:${w}px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.8rem;text-align:right">`;
-    return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:6px 8px">
-        <input type="number" value="${pv.size||''}" placeholder="e.g. 500"
-          onchange="onPackVariantInput(this,'${pv.id}','size')"
-          style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.8rem;text-align:right">
-      </td>
-      <td style="padding:6px 6px">
-        <select onchange="onPackVariantInput(this,'${pv.id}','sizeUnit')"
-          style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:0.8rem">
-          ${['g','ml','kg','l','pcs'].map(u=>`<option value="${u}"${pv.sizeUnit===u?' selected':''}>${u}</option>`).join('')}
-        </select>
-      </td>
-      <td style="padding:6px 8px;text-align:right;color:var(--accent);font-size:0.8rem">₹${(pv.baseCpu||0).toFixed(3)}</td>
-      <td style="padding:6px 6px">${inp('sticker',pv.sticker,68,'0.00')}</td>
-      <td style="padding:6px 6px">${inp('cover',pv.cover,68,'0.00')}</td>
-      <td style="padding:6px 8px;text-align:right;color:var(--accent);font-weight:700;font-size:0.82rem">₹${(pv.fullCpu||0).toFixed(2)}</td>
-      <td style="padding:6px 6px">${inp('sellPrice',pv.sellPrice,75,'0.00')}</td>
-      <td style="padding:6px 6px">${inp('resellerPrice',pv.resellerPrice,75,'0.00')}</td>
-      <td style="padding:6px 8px;text-align:right;font-weight:700;color:${profitColor};font-size:0.82rem">₹${(pv.profit||0).toFixed(2)}</td>
-      <td style="padding:6px 6px">${inp('stock',pv.stock,60,'0')}</td>
-      <td style="padding:6px 4px;text-align:center">
-        <button onclick="removePackVariant('${pv.id}')"
-          style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:0.8rem">✕</button>
-      </td>
-    </tr>`;
+  const bulkUnit = v('p-bulk-unit') || 'kg';
+  const totalG   = toGrams(+v('p-qty')||0, bulkUnit);
+
+  cont.innerHTML = _packVariants.map(pv => {
+    const sizeG  = toGrams(pv.size||1, pv.sizeUnit||'g');
+    const maxPacks = sizeG > 0 && totalG > 0 ? Math.floor(totalG/sizeG) : '—';
+    return `<div class="wz-pack-card${(pv.sticker||pv.cover) ? ' has-data' : ''}" id="pvc-${pv.id}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" value="${pv.size||''}" placeholder="Size"
+            onchange="wzPackInput('${pv.id}','size',this.value)"
+            style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:1rem;font-weight:700;text-align:center">
+          <select onchange="wzPackInput('${pv.id}','sizeUnit',this.value)"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
+            ${['g','ml','kg','l','pcs'].map(u=>`<option${pv.sizeUnit===u?' selected':''}>${u}</option>`).join('')}
+          </select>
+          <span style="color:var(--text-dim);font-size:0.78rem">Max: <strong style="color:var(--accent3)">${maxPacks} packs</strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="wz-cpu-badge" id="cpu-badge-${pv.id}">₹${pv.fullCpu.toFixed(2)} full CPU</span>
+          <button onclick="wzRemovePack('${pv.id}')"
+            style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">✕ Remove</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+        <div class="form-group" style="margin:0">
+          <label style="font-size:0.72rem">Sticker Cost (₹/pack)</label>
+          <input type="number" value="${pv.sticker||''}" placeholder="0.00" step="0.01"
+            onchange="wzPackInput('${pv.id}','sticker',this.value)"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label style="font-size:0.72rem">Cover / Box Cost (₹/pack)</label>
+          <input type="number" value="${pv.cover||''}" placeholder="0.00" step="0.01"
+            onchange="wzPackInput('${pv.id}','cover',this.value)"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label style="font-size:0.72rem">Stock (packs you have)</label>
+          <input type="number" value="${pv.stock||''}" placeholder="e.g. 40" min="0"
+            onchange="wzPackInput('${pv.id}','stock',this.value)"
+            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%">
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
+// ── STEP 3: pricing ──
+function wzRenderStep3() {
+  const cont = document.getElementById('wz-pricing-container');
+  if (!cont) return;
+  if (!_packVariants.length) {
+    cont.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:24px">Go back and add pack sizes first.</p>';
+    return;
+  }
+  cont.innerHTML = _packVariants.map(pv => {
+    const profitClass = (pv.profit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
+    const rProfitClass = (pv.resellerProfit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
+    return `<div class="wz-pack-card has-data" id="price-card-${pv.id}" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+        <strong style="font-size:0.95rem">${pv.size}${pv.sizeUnit} Pack</strong>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="wz-cpu-badge">Full CPU: ₹${pv.fullCpu.toFixed(2)}</span>
+          <span class="wz-profit-badge ${profitClass}" id="profit-badge-${pv.id}">Profit: ₹${(pv.profit||0).toFixed(2)}</span>
+          ${pv.resellerPrice > 0 ? `<span class="wz-profit-badge ${rProfitClass}" id="rprofit-badge-${pv.id}">Reseller: ₹${(pv.resellerProfit||0).toFixed(2)}</span>` : `<span id="rprofit-badge-${pv.id}"></span>`}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+        <div class="form-group" style="margin:0">
+          <label style="font-size:0.72rem;color:var(--green)">Selling Price (₹) *</label>
+          <input type="number" value="${pv.sellPrice||''}" placeholder="e.g. 60" step="0.01"
+            oninput="wzPriceInput('${pv.id}','sellPrice',this.value)"
+            style="background:var(--bg);color:var(--green);border:1px solid rgba(85,239,196,0.3);border-radius:8px;padding:7px 10px;width:100%;font-weight:700">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label style="font-size:0.72rem;color:var(--accent4)">Reseller Price (₹)</label>
+          <input type="number" value="${pv.resellerPrice||''}" placeholder="optional" step="0.01"
+            oninput="wzPriceInput('${pv.id}','resellerPrice',this.value)"
+            style="background:var(--bg);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:8px;padding:7px 10px;width:100%">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function wzPriceInput(id, field, val) {
+  const pv = _packVariants.find(x => x.id === id);
+  if (!pv) return;
+  pv[field] = parseFloat(val) || 0;
+  recalcVariant(pv);
+  wzRenderStep3Inline(id);
+}
+
+function wzRenderStep3Inline(id) {
+  const pv = _packVariants.find(x => x.id === id);
+  if (!pv) return;
+  const pb = document.getElementById('profit-badge-'+id);
+  const rb = document.getElementById('rprofit-badge-'+id);
+  if (pb) {
+    const cls = (pv.profit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
+    pb.className = 'wz-profit-badge ' + cls;
+    pb.textContent = 'Profit: ₹' + (pv.profit||0).toFixed(2);
+  }
+  if (rb && pv.resellerPrice > 0) {
+    const cls = (pv.resellerProfit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
+    rb.className = 'wz-profit-badge ' + cls;
+    rb.textContent = 'Reseller: ₹' + (pv.resellerProfit||0).toFixed(2);
+  }
+}
+
+// ── STEP 4: review ──
+function wzRenderReview() {
+  const cont = document.getElementById('wz-review-content');
+  if (!cont) return;
+  const qty  = v('p-qty');
+  const unit = v('p-bulk-unit') || 'kg';
+  const buy  = +v('p-buy')  || 0;
+  const ship = +v('p-ship') || 0;
+  const total = buy + ship;
+  const name = v('p-name');
+
+  let html = `<div style="margin-bottom:16px;padding:14px;background:rgba(247,201,72,0.06);border:1px solid rgba(247,201,72,0.2);border-radius:10px">
+    <div style="font-size:0.72rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Purchase Summary</div>
+    <div class="wz-review-row"><span>Product</span><strong>${name}</strong></div>
+    <div class="wz-review-row"><span>Quantity</span><strong>${qty} ${unit}</strong></div>
+    <div class="wz-review-row"><span>Purchase + Shipping</span><strong>₹${buy} + ₹${ship} = ₹${total.toFixed(2)}</strong></div>
+    <div class="wz-review-row"><span>Cost per gram/unit</span><strong>₹${costPerGram().toFixed(4)}</strong></div>
+  </div>`;
+
+  html += `<div style="font-size:0.72rem;color:var(--accent4);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Pack Variants (${_packVariants.length})</div>`;
+  _packVariants.forEach(pv => {
+    const profitColor = (pv.profit||0) >= 0 ? 'var(--green)' : 'var(--red)';
+    html += `<div style="margin-bottom:10px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <strong style="font-size:0.92rem">${name} ${pv.size}${pv.sizeUnit}</strong>
+        <span class="wz-profit-badge ${(pv.profit||0)>=0?'wz-profit-pos':'wz-profit-neg'}">Profit ₹${(pv.profit||0).toFixed(2)}/pack</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:8px;font-size:0.78rem;color:var(--text-dim)">
+        <span>Base CPU: <strong style="color:var(--text)">₹${(pv.baseCpu||0).toFixed(3)}</strong></span>
+        <span>Sticker: <strong style="color:var(--text)">₹${(pv.sticker||0).toFixed(2)}</strong></span>
+        <span>Cover: <strong style="color:var(--text)">₹${(pv.cover||0).toFixed(2)}</strong></span>
+        <span>Full CPU: <strong style="color:var(--accent)">₹${(pv.fullCpu||0).toFixed(2)}</strong></span>
+        <span>Sell: <strong style="color:var(--green)">₹${(pv.sellPrice||0).toFixed(2)}</strong></span>
+        ${pv.resellerPrice>0?`<span>Reseller: <strong style="color:var(--accent4)">₹${pv.resellerPrice.toFixed(2)}</strong></span>`:''}
+        <span>Stock: <strong style="color:var(--text)">${pv.stock||0} packs</strong></span>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+
+  // show addstock row in edit mode
+  const asRow = document.getElementById('wz-addstock-row');
+  if (asRow) asRow.style.display = v('p-edit-id') ? 'block' : 'none';
+}
+
+// ── SAVE ──
 function saveProduct() {
   const name = v('p-name');
-  if (!name.trim()) { showToast('Product name required!', 'error'); return; }
-  const editId = v('p-edit-id');
-  const qty = +v('p-qty') || 0;
-  const buy = +v('p-buy') || 0;
-  const ship = +v('p-ship') || 0;
-  const sticker = +v('p-sticker') || 0;
-  const pack = +v('p-pack') || 0;
+  if (!name.trim()) { showToast('Product name required!','error'); return; }
+  const editId  = v('p-edit-id');
+  const qty     = +v('p-qty')  || 0;
+  const buy     = +v('p-buy')  || 0;
+  const ship    = +v('p-ship') || 0;
   const bulkUnit = v('p-bulk-unit') || 'kg';
-  const total = buy + ship;
-  const baseCpu = qty ? total / qty : 0;
-  const cpu = baseCpu + sticker + pack;
-  const sell = +v('p-sell') || 0;
-  const resellerPrice = +v('p-resell') || 0;
-  // Recalc variants before saving to ensure fresh numbers
-  recalcPackVariants();
+  const totalCost = buy + ship;
+  // Recalc all variants fresh
+  _packVariants.forEach(recalcVariant);
   const packVariants = _packVariants.map(pv => ({...pv}));
 
+  // For single-unit (pcs) products with no variants use simple cpu
+  const cpu = qty > 0 ? totalCost / qty : 0;
+  const sell = packVariants.length ? (packVariants[0].sellPrice||0) : 0;
+  const totalStock = packVariants.reduce((a,pv) => a+(pv.stock||0), 0) || qty;
+
+  const base = {
+    name, category: v('p-cat'),
+    buyQty: qty, buyPrice: buy, shipCost: ship, bulkUnit,
+    totalCost, cpu,
+    sellPrice: sell,
+    resellerPrice: packVariants.length ? (packVariants[0].resellerPrice||0) : 0,
+    profitPerUnit: packVariants.length ? (packVariants[0].profit||0) : 0,
+    stickerCost: 0, packCost: 0,
+    packVariants,
+    alertAt: +v('p-alert') || 5,
+    unit: packVariants.length ? 'packs' : 'pcs'
+  };
+
   if (editId) {
-    // UPDATE existing product
     const idx = DB.products.findIndex(p => p.id === editId);
     if (idx !== -1) {
       const existing = DB.products[idx];
-      const oldCpu = existing.cpu || 0;
-      const newCpu = cpu;
-      const cpuChanged = Math.abs(oldCpu - newCpu) > 0.01;
       const addStock = +v('p-add-stock') || 0;
-      const newStock = existing.stock + addStock;
-      const newBalance = existing.balance + addStock;
       DB.products[idx] = {
-        ...existing, name, category: v('p-cat'),
-        buyQty: qty, buyPrice: buy, shipCost: ship, bulkUnit,
-        stickerCost: sticker, packCost: pack,
-        totalCost: total, cpu, sellPrice: sell,
-        resellerPrice,
-        profitPerUnit: sell - cpu,
-        resellerProfit: resellerPrice > 0 ? resellerPrice - cpu : 0,
-        packVariants,
-        stock: newStock,
-        balance: newBalance,
-        alertAt: +v('p-alert') || 10,
-        unit: v('p-unit') || 'pcs'
+        ...existing, ...base,
+        stock:   existing.stock   + addStock,
+        balance: existing.balance + addStock,
+        sold: existing.sold || 0
       };
-      saveData();
-      renderProductTable();
-      populateProductDropdowns();
-      clearProductForm();
-      switchTab('products', 'list');
-
-      if (cpuChanged) {
-        // Ask about past profit recalculation
-        const pastSales = DB.sales.filter(s =>
-          s.items ? s.items.some(i => i.product === name) : s.product === name
-        );
-        if (pastSales.length > 0) {
-          const oldPpu = existing.profitPerUnit || 0;
-          const newPpu = sell - cpu;
-          showModal('📊 Update Past Profits?',
-            `<p style="margin-bottom:12px">Buying price changed: <strong>₹${oldCpu.toFixed(2)}</strong> → <strong>₹${newCpu.toFixed(2)}</strong> per unit</p>
-            <p style="margin-bottom:16px;color:var(--text-dim)">Found <strong>${pastSales.length} past sale(s)</strong> of <em>${name}</em>. Should we recalculate their profit with the new cost?</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn btn-primary" onclick="recalcPastProfits('${name}',${newCpu},${sell});closeModal()">✅ Yes, update past profits</button>
-              <button class="btn btn-secondary" onclick="closeModal()">No, only future sales</button>
-            </div>`
-          );
-          return;
-        }
-      }
-      if (addStock > 0) {
-        showToast('✅ Product updated! +' + addStock + ' stock added', 'success');
-      } else {
-        showToast('✅ Product updated!', 'success');
-      }
+      saveData(); renderProductTable(); populateProductDropdowns();
+      clearProductForm(); switchTab('products','list');
+      showToast('✅ Product updated!','success');
       return;
     }
-  } else {
-    // ADD new product
-    // Use total stock from pack variants if any, else qty
-    const totalPackStock = packVariants.length ? packVariants.reduce((a,pv) => a + (pv.stock||0), 0) : qty;
-    const prod = {
-      id: uid(), name, category: v('p-cat'),
-      buyQty: qty, buyPrice: buy, shipCost: ship, bulkUnit,
-      stickerCost: sticker, packCost: pack,
-      totalCost: total, cpu, sellPrice: sell,
-      resellerPrice,
-      profitPerUnit: sell - cpu,
-      resellerProfit: resellerPrice > 0 ? resellerPrice - cpu : 0,
-      packVariants,
-      stock: totalPackStock, sold: 0, balance: totalPackStock,
-      alertAt: +v('p-alert') || 10,
-      unit: packVariants.length ? 'packs' : (v('p-unit') || 'pcs')
-    };
-    DB.products.push(prod);
-    showToast('Product saved!', 'success');
   }
-  saveData();
-  renderProductTable();
-  populateProductDropdowns();
-  clearProductForm();
-  switchTab('products', 'list');
+  DB.products.push({ id: uid(), ...base, stock: totalStock, sold: 0, balance: totalStock });
+  saveData(); renderProductTable(); populateProductDropdowns();
+  clearProductForm(); switchTab('products','list');
+  showToast('✅ Product saved!','success');
 }
 
-function recalcPastProfits(productName, newCpu, sellPrice) {
-  const newPpu = sellPrice - newCpu;
-  let updated = 0;
-  DB.sales.forEach(s => {
-    let changed = false;
-    if (s.items && s.items.length) {
-      s.items.forEach(item => {
-        if (item.product === productName) {
-          item._oldProfit = item.profit;
-          item.profit = (item.qty * newPpu) - (item.disc || 0);
-          changed = true;
-        }
-      });
-      if (changed) {
-        // Recalc total sale profit from all items
-        s.profit = s.items.reduce((a, item) => {
-          const prod = DB.products.find(p => p.name === item.product);
-          if (item.product === productName) return a + item.qty * newPpu - (item.disc || 0);
-          return a + (prod ? item.qty * prod.profitPerUnit - (item.disc || 0) : 0);
-        }, 0);
-        updated++;
-      }
-    } else if (s.product === productName) {
-      s.profit = s.qty * newPpu - (s.disc || 0);
-      updated++;
-    }
-  });
-  saveData();
-  renderSalesTable();
-  renderDashboard();
-  showToast('✅ Profit recalculated for ' + updated + ' past sale(s) of ' + productName, 'success');
-}
-
+// ── EDIT ──
 function editProduct(id) {
   const p = DB.products.find(x => x.id === id);
   if (!p) return;
   set2('p-edit-id', p.id);
   set2('p-name', p.name);
-  const cat = document.getElementById('p-cat');
-  if (cat) cat.value = p.category;
-  set2('p-qty', p.buyQty);
-  set2('p-buy', p.buyPrice);
+  const cat = document.getElementById('p-cat'); if (cat) cat.value = p.category;
+  set2('p-qty',  p.buyQty);
+  set2('p-buy',  p.buyPrice);
   set2('p-ship', p.shipCost);
-  set2('p-sticker', p.stickerCost || 0);
-  set2('p-pack', p.packCost || 0);
+  const bu = document.getElementById('p-bulk-unit'); if (bu) bu.value = p.bulkUnit || 'kg';
   set2('p-total', p.totalCost ? p.totalCost.toFixed(2) : '');
-  set2('p-cpu', p.cpu ? p.cpu.toFixed(2) : '');
-  set2('p-sell', p.sellPrice);
-  set2('p-resell', p.resellerPrice || '');
-  set2('p-profit', p.profitPerUnit ? p.profitPerUnit.toFixed(2) : '');
-  set2('p-resprofit', p.resellerProfit ? p.resellerProfit.toFixed(2) : '');
-  set2('p-alert', p.alertAt);
-  set2('p-add-stock', '');
-  const unit = document.getElementById('p-unit');
-  if (unit) unit.value = p.unit;
-  const bulkUnitEl = document.getElementById('p-bulk-unit');
-  if (bulkUnitEl) bulkUnitEl.value = p.bulkUnit || 'kg';
+  set2('p-alert', p.alertAt || 5);
+  set2('p-add-stock','');
+
   // Load pack variants
   _packVariants = p.packVariants ? p.packVariants.map(pv => ({...pv})) : [];
-  recalcPackVariants();
-  // Show current stock info
-  const stockInfo = document.getElementById('p-stock-info');
-  if (stockInfo) {
-    stockInfo.style.display = 'block';
-    stockInfo.innerHTML = `<div class="alert alert-info" style="margin-top:8px">
-      📦
-      <div>Current Stock: <strong style="color:var(--accent)">${p.stock} ${p.unit}</strong> &nbsp;|&nbsp;
-      Sold: <strong style="color:var(--green)">${p.sold || 0}</strong> &nbsp;|&nbsp;
-      Balance: <strong style="color:${p.balance <= p.alertAt ? 'var(--red)' : 'var(--green)'}">${p.balance} ${p.unit}</strong>
-      </div></div>`;
-  }
-  // Show edit badge
+
+  // Edit badge
   const badge = document.getElementById('prod-edit-badge');
-  const title = document.getElementById('prod-form-title');
-  const btn = document.getElementById('prod-save-btn');
-  if (badge) badge.style.display = 'inline-block';
-  if (title) title.textContent = 'Edit Product';
-  if (btn) btn.innerHTML = '💾 Update Product';
-  switchTab('products', 'add');
-  setTimeout(() => document.getElementById('products-add').scrollIntoView({ behavior: 'smooth' }), 100);
-  showToast('✏️ Product loaded — edit details below', 'info');
-}
+  const btn   = document.getElementById('prod-save-btn');
+  if (badge) { badge.style.display='inline-block'; badge.textContent='✏️ EDITING'; }
+  if (btn)   btn.innerHTML = '💾 Update Product';
 
-function renderProductTable() {
-  const tbody = document.getElementById('prod-tbody');
-  if (!tbody) return;
-  if (!DB.products.length) {
-    tbody.innerHTML = `<tr><td colspan="15" style="padding:32px"><div class="empty-state">📦<p>No products yet. Add your first product!</p></div></td></tr>`;
-    return;
+  // Stock info
+  const si = document.getElementById('p-stock-info');
+  if (si) {
+    si.style.display = 'block';
+    si.innerHTML = `<div class="alert alert-info">📦 Stock: <strong>${p.stock} ${p.unit}</strong> | Sold: <strong>${p.sold||0}</strong> | Balance: <strong style="color:${p.balance<=p.alertAt?'var(--red)':'var(--green)'}">${p.balance}</strong></div>`;
   }
-  let rows = [];
-  DB.products.forEach(p => {
-    const isLow = p.balance <= p.alertAt;
-    if (p.packVariants && p.packVariants.length) {
-      // Parent row
-      rows.push(`<tr style="background:rgba(247,201,72,0.05)">
-        <td colspan="12" style="padding:8px 12px">
-          <strong style="color:var(--accent)">${p.name}</strong>
-          <span style="font-size:0.72rem;color:var(--text-dim);margin-left:8px">${p.category} · ${p.buyQty}${p.bulkUnit||'kg'} @ ₹${p.buyPrice} + Ship ₹${p.shipCost} = ₹${p.totalCost} total · ₹${(getPerGramCostForProduct(p)).toFixed(4)}/g</span>
-        </td>
-        <td colspan="3" style="padding:8px 12px;text-align:right">
-          <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button>
-        </td>
-      </tr>`);
-      // Variant rows
-      p.packVariants.forEach(pv => {
-        const pvLow = pv.stock <= (p.alertAt || 5);
-        const profitColor = (pv.profit||0) > 0 ? 'var(--green)' : 'var(--red)';
-        rows.push(`<tr style="border-bottom:1px solid var(--border)">
-          <td style="padding:6px 12px 6px 24px">
-            <span style="color:var(--text-dim);font-size:0.7rem">↳</span>
-            <strong>${p.name} ${pv.size}${pv.sizeUnit}</strong>
-          </td>
-          <td>${pv.size}${pv.sizeUnit}</td>
-          <td>${formatCurrency(p.buyPrice)}</td>
-          <td>${formatCurrency(p.shipCost)}</td>
-          <td>${pv.sticker > 0 ? formatCurrency(pv.sticker) : '—'}</td>
-          <td>${pv.cover > 0 ? formatCurrency(pv.cover) : '—'}</td>
-          <td style="color:var(--accent)">${formatCurrency(pv.fullCpu||0)}</td>
-          <td class="text-green">${formatCurrency(pv.sellPrice)}</td>
-          <td>${pv.resellerPrice > 0 ? formatCurrency(pv.resellerPrice) : '—'}</td>
-          <td style="color:${profitColor};font-weight:700">${formatCurrency(pv.profit||0)}</td>
-          <td>${pv.stock||0}</td>
-          <td>0</td>
-          <td><strong>${pv.stock||0}</strong></td>
-          <td>${pvLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
-          <td></td>
-        </tr>`);
-      });
-    } else {
-      rows.push(`<tr>
-        <td><strong>${p.name}</strong><br><span class="text-dim" style="font-size:0.7rem">${p.category}</span></td>
-        <td>${p.buyQty} ${p.unit}</td>
-        <td>${formatCurrency(p.buyPrice)}</td>
-        <td>${formatCurrency(p.shipCost)}</td>
-        <td>${p.stickerCost > 0 ? formatCurrency(p.stickerCost) : '—'}</td>
-        <td>${p.packCost > 0 ? formatCurrency(p.packCost) : '—'}</td>
-        <td style="color:var(--accent)">${formatCurrency(p.cpu)}</td>
-        <td class="text-green">${formatCurrency(p.sellPrice)}</td>
-        <td>${p.resellerPrice > 0 ? formatCurrency(p.resellerPrice) : '—'}</td>
-        <td class="highlight">${formatCurrency(p.profitPerUnit)}</td>
-        <td>${p.stock}</td>
-        <td>${p.sold || 0}</td>
-        <td><strong>${p.balance}</strong></td>
-        <td>${isLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
-        <td>
-          <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" style="margin-right:4px;margin-bottom:2px">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button>
-        </td>
-      </tr>`);
-    }
-  });
-  tbody.innerHTML = rows.join('');
 
-  renderStockHealthGrid();
+  wzStep1Calc();
+  wzGo(1);
+  switchTab('products','add');
+  setTimeout(() => document.getElementById('products-add')?.scrollIntoView({behavior:'smooth'}), 100);
+  showToast('✏️ Product loaded — edit and save','info');
 }
 
-
-// ─── ADD STOCK TO EXISTING PRODUCT ────────────────────
-function addStockToProduct(id, qty) {
-  const p = DB.products.find(x => x.id === id);
-  if (!p) return;
-  const add = parseInt(qty) || 0;
-  if (add <= 0) { showToast('Enter a valid quantity!', 'error'); return; }
-  p.stock += add;
-  p.balance += add;
-  p.buyQty += add;
-  saveData();
-  renderProductTable();
-  populateProductDropdowns();
-  showToast('✅ Stock added: +' + add + ' ' + p.unit, 'success');
-}
-
-
-function quickAddStock() {
-  const editId = v('p-edit-id');
-  if (!editId) {
-    showToast('Please click Edit on a product first!', 'error');
-    switchTab('products', 'list');
-    return;
-  }
-  const addQty = +v('p-add-stock') || 0;
-  if (addQty <= 0) {
-    showToast('Enter a quantity greater than 0!', 'error');
-    return;
-  }
-  const p = DB.products.find(x => x.id === editId);
-  if (!p) return;
-  p.stock += addQty;
-  p.balance += addQty;
-  saveData();
-  // Refresh stock info display
-  const stockInfo = document.getElementById('p-stock-info');
-  if (stockInfo) {
-    stockInfo.innerHTML = `<div class="alert alert-success" style="margin-top:8px">
-      ✅
-      <div>Stock updated! New balance: <strong style="color:var(--green)">${p.balance} ${p.unit}</strong> &nbsp;|&nbsp;
-      Total stock: <strong style="color:var(--accent)">${p.stock} ${p.unit}</strong></div></div>`;
-  }
-  set2('p-add-stock', '');
-  renderProductTable();
-  renderLowStockAlerts();
-  populateProductDropdowns();
-  showToast('✅ Added ' + addQty + ' ' + p.unit + ' to ' + p.name, 'success');
-}
-
-function promptAddStock(id) {
-  const p = DB.products.find(x => x.id === id);
-  if (!p) return;
-  const qty = prompt(`Add stock for "${p.name}"\nCurrent balance: ${p.balance} ${p.unit}\n\nEnter quantity to add:`);
-  if (qty === null) return;
-  addStockToProduct(id, qty);
-}
-
-function getPerGramCostForProduct(p) {
-  if (!p || !p.buyQty || !p.totalCost) return 0;
-  const bulkUnit = p.bulkUnit || 'kg';
-  let baseQtyInG = p.buyQty;
-  if (bulkUnit === 'kg') baseQtyInG = p.buyQty * 1000;
-  else if (bulkUnit === 'l') baseQtyInG = p.buyQty * 1000;
-  return baseQtyInG > 0 ? p.totalCost / baseQtyInG : 0;
-}
-
-function renderStockHealthGrid() {
-  const el = document.getElementById('stock-health-grid');
-  if (!el) return;
-  el.innerHTML = DB.products.map(p => {
-    const pct = p.stock ? Math.min((p.balance / p.stock) * 100, 100) : 0;
-    const color = pct < 20 ? 'red' : pct < 50 ? 'orange' : 'green';
-    const cls = pct < 20 ? 'badge-cancelled' : pct < 50 ? 'badge-pending' : 'badge-delivered';
-    return `<div class="stat-card ${color}">
-      <div class="label">${p.name.substr(0,20)}</div>
-      <div class="value">${p.balance}<span style="font-size:0.8rem"> ${p.unit}</span></div>
-      <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:${pct}%;background:var(--${color === 'orange' ? 'accent2' : color === 'red' ? 'red' : 'green'})"></div></div>
-      <div class="sub">${p.sold || 0} sold • alert@${p.alertAt}</div>
-    </div>`;
-  }).join('');
-}
-
-function deleteProduct(id) {
-  if (!confirm('Delete this product?')) return;
-  DB.products = DB.products.filter(p => p.id !== id);
-  saveData();
-  renderProductTable();
-  populateProductDropdowns();
-  showToast('Product deleted', 'info');
-}
-
+// ── CLEAR ──
 function clearProductForm() {
-  ['p-name','p-qty','p-buy','p-ship','p-sticker','p-pack','p-total','p-cpu','p-sell','p-resell','p-profit','p-resprofit','p-alert','p-edit-id','p-add-stock'].forEach(id => set2(id, ''));
+  ['p-name','p-qty','p-buy','p-ship','p-total','p-cpu','p-sell','p-resell',
+   'p-profit','p-resprofit','p-sticker','p-pack','p-alert','p-edit-id','p-add-stock'].forEach(id => set2(id,''));
   const badge = document.getElementById('prod-edit-badge');
-  const title = document.getElementById('prod-form-title');
-  const btn = document.getElementById('prod-save-btn');
-  const stockInfo = document.getElementById('p-stock-info');
-  const brkDiv = document.getElementById('p-cost-breakdown');
+  const btn   = document.getElementById('prod-save-btn');
+  const si    = document.getElementById('p-stock-info');
+  const asRow = document.getElementById('wz-addstock-row');
   if (badge) badge.style.display = 'none';
-  if (title) title.textContent = 'Add Product';
-  if (btn) btn.innerHTML = '💾 Save Product';
-  if (stockInfo) stockInfo.style.display = 'none';
-  if (brkDiv) brkDiv.style.display = 'none';
-  const bulkUnitEl = document.getElementById('p-bulk-unit');
-  if (bulkUnitEl) bulkUnitEl.value = 'kg';
+  if (btn)   btn.innerHTML = '💾 Save Product';
+  if (si)    si.style.display = 'none';
+  if (asRow) asRow.style.display = 'none';
+  const bu = document.getElementById('p-bulk-unit'); if(bu) bu.value='kg';
   _packVariants = [];
-  renderPackVariants();
+  _wzStep = 1;
+  wzGo(1);
+  wzStep1Calc();
   populateCategoryDropdown('p-cat');
 }
+
+// keep old names alive
+function addPackVariant() { wzAddPack(0,'g'); }
+function renderPackVariants() { wzRenderStep2(); }
+function recalcPackVariants() { _packVariants.forEach(recalcVariant); wzRenderStep2(); wzRenderStep3(); }
+function getPerGramCostForProduct(p) {
+  if (!p||!p.buyQty||!p.totalCost) return 0;
+  const bu = p.bulkUnit||'kg';
+  const g  = toGrams(p.buyQty, bu);
+  return g>0 ? p.totalCost/g : 0;
+}
+
 
 // ─── CATEGORIES ───────────────────────────────────────
 function populateCategoryDropdown(selectId, selectedVal) {
@@ -6462,13 +6567,14 @@ function installPWA() {
 // ─── DEFAULT PRODUCT RULES ────────────────────────────────
 const DEFAULT_RULES = [
   { product: 'Tea Rs.10',       days: 2  },
-  { product: 'Tea n31 – 100g',  days: 8  },
-  { product: 'Tea n31 – 250g',  days: 18 },
-  { product: 'Scrubber Pro',    days: 25 },
-  { product: 'Nattu Sakkarai 500g', days: 23 },
-  { product: 'GNS Nattu Sakkarai 1kg', days: 23 },
-  { product: 'MCS Item',        days: 1  },
-  { product: 'Tea n31 – Sample 10g', days: 2 },
+  { product: 'Tea n31 – 100g',       days: 8,  mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'Tea n31 – 250g',       days: 18, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'Tea n31 – 500g',       days: 35, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'Scrubber',             days: 25, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'Nattu Sakkarai 500g',  days: 23, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'Nattu Sakkarai 1kg',   days: 45, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'MCS',                  days: 15, mode: 'qty',   daysPerUnit: 1, groupByCategory: true  },
+  { product: 'Tea n31 – Sample 10g', days: 2,  mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
 ];
 
 function getProductRules() {
@@ -6507,30 +6613,124 @@ function daysDiff(dateStr) {
 }
 
 // ─── BUILD CUSTOMER REMINDERS FROM SALES ──────────────────
+function getMatchingRule(productName) {
+  const rules = getProductRules();
+  // Exact match first
+  let rule = rules.find(r => productName && productName.toLowerCase().startsWith(r.product.toLowerCase()));
+  if (!rule) rule = rules.find(r => productName && productName.toLowerCase().includes(r.product.toLowerCase()));
+  return rule || null;
+}
+
+function getRuleDays(productName) {
+  const rule = getMatchingRule(productName);
+  if (rule) return rule.days;
+  const pl = (productName || '').toLowerCase();
+  if (pl.includes('tea') && pl.includes('10')) return 2;
+  if (pl.includes('tea') && pl.includes('100')) return 8;
+  if (pl.includes('tea') && pl.includes('250')) return 18;
+  if (pl.includes('scrub')) return 25;
+  if (pl.includes('sakkarai') || pl.includes('sugar')) return 23;
+  if (pl.includes('mcs')) return 15;
+  return 7;
+}
+
 function buildCustomerReminders() {
-  // Group sales by customer+product → get latest purchase date per combination
-  const map = {};
+  const rules = getProductRules();
+  const todayStr = today();
+
+  // ── Step 1: collect all sales grouped by customer ──
+  const custSales = {};
   DB.sales.forEach(s => {
-    if (!s.customer || !s.product) return;
-    const key = s.customer.toLowerCase().trim() + '||' + s.product.trim();
-    const saleDate = s.date || '';
-    if (!map[key] || saleDate > map[key].lastDate) {
-      const cust = DB.customers.find(c => c.name.toLowerCase() === s.customer.toLowerCase().trim());
-      const phone = s.phone || (cust ? cust.phone : '') || '';
-      map[key] = {
-        customer: s.customer,
-        phone: phone,
-        product: s.product,
-        qty: s.qty,
-        lastDate: saleDate,
-        days: getRuleDays(s.product)
-      };
-    }
+    if (!s.customer) return;
+    const ck = s.customer.toLowerCase().trim();
+    if (!custSales[ck]) custSales[ck] = { name: s.customer, phone: '', salesList: [] };
+    const cust = DB.customers.find(c => c.name.toLowerCase() === ck);
+    custSales[ck].phone = s.phone || (cust ? cust.phone : '') || custSales[ck].phone;
+    // Expand multi-item sales
+    const items = s.items && s.items.length ? s.items : [{ product: s.product, qty: s.qty || 1 }];
+    items.forEach(item => {
+      if (!item.product) return;
+      custSales[ck].salesList.push({ product: item.product, qty: item.qty || 1, date: s.date || todayStr });
+    });
   });
-  return Object.values(map).map(r => {
-    const nextDate = addDays(r.lastDate, r.days);
-    return { ...r, nextDate, overdueDays: daysDiff(nextDate) };
+
+  const reminders = [];
+
+  Object.values(custSales).forEach(cust => {
+    // ── Step 2: find which rules apply in groupByCategory mode ──
+    const handledProducts = new Set();
+
+    // Process grouped (qty-based) rules first
+    rules.filter(r => r.groupByCategory && r.mode === 'qty').forEach(rule => {
+      // Find all sales matching this rule's product keyword
+      const matching = cust.salesList.filter(sl =>
+        sl.product.toLowerCase().includes(rule.product.toLowerCase())
+      );
+      if (!matching.length) return;
+
+      // Get the latest sale date among matching items
+      const latestDate = matching.reduce((best, sl) => sl.date > best ? sl.date : best, '');
+
+      // Sum qty from ALL matching sales on that latest date (same-day purchase grouping)
+      // Also consider total qty ever for a rolling window — use last 30 days
+      const thirtyAgo = new Date(todayStr); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+      const thirtyAgoStr = thirtyAgo.toISOString().split('T')[0];
+      const recentQty = matching
+        .filter(sl => sl.date >= thirtyAgoStr)
+        .reduce((sum, sl) => sum + (sl.qty || 1), 0);
+
+      const reminderDays = Math.round(recentQty * (rule.daysPerUnit || 1));
+      const nextDate = addDays(latestDate, reminderDays);
+
+      // Collect product names for display
+      const productNames = [...new Set(matching.map(sl => sl.product))];
+      productNames.forEach(p => handledProducts.add(p.toLowerCase()));
+
+      reminders.push({
+        customer: cust.name,
+        phone: cust.phone,
+        product: productNames.join(' + '),
+        productGroup: rule.product,
+        qty: recentQty,
+        lastDate: latestDate,
+        days: reminderDays,
+        nextDate,
+        overdueDays: daysDiff(nextDate),
+        mode: 'qty',
+        ruleLabel: recentQty + ' units × ' + (rule.daysPerUnit || 1) + ' day = ' + reminderDays + ' days'
+      });
+    });
+
+    // ── Step 3: process remaining products with fixed rules ──
+    const map = {};
+    cust.salesList.forEach(sl => {
+      if (handledProducts.has(sl.product.toLowerCase())) return;
+      const key = sl.product.trim();
+      if (!map[key] || sl.date > map[key].lastDate) {
+        map[key] = { product: sl.product, qty: sl.qty, lastDate: sl.date };
+      }
+    });
+
+    Object.values(map).forEach(item => {
+      const rule = getMatchingRule(item.product);
+      const days = rule ? rule.days : getRuleDays(item.product);
+      const nextDate = addDays(item.lastDate, days);
+      reminders.push({
+        customer: cust.name,
+        phone: cust.phone,
+        product: item.product,
+        qty: item.qty,
+        lastDate: item.lastDate,
+        days,
+        nextDate,
+        overdueDays: daysDiff(nextDate),
+        mode: 'fixed',
+        ruleLabel: days + ' days'
+      });
+    });
   });
+
+  return reminders;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -7011,17 +7211,24 @@ function renderCustomerReminders() {
       tt.innerHTML = '<div class="empty-state">🎉<p>No reminders due today!</p></div>';
     } else {
       tt.innerHTML = `<div class="table-wrap"><table>
-        <thead><tr><th>Customer</th><th>Phone</th><th>Product</th><th>Last Purchase</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Customer</th><th>Phone</th><th>Product(s)</th><th>Qty / Rule</th><th>Last Buy</th><th>Due</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>${dueToday.map(r => {
           const statusColor = r.overdueDays > 3 ? 'var(--red)' : r.overdueDays > 0 ? '#fd9644' : 'var(--green)';
           const statusText  = r.overdueDays > 0 ? r.overdueDays + 'd overdue' : 'Due today';
           const ph = (r.phone||'').replace(/\D/g,'');
           const phLink = ph ? (ph.startsWith('91') ? ph : '91'+ph) : '';
-          const msg = 'Vanakkam ' + r.customer + '! ' + r.product + ' fresh stock ready. Ungalukku thevai irukka? - ' + (DB.settings.bizName||'Meenatchi Traders');
+          const biz = DB.settings.bizName||'Meenatchi Traders';
+          const msg = r.mode === 'qty'
+            ? 'Vanakkam ' + r.customer + '! 👋\n\nYour ' + r.product + ' stock may be running low.\nYou bought ' + r.qty + ' units — time to reorder! 📦\n\nContact us at ' + biz
+            : 'Vanakkam ' + r.customer + '! ' + r.product + ' fresh stock ready. Ungalukku thevai irukka? - ' + biz;
+          const qtyBadge = r.mode === 'qty'
+            ? `<span style="font-size:0.72rem;color:var(--accent4);background:rgba(162,155,254,0.12);padding:2px 8px;border-radius:10px">${r.ruleLabel}</span>`
+            : `<span style="font-size:0.72rem;color:var(--text-dim)">${r.ruleLabel}</span>`;
           return `<tr>
             <td><strong>${r.customer}</strong></td>
             <td><a href="tel:${r.phone}" style="color:var(--accent4)">${r.phone||'—'}</a></td>
-            <td>${r.product||'—'}</td>
+            <td style="max-width:160px;font-size:0.82rem">${r.product||'—'}</td>
+            <td>${qtyBadge}</td>
             <td>${formatDate(r.lastDate)}</td>
             <td>${formatDate(r.nextDate)}</td>
             <td style="color:${statusColor};font-weight:600">${statusText}</td>
@@ -7070,43 +7277,75 @@ function filterCustReminders(q) {
   rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'; });
 }
 
+function onRuleModeChange() {
+  const mode = document.getElementById('cr-rule-mode')?.value;
+  const fixedGrp = document.getElementById('cr-rule-days-group');
+  const qtyGrp   = document.getElementById('cr-rule-dpq-group');
+  if (fixedGrp) fixedGrp.style.display = mode === 'qty' ? 'none' : '';
+  if (qtyGrp)   qtyGrp.style.display   = mode === 'qty' ? '' : 'none';
+}
+
 function renderProductRules() {
   const rules = getProductRules();
   const el = document.getElementById('cr-rules-table');
   if (!el) return;
   el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Product</th><th>Reminder Days</th><th>Action</th></tr></thead>
-    <tbody>${rules.map((r, i) => `<tr>
-      <td><strong>${r.product}</strong></td>
-      <td>${r.days} days</td>
-      <td>
-        <button onclick="editRule(${i})" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:4px">✏️</button>
-        <button onclick="deleteRule(${i})" style="background:rgba(253,121,168,0.12);color:var(--red);border:1px solid rgba(253,121,168,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Del</button>
-      </td>
-    </tr>`).join('')}</tbody>
+    <thead><tr><th>Product / Category</th><th>Mode</th><th>Interval</th><th>Grouped?</th><th>Action</th></tr></thead>
+    <tbody>${rules.map((r, i) => {
+      const modeLabel = r.mode === 'qty'
+        ? `<span style="color:var(--accent4);font-weight:600">📦 Qty-Based</span><br><span style="font-size:0.72rem;color:var(--text-dim)">${r.daysPerUnit||1} day/unit</span>`
+        : `<span style="color:var(--accent3);font-weight:600">📅 Fixed</span>`;
+      const intervalLabel = r.mode === 'qty'
+        ? `qty × ${r.daysPerUnit||1} days`
+        : `${r.days} days`;
+      return `<tr>
+        <td><strong>${r.product}</strong></td>
+        <td>${modeLabel}</td>
+        <td>${intervalLabel}</td>
+        <td>${r.groupByCategory ? '<span style="color:var(--green)">✅ Yes</span>' : '—'}</td>
+        <td>
+          <button onclick="editRule(${i})" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:4px">✏️</button>
+          <button onclick="deleteRule(${i})" style="background:rgba(253,121,168,0.12);color:var(--red);border:1px solid rgba(253,121,168,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Del</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
   </table></div>`;
 }
 
 function saveProductRule() {
   const product = document.getElementById('cr-rule-product').value.trim();
-  const days = parseInt(document.getElementById('cr-rule-days').value);
-  if (!product || !days) { showToast('Enter product name and days!', 'error'); return; }
+  const mode = document.getElementById('cr-rule-mode')?.value || 'fixed';
+  const days = mode === 'fixed' ? parseInt(document.getElementById('cr-rule-days').value) : 15;
+  const daysPerUnit = mode === 'qty' ? parseFloat(document.getElementById('cr-rule-dpq').value) || 1 : 1;
+  const groupByCategory = document.getElementById('cr-rule-group')?.value === '1';
+  if (!product) { showToast('Enter product/category name!', 'error'); return; }
+  if (mode === 'fixed' && !days) { showToast('Enter reminder days!', 'error'); return; }
   const rules = getProductRules();
   const existing = rules.findIndex(r => r.product.toLowerCase() === product.toLowerCase());
-  if (existing > -1) rules[existing].days = days;
-  else rules.push({ product, days });
+  const newRule = { product, days: mode === 'fixed' ? days : Math.round(daysPerUnit * 10), mode, daysPerUnit, groupByCategory };
+  if (existing > -1) rules[existing] = newRule;
+  else rules.push(newRule);
   DB.productRules = rules;
   saveData();
   renderProductRules();
   document.getElementById('cr-rule-product').value = '';
   document.getElementById('cr-rule-days').value = '';
-  showToast('Rule saved!', 'success');
+  if (document.getElementById('cr-rule-dpq')) document.getElementById('cr-rule-dpq').value = '';
+  showToast('✅ Rule saved!', 'success');
 }
 
 function editRule(i) {
   const r = getProductRules()[i];
   document.getElementById('cr-rule-product').value = r.product;
-  document.getElementById('cr-rule-days').value = r.days;
+  const modeEl = document.getElementById('cr-rule-mode');
+  if (modeEl) { modeEl.value = r.mode || 'fixed'; onRuleModeChange(); }
+  if (r.mode === 'qty') {
+    if (document.getElementById('cr-rule-dpq')) document.getElementById('cr-rule-dpq').value = r.daysPerUnit || 1;
+  } else {
+    document.getElementById('cr-rule-days').value = r.days;
+  }
+  const grpEl = document.getElementById('cr-rule-group');
+  if (grpEl) grpEl.value = r.groupByCategory ? '1' : '0';
 }
 
 function deleteRule(i) {
@@ -7358,6 +7597,18 @@ function closeWAQueue() {
 // ══════════════════════════════════════════════════════════
 // 7. PROFIT TARGET TRACKER
 // ══════════════════════════════════════════════════════════
+function getRewardExpense(monthPrefix) {
+  // Sum cost of all Delivered redemptions in the given month (or all if no prefix)
+  const redemptions = DB.rewardRedemptions || [];
+  return redemptions
+    .filter(r => r.status === 'Delivered' && (!monthPrefix || (r.date||'').startsWith(monthPrefix)))
+    .reduce((sum, r) => {
+      const pack = (DB.rewardPacks||[]).find(p => p.id === r.rewardPackId);
+      const cost = pack ? (pack.packCost != null ? pack.packCost : calcRewardPackCost(pack.itemsList)) : 0;
+      return sum + cost;
+    }, 0);
+}
+
 function renderProfitTarget() {
   const ptMonth = document.getElementById('pt-month');
   if (ptMonth && !ptMonth.value) ptMonth.value = today().substr(0, 7);
@@ -7369,9 +7620,11 @@ function renderProfitTarget() {
   const targets = DB.profitTargets || [];
   const currentTarget = targets.find(t => t.month === thisMonth);
   const monthlySales = DB.sales.filter(s => s.date && s.date.startsWith(thisMonth));
-  const actualSales  = monthlySales.reduce((a, s) => a + (s.total||0), 0);
-  const actualProfit = monthlySales.reduce((a, s) => a + (s.profit||0), 0);
-  const actualOrders = monthlySales.length;
+  const actualSales   = monthlySales.reduce((a, s) => a + (s.total||0), 0);
+  const rawProfit     = monthlySales.reduce((a, s) => a + (s.profit||0), 0);
+  const rewardExp     = getRewardExpense(thisMonth);
+  const actualProfit  = rawProfit - rewardExp;
+  const actualOrders  = monthlySales.length;
 
   if (!currentTarget) {
     el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-dim)">
@@ -7408,8 +7661,12 @@ function renderProfitTarget() {
           <div style="font-size:0.8rem;color:var(--text-dim)">Profit target achieved</div>
         </div>
         ${progressBar('💰 Sales', actualSales, currentTarget.sales||0, salesPct, 'var(--accent)')}
-        ${progressBar('📈 Profit', actualProfit, currentTarget.profit||0, profitPct, 'var(--green)')}
+        ${progressBar('📈 Profit (after rewards)', actualProfit, currentTarget.profit||0, profitPct, 'var(--green)')}
         ${progressBar('🛒 Orders', actualOrders, currentTarget.orders||0, ordersPct, 'var(--accent4)')}
+        ${rewardExp > 0 ? `<div style="font-size:0.78rem;padding:8px 10px;background:rgba(255,80,80,0.06);border:1px solid rgba(255,80,80,0.18);border-radius:8px;margin-top:4px">
+          🎁 Reward pack expense this month: <strong style="color:var(--red)">−₹${rewardExp.toFixed(2)}</strong>
+          <span style="color:var(--text-dim);font-size:0.7rem"> (raw profit was ₹${rawProfit.toFixed(2)})</span>
+        </div>` : ''}
       </div>`;
   }
 
@@ -7420,8 +7677,8 @@ function renderProfitTarget() {
       <thead><tr><th>Month</th><th>Sales Target</th><th>Sales Actual</th><th>Profit Target</th><th>Profit Actual</th><th>Achievement</th></tr></thead>
       <tbody>${targets.sort((a,b) => b.month.localeCompare(a.month)).map(t => {
         const mSales = DB.sales.filter(s => s.date && s.date.startsWith(t.month));
-        const aS = mSales.reduce((a,s) => a+(s.total||0), 0);
-        const aP = mSales.reduce((a,s) => a+(s.profit||0), 0);
+        const aS  = mSales.reduce((a,s) => a+(s.total||0), 0);
+        const aP  = mSales.reduce((a,s) => a+(s.profit||0), 0) - getRewardExpense(t.month);
         const pct = t.profit > 0 ? (aP/t.profit*100).toFixed(0) : 0;
         return `<tr>
           <td><strong>${t.month}</strong></td>
@@ -7736,10 +7993,13 @@ function filterSuppTable(q) {
 // ════════════════════════════════════════════════════════
 
 if (!DB.birthdays)  DB.birthdays  = {};
-if (!DB.referrals)  DB.referrals  = [];
+if (!DB.referrals)          DB.referrals          = [];
+if (!DB.rewardPacks)        DB.rewardPacks        = [];
+if (!DB.rewardRedemptions)  DB.rewardRedemptions  = [];
+seedDefaultRewardPack();
 
 function switchLoyaltyTab(tab) {
-  ['leaderboard','points','history','birthdays','referrals'].forEach(t => {
+  ['leaderboard','points','history','birthdays','referrals','rewardpacks','redeem'].forEach(t => {
     const btn = document.getElementById('ltab-' + t);
     const c   = document.getElementById('ltab-content-' + t);
     if (btn) btn.classList.toggle('active', t === tab);
@@ -7749,7 +8009,9 @@ function switchLoyaltyTab(tab) {
   if (tab === 'points')      renderLoyaltyPoints();
   if (tab === 'history')     populateHistoryDropdown();
   if (tab === 'birthdays')   renderBirthdays();
-  if (tab === 'referrals')   renderReferrals();
+  if (tab === 'referrals')   { renderReferrals(); renderReferralCodes(); }
+  if (tab === 'rewardpacks') { rpPopulateProductSelect(); rpRenderItems(); renderRewardPacksList(); renderRedemptionsTable(); }
+  if (tab === 'redeem')      { populateRedeemCustomerSelect(); renderRedeemDashboard(); }
 }
 
 function renderLoyalty() {
@@ -7778,11 +8040,13 @@ function renderLoyaltyCards() {
   const totalPoints = data.reduce((a,c) => a+c.points, 0);
   const totalReferrals = DB.referrals.length;
   const topCustomer = data[0];
+  const refPoints = (DB.referrals||[]).filter(r=>r.pointGiven).length;
+  const pendingRed = (DB.rewardRedemptions||[]).filter(r=>r.status==='Pending').length;
   el.innerHTML = `
     <div class="stat-card gold"><div class="icon">🏆</div><div class="label">Top Customer</div><div class="value" style="font-size:0.95rem">${topCustomer ? topCustomer.name.substring(0,14) : '—'}</div><div class="sub">${topCustomer ? formatCurrency(topCustomer.totalSpent) : ''}</div></div>
     <div class="stat-card purple"><div class="icon">⭐</div><div class="label">Total Points Issued</div><div class="value">${totalPoints.toLocaleString()}</div></div>
     <div class="stat-card green"><div class="icon">👥</div><div class="label">Total Referrals</div><div class="value">${totalReferrals}</div></div>
-    <div class="stat-card teal"><div class="icon">🎂</div><div class="label">Birthdays Saved</div><div class="value">${Object.keys(DB.birthdays||{}).length}</div></div>
+    <div class="stat-card teal"><div class="icon">🎁</div><div class="label">Referral Points</div><div class="value">${refPoints}</div><div class="sub">${pendingRed} pending redeem</div></div>
   `;
 }
 
@@ -7962,40 +8226,590 @@ function sendBirthdayWish(custId) {
   window.open(`https://wa.me/${ph.startsWith('91')?ph:'91'+ph}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
+// ════════════════════════════════════════════════════════
+//  REFERRAL REWARD PACK SYSTEM
+// ════════════════════════════════════════════════════════
+
+// ── Referral Code ──
+function getReferralCode(customerId) {
+  return 'REF' + customerId.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5).padEnd(5,'0');
+}
+function findCustomerByRefCode(code) {
+  return DB.customers.find(c => getReferralCode(c.id) === code.toUpperCase());
+}
+
+// ── Points logic ──
+function getCustomerReferralPoints(custName) {
+  if (!DB.referrals) return 0;
+  return DB.referrals.filter(r => r.from === custName && r.pointGiven).length;
+}
+function getRedeemedPoints(custName) {
+  if (!DB.rewardRedemptions) return 0;
+  return DB.rewardRedemptions
+    .filter(r => r.customerName === custName && r.status !== 'Cancelled')
+    .reduce((s, r) => s + (r.pointsUsed || 0), 0);
+}
+function getAvailablePoints(custName) {
+  return Math.max(0, getCustomerReferralPoints(custName) - getRedeemedPoints(custName));
+}
+
+// ── Save Referral (extended) ──
 function saveReferral() {
-  const from = v('ref-from');
-  const to   = v('ref-to').trim();
-  const date = v('ref-date');
+  const from   = v('ref-from');
+  const to     = v('ref-to').trim();
+  const amount = parseFloat(v('ref-amount')) || 0;
+  const date   = v('ref-date') || today();
   if (!from || !to) { showToast('Fill both fields!', 'error'); return; }
+
+  const pointGiven = amount >= 250;
   if (!DB.referrals) DB.referrals = [];
-  DB.referrals.push({ id: uid(), from, to, date: date||today() });
+  DB.referrals.push({ id: uid(), from, to, amount, pointGiven, date });
   saveData();
   renderReferrals();
-  set2('ref-to','');
-  showToast(`✅ Referral saved! ${from} referred ${to}`, 'success');
+  renderReferralCodes();
+  set2('ref-to', '');
+  set2('ref-amount', '');
+
+  const msg = pointGiven
+    ? `✅ Referral saved! +1 point awarded to ${from} (purchase ≥ ₹250)`
+    : `✅ Referral saved! No point — purchase was ₹${amount} (need ≥ ₹250)`;
+  showToast(msg, pointGiven ? 'success' : 'info');
+
+  // WhatsApp notify referrer
+  if (pointGiven) {
+    const cust = DB.customers.find(c => c.name === from);
+    if (cust && cust.phone) {
+      const pts = getAvailablePoints(from);
+      const ph  = (cust.phone.replace(/\D/g,'')).replace(/^(?!91)/, '91');
+      const biz = DB.settings.bizName || 'Meenatchi Traders';
+      const msg2 = `Vanakkam ${from}! 🎉\n\nYour referral (${to}) made a purchase of ₹${amount}.\n\n🌟 You earned 1 point!\nTotal available points: ${pts}\n\n5 points = 1 Special Reward Pack 🎁\n\nKeep referring to earn more! - ${biz}`;
+      const link = `<a href="https://wa.me/${ph}?text=${encodeURIComponent(msg2)}" target="_blank" style="color:#25d366">Notify ${from} on WhatsApp</a>`;
+      showToast('Point awarded! ' + link, 'success', 6000);
+    }
+  }
 }
 
 function renderReferrals() {
   const el = document.getElementById('referral-list');
   if (!el) return;
-  if (!DB.referrals || !DB.referrals.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No referrals recorded yet.</div>'; return; }
-
+  if (!DB.referrals || !DB.referrals.length) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No referrals yet.</div>';
+    return;
+  }
   const counts = {};
-  DB.referrals.forEach(r => { counts[r.from] = (counts[r.from]||0)+1; });
+  const points = {};
+  DB.referrals.forEach(r => {
+    counts[r.from] = (counts[r.from]||0) + 1;
+    points[r.from] = (points[r.from]||0) + (r.pointGiven ? 1 : 0);
+  });
   const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const medals = ['🥇','🥈','🥉'];
-
+  const medals  = ['🥇','🥈','🥉'];
   el.innerHTML = `
     <div style="margin-bottom:12px">
-      ${ranked.map(([name, cnt], i) => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px">
-          <span>${medals[i]||'  '} <strong>${name}</strong></span>
-          <span style="color:var(--accent);font-weight:700">${cnt} referral${cnt>1?'s':''}</span>
-        </div>`).join('')}
+      ${ranked.map(([name, cnt], i) => {
+        const pts = getAvailablePoints(name);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:6px">
+          <div>
+            <div>${medals[i]||'👤'} <strong>${name}</strong></div>
+            <div style="font-size:0.72rem;color:var(--text-dim)">${cnt} referral${cnt>1?'s':''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--accent)">${points[name]||0} pts earned</div>
+            <div style="font-size:0.72rem;color:var(--green)">${pts} available</div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>
     <div style="font-size:0.75rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:8px">
-      ${DB.referrals.slice(-5).reverse().map(r=>`<div style="padding:3px 0">${r.from} → ${r.to} · ${formatDate(r.date)}</div>`).join('')}
+      <strong style="color:var(--text-dim)">Recent Referrals:</strong><br>
+      ${DB.referrals.slice(-6).reverse().map(r =>
+        `<div style="padding:3px 0;display:flex;justify-content:space-between">
+          <span>${r.from} → ${r.to}</span>
+          <span>${r.pointGiven ? '<span style="color:var(--green)">+1pt</span>' : '<span style="color:var(--text-dim)">—</span>'} · ${formatDate(r.date)}</span>
+        </div>`
+      ).join('')}
     </div>`;
+}
+
+function renderReferralCodes(query) {
+  const el = document.getElementById('referral-codes-table');
+  if (!el) return;
+  let custs = DB.customers.slice();
+  if (query) custs = custs.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+  if (!custs.length) { el.innerHTML = '<p style="color:var(--text-dim);padding:8px">No customers found.</p>'; return; }
+
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Customer</th><th>Referral Code</th><th>Total Refs</th><th>Points Earned</th><th>Available</th><th>Share</th>
+    </tr></thead>
+    <tbody>${custs.map(c => {
+      const code    = getReferralCode(c.id);
+      const total   = DB.referrals.filter(r => r.from === c.name).length;
+      const earned  = getCustomerReferralPoints(c.name);
+      const avail   = getAvailablePoints(c.name);
+      const biz     = DB.settings.bizName || 'Meenatchi Traders';
+      const shareMsg = `Hi! 👋 I'm a customer at ${biz}.\n\nUse my referral code *${code}* when you make a purchase of ₹250+ to help me earn rewards! 🎁\n\nContact: ${biz}`;
+      const ph = c.phone ? (c.phone.replace(/\D/g,'')).replace(/^(?!91)/,'91') : '';
+      return `<tr>
+        <td><strong>${c.name}</strong><br><small style="color:var(--text-dim)">${c.phone||'—'}</small></td>
+        <td><span style="font-family:monospace;font-size:1rem;font-weight:800;color:var(--accent);background:rgba(247,201,72,0.1);padding:4px 10px;border-radius:8px;letter-spacing:1px">${code}</span></td>
+        <td>${total}</td>
+        <td><span style="color:var(--accent);font-weight:700">${earned} pts</span></td>
+        <td><span style="color:${avail>0?'var(--green)':'var(--text-dim)'};font-weight:700">${avail} pts</span></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          ${ph ? `<a href="https://wa.me/${ph}?text=${encodeURIComponent(shareMsg)}" target="_blank"
+            style="background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3);padding:3px 9px;border-radius:6px;font-size:0.72rem;text-decoration:none">💬 WA</a>` : ''}
+          <button onclick="copyRefCode('${code}')"
+            style="background:rgba(162,155,254,0.12);color:var(--accent4);border:1px solid rgba(162,155,254,0.25);padding:3px 9px;border-radius:6px;font-size:0.72rem;cursor:pointer">📋 Copy</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function populateRedeemCustomerSelect() {
+  const el = document.getElementById('redeem-customer-select');
+  if (!el) return;
+  const cur = el.value;
+  el.innerHTML = '<option value="">— Choose customer —</option>' +
+    DB.customers.map(c => `<option value="${c.name}"${c.name===cur?' selected':''}>${c.name}</option>`).join('');
+  if (cur) el.value = cur;
+}
+
+function copyRefCode(code) {
+  navigator.clipboard.writeText(code).then(() => showToast('Referral code copied: ' + code, 'success'));
+}
+
+// ── Reward Packs (Admin) ──
+// ── Reward Pack product picker state ──
+let _rpItems = []; // [{productId, productName, qty}]
+
+function rpPopulateProductSelect() {
+  const sel = document.getElementById('rp-prod-select');
+  if (!sel) return;
+  const opts = DB.products.flatMap(p => {
+    const rows = [{id: p.id, label: p.name + (p.unit ? ' ('+p.unit+')' : '')}];
+    if (p.packVariants && p.packVariants.length) {
+      p.packVariants.forEach(pv => {
+        rows.push({ id: p.id + '||' + pv.id, label: p.name + ' ' + pv.size + pv.sizeUnit });
+      });
+    }
+    return rows;
+  });
+  sel.innerHTML = '<option value="">— Select product —</option>' +
+    opts.map(o => `<option value="${o.id}">${o.label}</option>`).join('');
+}
+
+function rpAddProduct() {
+  const sel = document.getElementById('rp-prod-select');
+  const qty = parseInt(document.getElementById('rp-prod-qty')?.value) || 1;
+  const val = sel?.value;
+  if (!val) { showToast('Select a product first!', 'error'); return; }
+
+  // Resolve label
+  let label = sel.options[sel.selectedIndex]?.text || val;
+  // Check duplicate
+  if (_rpItems.find(x => x.productId === val)) {
+    showToast('Already added! Change qty in the list.', 'info'); return;
+  }
+  _rpItems.push({ productId: val, productName: label, qty });
+  rpRenderItems();
+  sel.value = '';
+  document.getElementById('rp-prod-qty').value = 1;
+}
+
+function rpRemoveItem(productId) {
+  _rpItems = _rpItems.filter(x => x.productId !== productId);
+  rpRenderItems();
+}
+
+function rpQtyChange(productId, val) {
+  const item = _rpItems.find(x => x.productId === productId);
+  if (item) item.qty = parseInt(val) || 1;
+  rpSyncItemsHidden();
+}
+
+function rpRenderItems() {
+  const el = document.getElementById('rp-items-list');
+  if (!el) return;
+  if (!_rpItems.length) {
+    el.innerHTML = '<p style="color:var(--text-dim);font-size:0.78rem;padding:6px 0">No items added yet.</p>';
+    rpSyncItemsHidden();
+    return;
+  }
+  el.innerHTML = _rpItems.map(item => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(162,155,254,0.07);border:1px solid rgba(162,155,254,0.2);border-radius:8px;margin-bottom:6px;flex-wrap:wrap">
+      <span style="flex:1;font-size:0.85rem;font-weight:600;color:var(--text)">${item.productName}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label style="font-size:0.72rem;color:var(--text-dim)">Qty:</label>
+        <input type="number" value="${item.qty}" min="1"
+          onchange="rpQtyChange('${item.productId}', this.value)"
+          style="width:55px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;text-align:center;font-weight:700">
+        <button onclick="rpRemoveItem('${item.productId}')"
+          style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:0.72rem">✕</button>
+      </div>
+    </div>`).join('');
+  rpSyncItemsHidden();
+}
+
+function rpSyncItemsHidden() {
+  // Sync to hidden field for save
+  const summary = _rpItems.map(x => x.qty + '× ' + x.productName).join(', ');
+  set2('rp-items', summary);
+}
+
+function calcRewardPackCost(itemsList) {
+  // Sum up fullCpu × qty for each item in the pack
+  let total = 0;
+  (itemsList || []).forEach(item => {
+    const parts = item.productId.split('||');
+    const prod  = DB.products.find(p => p.id === parts[0]);
+    if (!prod) return;
+    let cpu = 0;
+    if (parts[1] && prod.packVariants) {
+      const pv = prod.packVariants.find(v => v.id === parts[1]);
+      cpu = pv ? (pv.fullCpu || 0) : (prod.cpu || 0);
+    } else {
+      cpu = prod.cpu || 0;
+    }
+    total += cpu * (item.qty || 1);
+  });
+  return total;
+}
+
+function saveRewardPack() {
+  const name   = v('rp-name').trim();
+  const desc   = v('rp-desc').trim();
+  const points = parseInt(v('rp-points')) || 0;
+  const status = v('rp-status') || 'active';
+  const editId = v('rp-edit-id');
+  if (!name || !points) { showToast('Pack name and points required!', 'error'); return; }
+  if (!_rpItems.length) { showToast('Add at least one product to the pack!', 'error'); return; }
+
+  rpSyncItemsHidden();
+  const items = v('rp-items');
+
+  // Calculate auto stock = min stock of included products
+  let autoStock = 999;
+  _rpItems.forEach(item => {
+    const pid = item.productId.split('||')[0];
+    const prod = DB.products.find(p => p.id === pid);
+    if (prod) {
+      const available = Math.floor((prod.balance || 0) / item.qty);
+      if (available < autoStock) autoStock = available;
+    }
+  });
+  const stock = autoStock === 999 ? 0 : Math.max(0, autoStock);
+
+  if (!DB.rewardPacks) DB.rewardPacks = [];
+  const packCost = calcRewardPackCost(_rpItems);
+  const packData = { name, desc, items, itemsList: _rpItems.map(x=>({...x})), pointsRequired: points, stock, status, packCost };
+  if (editId) {
+    const idx = DB.rewardPacks.findIndex(p => p.id === editId);
+    if (idx !== -1) DB.rewardPacks[idx] = { ...DB.rewardPacks[idx], ...packData };
+  } else {
+    DB.rewardPacks.push({ id: uid(), ...packData, created: today() });
+  }
+  saveData();
+  clearRewardPackForm();
+  renderRewardPacksList();
+  showToast('✅ Reward pack saved! Stock auto-set to ' + stock, 'success');
+}
+
+function clearRewardPackForm() {
+  ['rp-name','rp-desc','rp-items','rp-points','rp-edit-id'].forEach(id => set2(id,''));
+  const st = document.getElementById('rp-status'); if (st) st.value = 'active';
+  _rpItems = [];
+  rpRenderItems();
+}
+
+function editRewardPack(id) {
+  const p = DB.rewardPacks.find(x => x.id === id);
+  if (!p) return;
+  set2('rp-edit-id', p.id);
+  set2('rp-name',  p.name);
+  set2('rp-desc',  p.desc || '');
+  set2('rp-points', p.pointsRequired);
+  const st = document.getElementById('rp-status'); if (st) st.value = p.status || 'active';
+  // Restore items
+  _rpItems = p.itemsList ? p.itemsList.map(x=>({...x})) : [];
+  // Fallback: parse old string format
+  if (!_rpItems.length && p.items) {
+    p.items.split(',').forEach(seg => {
+      const m = seg.trim().match(/^(\d+)[x×]\s*(.+)$/i);
+      if (m) _rpItems.push({ productId: 'legacy_'+m[2], productName: m[2].trim(), qty: parseInt(m[1]) });
+    });
+  }
+  rpPopulateProductSelect();
+  rpRenderItems();
+  // Scroll to form
+  document.getElementById('rp-name')?.scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('rp-name')?.focus();
+  showToast('✏️ Editing pack — make changes and save', 'info');
+}
+
+function deleteRewardPack(id) {
+  if (!confirm('Delete this reward pack?')) return;
+  DB.rewardPacks = DB.rewardPacks.filter(p => p.id !== id);
+  saveData();
+  renderRewardPacksList();
+  showToast('Pack deleted', 'info');
+}
+
+function renderRewardPacksList() {
+  const el = document.getElementById('reward-packs-list');
+  if (!el) return;
+  if (!DB.rewardPacks || !DB.rewardPacks.length) {
+    el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:24px">No reward packs yet. Create one!</div>';
+    return;
+  }
+  el.innerHTML = DB.rewardPacks.map(p => {
+    const redeemCount = (DB.rewardRedemptions||[]).filter(r => r.rewardPackId === p.id).length;
+    const statusColor = p.status === 'active' ? 'var(--green)' : 'var(--red)';
+    const packCost = p.packCost != null ? p.packCost : calcRewardPackCost(p.itemsList);
+    const totalExpense = packCost * redeemCount;
+    return `<div style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-weight:700;font-size:0.95rem">🎁 ${p.name}</div>
+          ${p.desc ? `<div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px">${p.desc}</div>` : ''}
+          <div style="font-size:0.78rem;color:var(--accent4);margin-top:4px">📦 ${p.items||'Items not listed'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.1rem;font-weight:800;color:var(--accent)">${p.pointsRequired} pts</div>
+          <div style="font-size:0.72rem;color:var(--text-dim)">to redeem</div>
+        </div>
+      </div>
+      <!-- Cost row -->
+      <div style="display:flex;gap:10px;margin-top:10px;padding:8px 10px;background:rgba(255,80,80,0.05);border:1px solid rgba(255,80,80,0.15);border-radius:8px;font-size:0.78rem;flex-wrap:wrap">
+        <span>💸 Cost/pack: <strong style="color:var(--red)">₹${packCost.toFixed(2)}</strong></span>
+        <span style="color:var(--text-dim)">|</span>
+        <span>📊 Total given away: <strong style="color:var(--red)">₹${totalExpense.toFixed(2)}</strong> (${redeemCount}×)</span>
+        ${redeemCount > 0 ? `<span style="color:var(--text-dim)">|</span><span style="color:#fd9644">⚠️ Profit impact: -₹${totalExpense.toFixed(2)}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:0.78rem;flex-wrap:wrap;align-items:center">
+        <span style="color:${statusColor}">● ${p.status==='active'?'Active':'Inactive'}</span>
+        <span style="color:var(--text-dim)">Stock: <strong style="color:var(--text)">${p.stock}</strong></span>
+        <span style="color:var(--text-dim)">Redeemed: <strong style="color:var(--text)">${redeemCount}×</strong></span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button onclick="editRewardPack('${p.id}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;font-size:0.72rem;cursor:pointer">✏️ Edit</button>
+          <button onclick="deleteRewardPack('${p.id}')" style="background:rgba(255,80,80,0.1);color:var(--red);border:1px solid rgba(255,80,80,0.2);padding:3px 10px;border-radius:6px;font-size:0.72rem;cursor:pointer">🗑 Del</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRedemptionsTable() {
+  const el = document.getElementById('redemptions-table');
+  const badge = document.getElementById('pending-redemptions-badge');
+  if (!el) return;
+  const redemptions = DB.rewardRedemptions || [];
+  const pending = redemptions.filter(r => r.status === 'Pending').length;
+  if (badge) badge.textContent = pending > 0 ? pending + ' pending' : '';
+
+  if (!redemptions.length) {
+    el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:24px">No redemptions yet.</div>';
+    return;
+  }
+  const sorted = [...redemptions].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Customer</th><th>Pack</th><th>Points</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>${sorted.map(r => {
+      const pack = (DB.rewardPacks||[]).find(p => p.id === r.rewardPackId);
+      const statusColor = r.status === 'Delivered' ? 'var(--green)' : r.status === 'Cancelled' ? 'var(--red)' : '#fd9644';
+      return `<tr>
+        <td><strong>${r.customerName}</strong></td>
+        <td>${pack ? pack.name : r.packName||'—'}</td>
+        <td style="color:var(--accent);font-weight:700">${r.pointsUsed} pts</td>
+        <td>${formatDate(r.date)}</td>
+        <td style="color:${statusColor};font-weight:600">${r.status}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          ${r.status === 'Pending' ? `
+            <button onclick="markRedemption('${r.id}','Delivered')" style="background:rgba(85,239,196,0.12);color:var(--green);border:1px solid rgba(85,239,196,0.3);padding:3px 9px;border-radius:6px;font-size:0.72rem;cursor:pointer">✅ Delivered</button>
+            <button onclick="markRedemption('${r.id}','Cancelled')" style="background:rgba(255,80,80,0.1);color:var(--red);border:1px solid rgba(255,80,80,0.2);padding:3px 9px;border-radius:6px;font-size:0.72rem;cursor:pointer">✕ Cancel</button>
+          ` : '—'}
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function markRedemption(id, status) {
+  const r = (DB.rewardRedemptions||[]).find(x => x.id === id);
+  if (!r) return;
+  r.status = status;
+  if (status === 'Delivered') r.deliveredDate = today();
+  saveData();
+  renderRedemptionsTable();
+  renderRedeemDashboard();
+  // Notify customer
+  const cust = DB.customers.find(c => c.name === r.customerName);
+  if (cust && cust.phone && status === 'Delivered') {
+    const ph  = (cust.phone.replace(/\D/g,'')).replace(/^(?!91)/,'91');
+    const biz = DB.settings.bizName || 'Meenatchi Traders';
+    const msg = `Vanakkam ${r.customerName}! 🎉\n\nYour Reward Pack *${r.packName}* is ready for collection! 🎁\n\nCome visit us at ${biz}.\n\nThank you for being an amazing referrer! 🙏`;
+    window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+  showToast(`✅ Marked as ${status}`, 'success');
+}
+
+// ── Redeem Dashboard (Customer View) ──
+function renderRedeemDashboard() {
+  const custName = document.getElementById('redeem-customer-select')?.value;
+  const el = document.getElementById('redeem-dashboard');
+  if (!el) return;
+  if (!custName) { el.innerHTML = ''; return; }
+
+  const cust    = DB.customers.find(c => c.name === custName);
+  const code    = cust ? getReferralCode(cust.id) : '—';
+  const earned  = getCustomerReferralPoints(custName);
+  const redeemed= getRedeemedPoints(custName);
+  const avail   = getAvailablePoints(custName);
+  const activePacks = (DB.rewardPacks||[]).filter(p => p.status === 'active' && p.stock > 0);
+  const myRedemptions = (DB.rewardRedemptions||[]).filter(r => r.customerName === custName).reverse();
+
+  // Points bar
+  const bestPack = activePacks.sort((a,b) => a.pointsRequired - b.pointsRequired)[0];
+  const needed   = bestPack ? bestPack.pointsRequired : 5;
+  const pct      = Math.min((avail / needed) * 100, 100);
+
+  el.innerHTML = `
+    <!-- Stats Cards -->
+    <div class="cards-grid" style="margin-bottom:16px">
+      <div class="stat-card gold">
+        <div class="icon">🔑</div>
+        <div class="label">Referral Code</div>
+        <div class="value" style="font-size:1.2rem;font-family:monospace;letter-spacing:2px">${code}</div>
+        <div class="sub" onclick="copyRefCode('${code}')" style="cursor:pointer;color:var(--accent4)">📋 Copy</div>
+      </div>
+      <div class="stat-card teal">
+        <div class="icon">👥</div>
+        <div class="label">Total Referrals</div>
+        <div class="value">${DB.referrals.filter(r => r.from === custName).length}</div>
+        <div class="sub">friends referred</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="icon">⭐</div>
+        <div class="label">Points Earned</div>
+        <div class="value">${earned}</div>
+        <div class="sub">${redeemed} redeemed</div>
+      </div>
+      <div class="stat-card ${avail >= needed ? 'green' : 'purple'}">
+        <div class="icon">🎁</div>
+        <div class="label">Available Points</div>
+        <div class="value">${avail}</div>
+        <div class="sub">${avail >= needed ? '✅ Can redeem!' : `Need ${needed - avail} more`}</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">🌟 Points Progress</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:6px">
+        <span>${avail} points available</span>
+        <span>${needed} needed for next reward</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:14px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent4));border-radius:20px;transition:.5s"></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-dim);margin-top:6px;text-align:center">
+        ${avail >= needed ? '🎉 You can redeem a reward pack!' : `${needed - avail} more point${needed-avail>1?'s':''} to go!`}
+      </div>
+    </div>
+
+    <!-- Available Reward Packs -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">🎁 Available Reward Packs</span></div>
+      ${!activePacks.length
+        ? '<p style="color:var(--text-dim);text-align:center;padding:12px">No reward packs available right now.</p>'
+        : activePacks.map(p => {
+            const canRedeem = avail >= p.pointsRequired;
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.03);border:1px solid ${canRedeem?'rgba(85,239,196,0.3)':'var(--border)'};border-radius:12px;margin-bottom:10px;flex-wrap:wrap;gap:10px">
+              <div>
+                <div style="font-weight:700;font-size:0.9rem">🎁 ${p.name}</div>
+                ${p.desc ? `<div style="font-size:0.75rem;color:var(--text-dim)">${p.desc}</div>` : ''}
+                <div style="font-size:0.75rem;color:var(--accent4);margin-top:3px">📦 ${p.items||''}</div>
+                <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">Stock: ${p.stock}</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:1.2rem;font-weight:800;color:var(--accent)">${p.pointsRequired}<small style="font-size:0.7rem">pts</small></div>
+                <button onclick="redeemPack('${custName}','${p.id}')" ${canRedeem?'':'disabled'}
+                  style="margin-top:6px;padding:7px 16px;border-radius:8px;border:none;font-weight:700;font-size:0.8rem;cursor:${canRedeem?'pointer':'not-allowed'};background:${canRedeem?'linear-gradient(135deg,var(--accent),var(--accent4))':'rgba(255,255,255,0.08)'};color:${canRedeem?'#1a1a2e':'var(--text-dim)'}">
+                  ${canRedeem ? '🔓 Redeem' : '🔒 Not enough pts'}
+                </button>
+              </div>
+            </div>`;
+          }).join('')
+      }
+    </div>
+
+    <!-- My Redemption History -->
+    ${myRedemptions.length ? `
+    <div class="card">
+      <div class="card-header"><span class="card-title">📋 My Redemption History</span></div>
+      ${myRedemptions.map(r => {
+        const statusColor = r.status === 'Delivered' ? 'var(--green)' : r.status === 'Cancelled' ? 'var(--red)' : '#fd9644';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;font-size:0.82rem;flex-wrap:wrap;gap:6px">
+          <div><strong>${r.packName}</strong><br><span style="color:var(--text-dim);font-size:0.72rem">${formatDate(r.date)}</span></div>
+          <div style="text-align:right">
+            <span style="color:var(--accent)">-${r.pointsUsed} pts</span><br>
+            <span style="color:${statusColor};font-weight:600;font-size:0.72rem">${r.status}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <!-- Share code options -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">📤 Share Your Referral Code</span></div>
+      <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:12px">Earn 1 point every time a friend you referred buys ≥ ₹250. 5 points = 1 Reward Pack!</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${cust && cust.phone ? (() => {
+          const biz = DB.settings.bizName || 'Meenatchi Traders';
+          const shareMsg = `Hi! 👋 I shop at ${biz} and love it!\n\nUse my referral code *${code}* when you make a purchase ≥ ₹250 to help me earn a Reward Pack! 🎁\n\n- ${custName}`;
+          const ph = (cust.phone.replace(/\D/g,'')).replace(/^(?!91)/,'91');
+          return `<a href="https://wa.me/?text=${encodeURIComponent(shareMsg)}" target="_blank"
+            style="padding:9px 18px;background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3);border-radius:10px;font-weight:600;font-size:0.82rem;text-decoration:none">
+            💬 Share on WhatsApp</a>`;
+        })() : ''}
+        <button onclick="copyRefCode('${code}')"
+          style="padding:9px 18px;background:rgba(162,155,254,0.12);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:10px;font-weight:600;font-size:0.82rem;cursor:pointer">
+          📋 Copy Code: ${code}</button>
+      </div>
+    </div>`;
+}
+
+function redeemPack(custName, packId) {
+  const pack  = (DB.rewardPacks||[]).find(p => p.id === packId);
+  const avail = getAvailablePoints(custName);
+  if (!pack) { showToast('Pack not found!','error'); return; }
+  if (pack.stock <= 0) { showToast('Pack out of stock!','error'); return; }
+  if (avail < pack.pointsRequired) { showToast('Not enough points!','error'); return; }
+  if (!confirm(`Redeem "${pack.name}" for ${pack.pointsRequired} points?`)) return;
+  if (!DB.rewardRedemptions) DB.rewardRedemptions = [];
+  DB.rewardRedemptions.push({
+    id: uid(), customerName: custName, rewardPackId: packId, packName: pack.name,
+    pointsUsed: pack.pointsRequired, date: today(), status: 'Pending'
+  });
+  pack.stock = Math.max(0, pack.stock - 1);
+  saveData();
+  renderRedeemDashboard();
+  showToast(`🎉 Redemption requested! Admin will prepare your "${pack.name}" pack.`, 'success');
+}
+
+// Seed a default reward pack if none exist
+function seedDefaultRewardPack() {
+  if (!DB.rewardPacks) DB.rewardPacks = [];
+  if (!DB.rewardPacks.length) {
+    DB.rewardPacks.push({
+      id: uid(), name: 'Referral Special Pack',
+      desc: 'Exclusive combo for our best referrers!',
+      items: '50g Tea n31, 1 Sambrani Cup, 1 Scrubber',
+      pointsRequired: 5, stock: 20, status: 'active', created: today()
+    });
+    saveData();
+  }
 }
 
 // ════════════════════════════════════════════════════════

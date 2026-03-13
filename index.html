@@ -2264,7 +2264,7 @@ const STORAGE_KEY = 'meenatchi_traders_data';
 const SHEETS_URL_FALLBACK = 'https://script.google.com/macros/s/AKfycbw0nAmpqTiLULimMZX1wPXKARU5KKTKLwQQKYsg60OaiOZ1jMn63IzYXcle_jIaT5MV/exec';
 // Google Sheet URL fallback — set this once after connecting
 // Go to Settings → copy your Sheet URL → paste it here between the quotes
-const SHEET_URL_FALLBACK = 'https://docs.google.com/spreadsheets/d/1QPez4jA6EweiHlg6U0zek_6bwfBNM1mQ-dlgPB1NjyQ/edit';
+const SHEET_URL_FALLBACK = 'https://docs.google.com/spreadsheets/d/19p7WYmC0mY-HH7u-8EUI0cVUzE2a7PR_7rm8kxE7iQ4/edit';
 
 // ── Persistent URL storage — uses all available mechanisms ──
 function getAppsScriptUrl() {
@@ -2490,6 +2490,25 @@ async function autoSyncToSheets() {
   if (_syncTimeout) { clearTimeout(_syncTimeout); _syncTimeout = null; }
 }
 
+function sanitizeData() {
+  // Remove corrupted values — phone numbers stored as money (>10 lakhs is impossible for single sale)
+  DB.sales = (DB.sales || []).map(s => {
+    if ((s.total    || 0) > 1000000) s.total    = 0;
+    if ((s.received || 0) > 1000000) s.received = 0;
+    if ((s.pending  || 0) > 1000000) s.pending  = 0;
+    if ((s.profit   || 0) > 1000000) s.profit   = 0;
+    if ((s.price    || 0) > 100000)  s.price    = 0;
+    if ((s.qty      || 0) > 10000)   s.qty      = 1;
+    return s;
+  });
+  DB.customers = (DB.customers || []).map(c => {
+    if ((c.total   || 0) > 10000000) c.total   = 0;
+    if ((c.paid    || 0) > 10000000) c.paid    = 0;
+    if ((c.pending || 0) > 10000000) c.pending = 0;
+    return c;
+  });
+}
+
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -2532,6 +2551,9 @@ function loadData() {
       console.log('Sheets URL recovered from fallback');
     }
   }
+  // Clean any corrupted values from old bad syncs
+  sanitizeData();
+
   // Always persist URLs to all mechanisms for next time
   if (DB.settings.appsScriptUrl) {
     persistAppsScriptUrl(DB.settings.appsScriptUrl);

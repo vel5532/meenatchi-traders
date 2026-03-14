@@ -975,14 +975,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="tab" onclick="switchTab('tuition','add-student')">➕ Add Student</div>
     <div class="tab" onclick="switchTab('tuition','staff')">👩‍🏫 Staff</div>
     <div class="tab" onclick="switchTab('tuition','add-staff')">➕ Add Staff</div>
-    <div class="tab" onclick="switchTab('tuition','summary');renderTuitionSummary()">📊 Class Summary</div>
   </div>
 
   <div class="tab-content active" id="tuition-students">
     <div class="search-bar"><input type="text" placeholder="🔍 Search students..." onkeyup="filterTable('student-table',this.value)"></div>
     <div class="table-wrap">
       <table id="student-table">
-        <thead><tr><th>Name</th><th>Class</th><th>Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Name & Class</th><th>Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
         <tbody id="student-tbody"></tbody>
       </table>
     </div>
@@ -1035,42 +1034,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveStaff()">💾 Save Staff</button>
         <button class="btn btn-secondary" onclick="clearStaffForm()">Clear</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CLASS SUMMARY TAB -->
-  <div class="tab-content" id="tuition-summary">
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">📊 Class-wise Fee Summary</span>
-        <button class="btn btn-secondary btn-sm" onclick="renderTuitionSummary()">🔄 Refresh</button>
-      </div>
-      <div class="table-wrap">
-        <table id="tuition-summary-table">
-          <thead>
-            <tr>
-              <th>Class</th>
-              <th>Students</th>
-              <th>Total Fees</th>
-              <th>Paid Count</th>
-              <th>Balance Count</th>
-              <th>Fees Collected</th>
-              <th>Fees Pending</th>
-              <th>Summary</th>
-            </tr>
-          </thead>
-          <tbody id="tuition-summary-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card" style="margin-top:16px">
-      <div class="card-header"><span class="card-title">👩‍🏫 Staff — Name & Salary</span></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Staff Name</th><th>Subject</th><th>Handling Class</th><th>Monthly Salary</th><th>Paid</th><th>Due</th><th>Status</th></tr></thead>
-          <tbody id="tuition-staff-summary-tbody"></tbody>
-        </table>
       </div>
     </div>
   </div>
@@ -4322,8 +4285,7 @@ function renderTuition() {
   const stBody = document.getElementById('student-tbody');
   if (stBody) {
     stBody.innerHTML = DB.students.length ? DB.students.map(s => `<tr>
-      <td><strong>${s.name}</strong></td>
-      <td><span class="badge" style="background:rgba(162,155,254,0.1);color:var(--accent4)">${s.class || '—'}</span></td>
+      <td><strong>${s.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${s.class}</span></td>
       <td><a href="tel:${s.phone}" style="color:var(--accent4)">${s.phone || '—'}</a></td>
       <td>${formatCurrency(s.fees)}</td>
       <td class="text-green">${formatCurrency(s.paid)}</td>
@@ -4340,7 +4302,7 @@ function renderTuition() {
           <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')" style="padding:3px 6px">🗑</button>
         </div>
       </td>
-    </tr>`).join('') : '<tr><td colspan="7"><div class="empty-state">🎓<p>No students yet. Add a student to begin.</p></div></td></tr>';
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state">🎓<p>No students yet. Add a student to begin.</p></div></td></tr>';
   }
 
   const sfBody = document.getElementById('staff-tbody');
@@ -4367,102 +4329,6 @@ function renderTuition() {
       </tr>`;
     }).join('') : '<tr><td colspan="6"><div class="empty-state">👨‍🏫<p>No staff added yet.</p></div></td></tr>';
   }
-}
-
-function renderTuitionSummary() {
-  const students = appData.tuition?.students || [];
-  const staff = appData.tuition?.staff || [];
-
-  // --- Class Summary Table ---
-  const classOrder = ['KG','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
-  const classMap = {};
-  students.forEach(s => {
-    const cls = s.class || 'Unknown';
-    if (!classMap[cls]) classMap[cls] = { students: 0, totalFees: 0, paidCount: 0, balanceCount: 0, collected: 0, pending: 0 };
-    const m = classMap[cls];
-    m.students++;
-    m.totalFees += Number(s.monthlyFee || 0);
-    const paid = Number(s.paidAmount || 0);
-    const due = Number(s.monthlyFee || 0) - paid;
-    if (due <= 0) m.paidCount++; else m.balanceCount++;
-    m.collected += paid;
-    m.pending += Math.max(0, due);
-  });
-
-  const sortedClasses = Object.keys(classMap).sort((a, b) => {
-    const ia = classOrder.indexOf(a), ib = classOrder.indexOf(b);
-    if (ia === -1 && ib === -1) return a.localeCompare(b);
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
-
-  let totalStudents = 0, totalFees = 0, totalCollected = 0, totalPending = 0;
-  const summaryRows = sortedClasses.map(cls => {
-    const m = classMap[cls];
-    totalStudents += m.students;
-    totalFees += m.totalFees;
-    totalCollected += m.collected;
-    totalPending += m.pending;
-    const pct = m.totalFees > 0 ? Math.round((m.collected / m.totalFees) * 100) : 0;
-    return `<tr>
-      <td><span class="badge badge-info">${cls}</span></td>
-      <td>${m.students}</td>
-      <td>₹${m.totalFees.toLocaleString()}</td>
-      <td><span class="badge badge-success">${m.paidCount}</span></td>
-      <td><span class="badge badge-danger">${m.balanceCount}</span></td>
-      <td>₹${m.collected.toLocaleString()}</td>
-      <td>₹${m.pending.toLocaleString()}</td>
-      <td><div style="background:#e9ecef;border-radius:4px;height:10px;width:100px;display:inline-block;vertical-align:middle"><div style="background:#28a745;height:10px;border-radius:4px;width:${pct}%"></div></div> <small>${pct}%</small></td>
-    </tr>`;
-  });
-  const totalPct = totalFees > 0 ? Math.round((totalCollected / totalFees) * 100) : 0;
-  summaryRows.push(`<tr style="font-weight:bold;background:#f8f9fa">
-    <td>TOTAL</td><td>${totalStudents}</td><td>₹${totalFees.toLocaleString()}</td>
-    <td>${students.filter(s=>Number(s.monthlyFee||0)-Number(s.paidAmount||0)<=0).length}</td>
-    <td>${students.filter(s=>Number(s.monthlyFee||0)-Number(s.paidAmount||0)>0).length}</td>
-    <td>₹${totalCollected.toLocaleString()}</td><td>₹${totalPending.toLocaleString()}</td>
-    <td><div style="background:#e9ecef;border-radius:4px;height:10px;width:100px;display:inline-block;vertical-align:middle"><div style="background:#28a745;height:10px;border-radius:4px;width:${totalPct}%"></div></div> <small>${totalPct}%</small></td>
-  </tr>`);
-
-  const summaryTbody = document.getElementById('tuition-summary-tbody');
-  if (summaryTbody) summaryTbody.innerHTML = summaryRows.join('');
-
-  // --- Staff Salary Table ---
-  let staffTotalSalary = 0, staffTotalPaid = 0, staffTotalDue = 0;
-  const staffRows = staff.map(st => {
-    const salary = Number(st.salary || 0);
-    const paid = Number(st.paidSalary || 0);
-    const due = salary - paid;
-    staffTotalSalary += salary;
-    staffTotalPaid += paid;
-    staffTotalDue += Math.max(0, due);
-    const status = due <= 0
-      ? '<span class="badge badge-success">Paid</span>'
-      : '<span class="badge badge-danger">Due</span>';
-    return `<tr>
-      <td>${st.name || '-'}</td>
-      <td>${st.subject || '-'}</td>
-      <td>${st.class || '-'}</td>
-      <td>₹${salary.toLocaleString()}</td>
-      <td>₹${paid.toLocaleString()}</td>
-      <td>₹${Math.max(0,due).toLocaleString()}</td>
-      <td>${status}</td>
-    </tr>`;
-  });
-  if (staffRows.length === 0) {
-    staffRows.push('<tr><td colspan="7"><div class="empty-state">👨‍🏫<p>No staff added yet.</p></div></td></tr>');
-  } else {
-    staffRows.push(`<tr style="font-weight:bold;background:#f8f9fa">
-      <td colspan="3">TOTAL</td>
-      <td>₹${staffTotalSalary.toLocaleString()}</td>
-      <td>₹${staffTotalPaid.toLocaleString()}</td>
-      <td>₹${staffTotalDue.toLocaleString()}</td>
-      <td></td>
-    </tr>`);
-  }
-  const staffTbody = document.getElementById('tuition-staff-summary-tbody');
-  if (staffTbody) staffTbody.innerHTML = staffRows.join('');
 }
 
 function collectFees(studentId) {
@@ -7227,7 +7093,7 @@ function renderMonthlyTrends() {
         <td class="text-green">${formatCurrency(d.received)}</td>
         <td class="text-red">${formatCurrency(d.pending)}</td>
         <td style="color:var(--green)">${formatCurrency(d.profit)}</td>
-        <td>${change !== null ? '<span style="color:' + (parseFloat(change)>=0?'var(--green)':'var(--red)') + '">' + (parseFloat(change)>=0?'▲':'▼') + ' ' + Math.abs(change) + '%</span>' : '—'}</td>
+        <td>${change !== null ? `<span style="color:${parseFloat(change)>=0?'var(--green)':'var(--red)'">${parseFloat(change)>=0?'▲':'▼'} ${Math.abs(change)}%</span>` : '—'}</td>
       </tr>`;
     }).join('') || '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--text-dim)">No data</td></tr>';
   }
@@ -7585,17 +7451,6 @@ function setLanguage(lang) {
 if (currentLang === 'ta') { setTimeout(() => setLanguage('ta'), 500); }
 
 // ════════════════════════════════════════════════════════
-//  SERVICE WORKER REGISTRATION
-// ════════════════════════════════════════════════════════
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
-      .catch(err => console.warn('[PWA] SW registration failed:', err));
-  });
-}
-
-// ════════════════════════════════════════════════════════
 //  MULTI-DEVICE / SHARE LINK
 // ════════════════════════════════════════════════════════
 
@@ -7673,9 +7528,6 @@ populateCustomerDatalist = function() {
 };
 
 </script>
-
-<!-- ══ LOYALTY GIFT REDEMPTION MODULE ══ -->
-<script src="loyalty-gifts.js"></script>
 
 </body>
 </html>

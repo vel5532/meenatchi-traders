@@ -2598,12 +2598,10 @@ async function loadFromSheets() {
     const hasRealCustomers = DB.customers.length > 0;
     const hasRealProducts = DB.products.filter(p => !['p1','p2','p3','p4','p5','p6','p7','p8'].includes(p.id)).length > 0;
     const localEmpty = !hasRealSales && !hasRealCustomers && !hasRealProducts;
-    const sheetsHasMore = (d.sales && d.sales.length > DB.sales.length) ||
-                          (d.products && d.products.length > DB.products.length);
-
+    
     // Always restore when local is empty (WebView cleared localStorage)
     // Also restore if sheets has newer/more data
-    if (localEmpty || sheetsHasMore) {
+    if (localEmpty) {
       let restored = false;
       if (d.products   && d.products.length)   { DB.products   = parseSheetProducts(d.products);   restored = true; }
       if (d.sales      && d.sales.length)       { DB.sales      = parseSheetSales(d.sales);         restored = true; }

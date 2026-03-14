@@ -1,185 +1,135 @@
-# 🍵 Meenatchi Traders Business Manager
+# 🍵 Meenatchi Traders — File Setup Guide
 
-A complete, mobile-first PWA business management system for Meenatchi Traders.
+## 📁 Required File Structure
 
----
-
-## 📁 Folder Structure
+Place all files in the **same folder** on your computer or web server:
 
 ```
 meenatchi-traders/
-├── index.html          ← Main app (single-page application)
-├── manifest.json       ← PWA manifest for mobile install
-├── sw.js               ← Service Worker (offline support)
-├── Code.gs             ← Google Apps Script backend
-├── js/
-│   ├── app.js          ← All business logic (12 modules)
-│   └── sheets.js       ← Google Sheets API module
-└── README.md           ← This file
+│
+├── index.html              ← Main app (your original file, updated)
+├── manifest.json           ← PWA install manifest
+├── sw.js                   ← Service worker (offline support)
+├── loyalty-gifts.js        ← 🆕 Gift Redemption feature
+├── Code.gs                 ← Google Apps Script (for Sheets sync)
+├── generate-icons.html     ← Helper: generate PWA icons
+│
+└── icons/                  ← PWA icon images (generate using generate-icons.html)
+    ├── icon-72.png
+    ├── icon-96.png
+    ├── icon-128.png
+    ├── icon-144.png
+    ├── icon-152.png
+    ├── icon-192.png
+    ├── icon-384.png
+    └── icon-512.png
 ```
 
 ---
 
-## 🚀 Deployment Options
+## 🚀 Quick Setup (3 Steps)
 
-### Option A — Host on GitHub Pages (Free, Recommended)
+### Step 1 — Generate Icons
+1. Open `generate-icons.html` in your browser
+2. Click **"Download All Icons"**
+3. Create a folder called `icons/` and save all 8 PNG files inside it
 
-1. Create a GitHub account at github.com
-2. Create a new repository (e.g. `meenatchi-traders`)
-3. Upload all files maintaining the folder structure
-4. Go to Settings → Pages → Source: Deploy from branch → main
-5. Your app URL: `https://yourusername.github.io/meenatchi-traders/`
+### Step 2 — Open the App
+- Double-click `index.html` to open in browser, **OR**
+- For best experience, serve from a local web server:
+  ```
+  # Python (if installed)
+  python -m http.server 8080
+  # Then open: http://localhost:8080
+  ```
 
-### Option B — Host on Netlify (Free)
-
-1. Go to netlify.com and create a free account
-2. Drag and drop the `meenatchi-traders/` folder
-3. Your app goes live instantly with a URL like `https://meenatchi-traders.netlify.app`
-
-### Option C — Use Locally (No hosting)
-
-1. Simply open `index.html` in Chrome browser
-2. Works fully offline with localStorage
-3. Install as PWA from Chrome menu
+### Step 3 — Install as PWA (optional)
+- On Chrome/Edge: click the install icon (⊕) in the address bar
+- On mobile: "Add to Home Screen" from browser menu
 
 ---
 
-## 🔗 Google Sheets Connection
+## 🎁 New Feature: Loyalty Gift Redemption
 
-### Step 1: Create Your Google Sheet
+> **File:** `loyalty-gifts.js`
 
-Create a Google Sheet with these tabs:
-- `DAILY SALES`
-- `MCS`
-- `SCRUBER`
-- `Tuition`
-- `Tean31`
-- `Selling TEA`
+Loyal customers can now redeem their points to get products as FREE gifts.
 
-### Step 2: Set Up Google Apps Script
+### How Points Work
+| Action | Points |
+|--------|--------|
+| Spend ₹100 | Earn 1 point |
+| Spend ₹1000 | Earn 10 points |
 
-1. Open your Google Sheet
-2. Click **Extensions** → **Apps Script**
-3. Delete existing code, paste the entire contents of `Code.gs`
-4. Press **Ctrl+S** to save
-5. Click **Deploy** → **New Deployment**
-6. Type: **Web App**
-7. Execute as: **Me**
-8. Who has access: **Anyone**
-9. Click **Deploy**
-10. Copy the Web App URL (looks like: `https://script.google.com/macros/s/XXXXX/exec`)
+### How to Redeem a Gift
+| Product Price | Points Needed |
+|---------------|---------------|
+| ₹50 product   | 5 points      |
+| ₹100 product  | 10 points     |
+| ₹200 product  | 20 points     |
+| ₹500 product  | 50 points     |
 
-### Step 3: Connect in the App
+**Formula:** `Points Needed = Product Sell Price ÷ 10`
 
-1. Open the Meenatchi Traders app
-2. Go to **Settings** (⚙️)
-3. Paste the Web App URL in "Apps Script Web App URL"
-4. Click **Connect & Test**
-5. Green checkmark = success!
+### Loyalty Tiers
+| Tier | Points Required |
+|------|----------------|
+| ⭐ Member | 0+ pts |
+| 🥉 Bronze | 50+ pts |
+| 🥈 Silver | 100+ pts |
+| 🥇 Gold | 200+ pts |
+| 💎 Platinum | 500+ pts |
 
----
-
-## 💬 WhatsApp Reminders Setup
-
-WhatsApp reminders work via the **wa.me** link API (no extra setup needed).
-
-**How it works:**
-1. Go to **WhatsApp Reminders** module
-2. Enter customer name and pending amount
-3. Click **Send WhatsApp** — it opens WhatsApp with the pre-filled message
-4. Just hit Send!
-
-**For bulk reminders:**
-1. Go to **WhatsApp Reminders** → **Bulk Pending Reminders**
-2. All customers with pending payments are listed
-3. Click **Remind All** to open WhatsApp for each (1.5 sec apart)
-
-> 💡 Tip: For automated WhatsApp (no manual click), you'd need WhatsApp Business API. Contact your GSM provider.
+### To Use
+1. Go to **Loyalty & Referrals** → **🎁 Gift Redemption** tab
+2. Select a customer — their available points display automatically
+3. Choose a product — points required calculated automatically
+4. If eligible, click **"Redeem Gift"**
+5. Stock reduces, points deducted, WhatsApp notification sent
 
 ---
 
-## 📄 Invoice Generation
+## 📊 Google Sheets Sync (Optional)
 
-### Automatic Invoice
-1. Enter a sale in **Sales Entry**
-2. Click **Save & Invoice** — invoice auto-generates!
+`Code.gs` is a Google Apps Script to sync data with Google Sheets.
 
-### Manual Invoice
-1. Go to **Invoices** module
-2. Fill in customer and product details
-3. Click **Preview Invoice**
-4. Use **Download PDF** or **Send via WhatsApp**
+### Setup
+1. Open your Google Sheet → **Extensions → Apps Script**
+2. Paste the contents of `Code.gs`
+3. Click **Deploy → New Deployment → Web App**
+4. Set "Who has access" to **Anyone**
+5. Copy the Web App URL
+6. Paste it in the app under **Settings → Google Sheets URL**
 
-### PDF Download
-- Uses jsPDF library (loaded from CDN)
-- Works offline once cached
-- Includes QR code if UPI ID is set in Settings
-
----
-
-## 📱 Install as Mobile App (PWA)
-
-### Android (Chrome):
-1. Open app in Chrome browser
-2. Tap ⋮ menu (3 dots)
-3. Tap "Add to Home Screen"
-4. Tap "Add"
-5. App appears on home screen like a native app!
-
-### iPhone (Safari):
-1. Open app in Safari
-2. Tap Share icon (square with arrow)
-3. Scroll down, tap "Add to Home Screen"
-4. Tap "Add"
-
-### Desktop (Chrome):
-1. Open app in Chrome
-2. Click the install icon (📥) in address bar
-3. Click "Install"
-
----
-
-## 📊 All Modules
-
-| Module | Features |
-|--------|----------|
-| 📊 Dashboard | 7 KPI cards, weekly chart, low stock alerts, pending payments |
-| 📦 Products | Add/edit products, cost calc, selling price, profit per unit, stock alerts |
-| 👥 Customers | Customer profiles, purchase history, payment tracking, WhatsApp |
-| 🧾 Sales Entry | Full sales form, auto-calc profit, daily summary, export CSV |
-| 📄 Invoices | PDF generation, QR code, WhatsApp share, invoice history |
-| 💬 WhatsApp | Payment reminders, order notifications, bulk send |
-| ☕ Tea Shop | Cups sold, ingredient tracking, cost per cup, daily profit |
-| 🎓 Tuition | Students, staff, fee tracking, salary management |
-| 🚚 Orders | Pipeline view, status updates, WhatsApp notifications |
-| 📊 Reports | Daily/weekly/monthly, product profit, customer pending, tuition |
-| ⚙️ Settings | Google Sheets connection, business info, PWA install, data backup |
+### Sheet Tabs Created Automatically
+- `DAILY SALES` — all sales records
+- `Products` — product catalog & stock
+- `Customers` — customer records
+- `Invoices` — invoice history
+- `Gift Redemptions` — 🆕 loyalty gift records
+- `Tuition` — student records
+- `Staff` — staff & salary
 
 ---
 
 ## 💾 Data Storage
 
-- **Local:** All data stored in browser localStorage (works offline)
-- **Cloud:** Sync to Google Sheets via Apps Script (optional)
-- **Backup:** Export all data as JSON from Settings
-- **Import:** Restore from JSON backup file
+All data is stored in your **browser's localStorage** under the key:
+```
+meenatchi_traders_data
+```
+
+To back up: go to **Settings → Export JSON Backup**
+To restore: **Settings → Import JSON Backup**
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Frontend:** Pure HTML5, CSS3, Vanilla JavaScript
-- **Styling:** Custom CSS (no framework dependency) + Google Fonts
-- **Icons:** Font Awesome 6.5
-- **PDF:** jsPDF + jsPDF-AutoTable
-- **QR Code:** QRCode.js
-- **Backend:** Google Apps Script
-- **Database:** Google Sheets + localStorage
-- **PWA:** Service Worker + Web App Manifest
+## 📱 PWA Features
+- ✅ Works offline (after first load)
+- ✅ Installable on phone & desktop
+- ✅ No internet required for core features
+- ✅ Data stays on your device (private)
 
 ---
 
-## 📞 Support
-
-Built for Meenatchi Traders, Kallakurichi, Tamil Nadu
-Contact: Set up your phone number in Settings → Business Information
+*Meenatchi Traders © 2026 — v1.0 PWA*

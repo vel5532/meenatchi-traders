@@ -325,27 +325,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 /* ── PRODUCT EDIT HIGHLIGHT ── */
 .editing-row td { background: rgba(247,201,72,0.04) !important; }
 
-/* ── PRODUCT WIZARD ── */
-.wz-step { display:flex;flex-direction:column;align-items:center;cursor:pointer;min-width:64px }
-.wz-circle { width:34px;height:34px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--text-dim);transition:.3s;background:var(--bg) }
-.wz-label { font-size:0.68rem;color:var(--text-dim);margin-top:4px;text-align:center;transition:.3s }
-.wz-step.active .wz-circle { border-color:var(--accent);color:var(--accent);background:rgba(247,201,72,0.12);box-shadow:0 0 0 4px rgba(247,201,72,0.1) }
-.wz-step.active .wz-label { color:var(--accent);font-weight:600 }
-.wz-step.done .wz-circle { border-color:var(--green);color:var(--green);background:rgba(85,239,196,0.1) }
-.wz-step.done .wz-label { color:var(--green) }
-.wz-line { flex:1;height:2px;background:var(--border);margin:0 4px;margin-bottom:18px;transition:.3s }
-.wz-line.done { background:var(--green) }
-.wz-pack-card { background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;transition:.2s }
-.wz-pack-card:hover { border-color:rgba(162,155,254,0.4) }
-.wz-pack-card.has-data { border-color:rgba(85,239,196,0.35);background:rgba(85,239,196,0.04) }
-.wz-cpu-badge { display:inline-block;background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.25);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700 }
-.wz-profit-badge { display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:700 }
-.wz-profit-pos { background:rgba(85,239,196,0.12);color:var(--green);border:1px solid rgba(85,239,196,0.25) }
-.wz-profit-neg { background:rgba(255,80,80,0.12);color:var(--red);border:1px solid rgba(255,80,80,0.25) }
-.wz-review-row { display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:0.85rem }
-.wz-review-row:last-child { border-bottom:none }
-.pack-count-tile { background:rgba(162,155,254,0.08);border:1px solid rgba(162,155,254,0.2);border-radius:10px;padding:10px 14px;text-align:center }
-
 </style>
 </head>
 <body>
@@ -360,7 +339,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="nav-section">Main</div>
     <div class="nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
     <div class="nav-item" onclick="showPage('sales',this)">Sales Entry</div>
-    <div class="nav-item" onclick="showPage('invoices',this)" style="display:none">Invoices</div>
+    <div class="nav-item" onclick="showPage('invoices',this)">Invoices</div>
     <div class="nav-section">Stock & Products</div>
     <div class="nav-item" onclick="showPage('products',this)">Products & Stock</div>
     <div class="nav-item" onclick="showPage('orders',this)">Order Tracking</div>
@@ -539,199 +518,56 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     </div>
     <div class="table-wrap">
       <table id="prod-table">
-        <thead><tr><th>Product</th><th>Buy Qty</th><th>Buy Price</th><th>Ship Cost</th><th>Sticker</th><th>Pack/Cover</th><th>Full CPU</th><th>Sell Price</th><th>Reseller</th><th>Profit/Unit</th><th>Stock</th><th>Sold</th><th>Balance</th><th>Alert</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Product</th><th>Buy Qty</th><th>Buy Price</th><th>Ship Cost</th><th>Cost/Unit</th><th>Sell Price</th><th>Profit/Unit</th><th>Stock</th><th>Sold</th><th>Balance</th><th>Alert</th><th>Actions</th></tr></thead>
         <tbody id="prod-tbody"></tbody>
       </table>
     </div>
   </div>
 
   <div class="tab-content" id="products-add">
-    <input type="hidden" id="p-edit-id">
-
-    <!-- ══ STEP PROGRESS BAR ══ -->
-    <div style="display:flex;align-items:center;margin-bottom:20px;gap:0" id="prod-step-bar">
-      <div class="wz-step active" id="wz-dot-1" onclick="wzGo(1)" title="Step 1">
-        <div class="wz-circle">1</div><div class="wz-label">Purchase</div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title" id="prod-form-title">Add Product</span>
+        <span id="prod-edit-badge" style="display:none;background:rgba(247,201,72,0.15);color:var(--accent);border:1px solid rgba(247,201,72,0.3);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">✏️ EDITING</span>
       </div>
-      <div class="wz-line" id="wz-line-1"></div>
-      <div class="wz-step" id="wz-dot-2" onclick="wzGo(2)" title="Step 2">
-        <div class="wz-circle">2</div><div class="wz-label">Pack Sizes</div>
+      <input type="hidden" id="p-edit-id">
+      <div class="form-grid">
+        <div class="form-group"><label>Product Name</label><input type="text" id="p-name" placeholder="e.g. Tea n31 250g"></div>
+        <div class="form-group"><label>Category</label><select id="p-cat"><option>Tea</option><option>Nattu Sakkarai</option><option>Scrubber</option><option>MCS Items</option><option>Other</option></select></div>
+        <div class="form-group"><label>Purchase Quantity</label><input type="number" id="p-qty" placeholder="0" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Purchase Price (₹)</label><input type="number" id="p-buy" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Shipping Cost (₹)</label><input type="number" id="p-ship" placeholder="0.00" step="0.01" oninput="calcProductCost()"></div>
+        <div class="form-group"><label>Total Cost (₹)</label><input type="number" id="p-total" placeholder="Auto" readonly style="opacity:0.6"></div>
+        <div class="form-group"><label>Cost per Unit (₹)</label><input type="number" id="p-cpu" placeholder="Auto" readonly style="opacity:0.6"></div>
+        <div class="form-group"><label>Selling Price (₹)</label><input type="number" id="p-sell" placeholder="0.00" step="0.01" oninput="calcProductProfit()"></div>
+        <div class="form-group"><label>Profit per Unit (₹)</label><input type="number" id="p-profit" placeholder="Auto" readonly style="opacity:0.6"></div>
+        <div class="form-group"><label>Low Stock Alert At</label><input type="number" id="p-alert" placeholder="10"></div>
+        <div class="form-group"><label>Unit Type</label><select id="p-unit"><option>pcs</option><option>kg</option><option>g</option><option>packs</option><option>bottles</option></select></div>
       </div>
-      <div class="wz-line" id="wz-line-2"></div>
-      <div class="wz-step" id="wz-dot-3" onclick="wzGo(3)" title="Step 3">
-        <div class="wz-circle">3</div><div class="wz-label">Pricing</div>
+
+      <!-- Stock info shown only when editing -->
+      <div id="p-stock-info" style="display:none;margin-top:4px"></div>
+
+      <!-- Add Stock field - shown always, useful when editing -->
+      <div style="margin-top:14px;padding:14px 16px;background:rgba(85,239,196,0.06);border:1px solid rgba(85,239,196,0.2);border-radius:var(--radius-sm)">
+        <div style="font-size:0.75rem;color:var(--green);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">➕ Add Stock (When Editing)</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:160px;margin:0">
+            <label style="color:var(--text-dim)">Add Quantity to Current Stock</label>
+            <input type="number" id="p-add-stock" placeholder="e.g. 50 (leave 0 if not adding)" min="0">
+          </div>
+          <div style="padding-top:18px">
+            <button class="btn btn-success btn-sm" onclick="quickAddStock()" style="white-space:nowrap">
+              ➕ Add Stock Only
+            </button>
+          </div>
+        </div>
+        <p style="font-size:0.7rem;color:var(--text-dim);margin-top:6px">💡 When editing, enter a number here to add that many units to the current balance. Leave at 0 to update details only.</p>
       </div>
-      <div class="wz-line" id="wz-line-3"></div>
-      <div class="wz-step" id="wz-dot-4" onclick="wzGo(4)" title="Step 4">
-        <div class="wz-circle">4</div><div class="wz-label">Review</div>
-      </div>
-    </div>
 
-    <!-- ══ STEP 1: Purchase Info ══ -->
-    <div class="wz-panel" id="wz-panel-1">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">📦 Step 1 — What did you purchase?</span>
-          <span id="prod-edit-badge" style="display:none;background:rgba(247,201,72,0.15);color:var(--accent);border:1px solid rgba(247,201,72,0.3);padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">✏️ EDITING</span>
-        </div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Product Base Name</label>
-            <input type="text" id="p-name" placeholder="e.g. Nattu Sakkarai, Tea n31">
-          </div>
-          <div class="form-group">
-            <label>Category</label>
-            <div style="display:flex;gap:6px;align-items:center">
-              <select id="p-cat" style="flex:1"></select>
-              <button type="button" onclick="showAddCategoryInline()"
-                style="background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:8px;padding:7px 11px;cursor:pointer;font-size:1rem">＋</button>
-            </div>
-            <div id="new-cat-row" style="display:none;margin-top:6px">
-              <div style="display:flex;gap:6px">
-                <input type="text" id="new-cat-input" placeholder="New category..."
-                  style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--accent4);border-radius:8px;padding:6px 10px;font-size:0.85rem"
-                  onkeydown="if(event.key==='Enter')saveNewCategory()">
-                <button onclick="saveNewCategory()" class="btn btn-primary btn-sm">Add</button>
-                <button onclick="hideAddCategoryInline()" class="btn btn-secondary btn-sm">✕</button>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Total Quantity Purchased</label>
-            <div style="display:flex;gap:6px">
-              <input type="number" id="p-qty" placeholder="e.g. 20" oninput="wzCalcTotalCost()" style="flex:1">
-              <select id="p-bulk-unit" onchange="wzStep1Calc()" style="width:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
-                <option value="kg">kg</option>
-                <option value="g">g</option>
-                <option value="l">L</option>
-                <option value="ml">ml</option>
-                <option value="pcs">pcs</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Price per <span id="p-unit-label">kg</span> (₹)</label>
-            <input type="number" id="p-per-unit" placeholder="e.g. 65" step="0.01" oninput="wzCalcTotalCost()">
-          </div>
-          <div class="form-group">
-            <label>Total Purchase Cost (₹) <small style="color:var(--accent)">(auto-calculated)</small></label>
-            <input type="number" id="p-buy" placeholder="auto" step="0.01" oninput="wzStep1Calc()" style="background:var(--bg2)">
-          </div>
-          <div class="form-group">
-            <label>Shipping Cost (₹)</label>
-            <input type="number" id="p-ship" placeholder="e.g. 240" step="0.01" oninput="wzStep1Calc()">
-          </div>
-          <div class="form-group">
-            <label>Total Cost (₹)</label>
-            <input type="number" id="p-total" readonly style="opacity:0.6;font-weight:700;color:var(--accent)">
-          </div>
-        </div>
-
-        <!-- Pack count preview — shown after qty+cost entered -->
-        <div id="wz-pack-preview" style="display:none;margin-top:14px">
-          <div style="font-size:0.8rem;color:var(--accent);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">
-            📊 How many packs can you make from <span id="wz-qty-label">—</span>?
-          </div>
-          <div id="wz-pack-preview-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
-          <p style="font-size:0.72rem;color:var(--text-dim);margin-top:10px">👆 These are calculated automatically. Go to Step 2 to choose which pack sizes to sell.</p>
-        </div>
-
-        <div style="margin-top:18px;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" onclick="wzNext(1)">Next: Choose Pack Sizes →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ STEP 2: Choose Pack Sizes ══ -->
-    <div class="wz-panel" id="wz-panel-2" style="display:none">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">🎁 Step 2 — Choose Pack Sizes</span>
-          <button class="btn btn-secondary btn-sm" onclick="wzBack(2)">← Back</button>
-        </div>
-        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px">
-          Select the pack sizes you want to sell. Enter <strong>how many packs you are making</strong>, sticker cost, and cover/bag cost for each.
-        </p>
-
-        <!-- Quick-add common sizes -->
-        <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <span style="font-size:0.78rem;color:var(--text-dim)">Quick add:</span>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(20,'g')">20g</button>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(50,'g')">50g</button>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(100,'g')">100g</button>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(250,'g')">250g</button>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(500,'g')">500g</button>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(1,'kg')">1kg</button>
-          <button class="btn btn-secondary btn-sm" onclick="wzAddPack(1,'pcs')">1 pc</button>
-          <button class="btn btn-primary btn-sm" onclick="wzAddPack(0,'g')">＋ Custom</button>
-        </div>
-
-        <div id="wz-packs-container"></div>
-        <p style="font-size:0.72rem;color:var(--text-dim);margin-top:8px">💡 Base Cost is auto-calculated from your purchase. Just add sticker & cover cost per pack.</p>
-
-        <div style="margin-top:18px;display:flex;justify-content:space-between">
-          <button class="btn btn-secondary" onclick="wzBack(2)">← Back</button>
-          <button class="btn btn-primary" onclick="wzNext(2)">Next: Set Prices →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ STEP 3: Pricing ══ -->
-    <div class="wz-panel" id="wz-panel-3" style="display:none">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">💰 Step 3 — Set Selling Prices</span>
-          <button class="btn btn-secondary btn-sm" onclick="wzBack(3)">← Back</button>
-        </div>
-        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px">
-          Enter selling price and reseller price for each pack. Profit is calculated automatically.
-        </p>
-        <div id="wz-pricing-container"></div>
-
-        <!-- Single unit fallback (for pcs products) -->
-        <input type="hidden" id="p-cpu">
-        <input type="hidden" id="p-sell">
-        <input type="hidden" id="p-resell">
-        <input type="hidden" id="p-profit">
-        <input type="hidden" id="p-resprofit">
-        <input type="hidden" id="p-sticker">
-        <input type="hidden" id="p-pack">
-        <input type="hidden" id="p-unit">
-        <input type="hidden" id="p-alert">
-
-        <div style="margin-top:18px;display:flex;justify-content:space-between">
-          <button class="btn btn-secondary" onclick="wzBack(3)">← Back</button>
-          <button class="btn btn-primary" onclick="wzNext(3)">Next: Review & Save →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ STEP 4: Review & Save ══ -->
-    <div class="wz-panel" id="wz-panel-4" style="display:none">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">✅ Step 4 — Review & Save</span>
-          <button class="btn btn-secondary btn-sm" onclick="wzBack(4)">← Back</button>
-        </div>
-        <div id="wz-review-content"></div>
-
-        <!-- Stock info edit mode -->
-        <div id="p-stock-info" style="display:none;margin-top:8px"></div>
-
-        <!-- Add Stock -->
-        <div id="wz-addstock-row" style="margin-top:14px;padding:12px 16px;background:rgba(85,239,196,0.05);border:1px solid rgba(85,239,196,0.2);border-radius:10px;display:none">
-          <div style="font-size:0.78rem;color:var(--green);font-weight:600;margin-bottom:8px">➕ Add Stock (Edit Mode)</div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <input type="number" id="p-add-stock" placeholder="Qty to add" min="0"
-              style="width:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px">
-            <button class="btn btn-success btn-sm" onclick="quickAddStock()">➕ Add Stock Only</button>
-          </div>
-        </div>
-
-        <div class="form-actions" style="margin-top:18px">
-          <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">💾 Save Product</button>
-          <button class="btn btn-secondary" onclick="clearProductForm()">🗑 Clear / Start Over</button>
-        </div>
+      <div class="form-actions" style="margin-top:14px">
+        <button class="btn btn-primary" id="prod-save-btn" onclick="saveProduct()">Save Product</button>
+        <button class="btn btn-secondary" onclick="clearProductForm()">Clear</button>
       </div>
     </div>
   </div>
@@ -830,13 +666,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Phone Number *</label><input type="tel" id="s-phone" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')"></div>
         <div class="form-group"><label>Payment Mode</label><select id="s-payment"><option>Cash</option><option>UPI</option><option>GPay</option><option>Online</option><option>Credit</option></select></div>
         <div class="form-group"><label>Order Status</label><select id="s-status"><option>Pending</option><option>Processing</option><option>Ready</option><option>Delivered</option></select></div>
-        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:8px">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:0.88rem;color:var(--text)">
-            <input type="checkbox" id="s-reseller" onchange="onResellerToggle()" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent4)">
-            🤝 Reseller Sale
-          </label>
-          <span id="s-reseller-badge" style="display:none;background:rgba(162,155,254,0.15);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:600">RESELLER PRICE</span>
-        </div>
       </div>
 
       <!-- Multi-product item rows -->
@@ -864,14 +693,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
         <div class="form-group"><label>Amount Received (₹)</label><input type="number" id="s-received" step="0.01" oninput="calcSaleSummary()"></div>
         <div class="form-group"><label>Total Amount (₹)</label><input type="number" id="s-total" readonly style="opacity:0.6;font-weight:700"></div>
         <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="s-pending" readonly style="opacity:0.6"></div>
-        <div class="form-group"><label>Est. Profit (₹)</label><input type="number" id="s-profit" readonly style="opacity:0.9;font-weight:700;color:var(--green)"></div>
+        <div class="form-group"><label>Est. Profit (₹)</label><input type="number" id="s-profit" readonly style="opacity:0.6;color:var(--green)"></div>
       </div>
-      <div class="form-actions" style="align-items:center">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;color:var(--text);user-select:none">
-          <input type="checkbox" id="s-make-invoice" style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent4)">
-          Generate Invoice
-        </label>
-        <button class="btn btn-primary" onclick="saveSale()">💾 Save Sale</button>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveSale()">Add Sale</button>
+        <button class="btn btn-success" onclick="saveSaleAndInvoice()">Save + Invoice</button>
         <button class="btn btn-secondary" onclick="clearSaleForm()">Clear</button>
       </div>
     </div>
@@ -881,21 +707,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     </div>
   </div>
 
-  <!-- ══ PENDING PAYMENTS ══ -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">💸 Pending Payments</span>
-      <button class="wa-btn" style="padding:5px 14px;font-size:0.78rem" onclick="sendAllReminders()">💬 Remind All</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Customer</th><th>Phone</th><th>Total</th><th>Paid</th><th>Pending</th><th>Days</th><th>Action</th></tr></thead>
-        <tbody id="sales-pending-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ══ SALES HISTORY ══ -->
   <div class="card">
     <div class="card-header"><span class="card-title">📜 Sales History</span>
       <div class="card-actions">
@@ -1040,71 +851,46 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
 
 <!-- ══════════════════ WHATSAPP REMINDERS ══════════════════ -->
 <div class="page" id="page-reminders">
-  <div class="section-header"><h2>💬 WhatsApp & Reminders</h2><p>Send messages, reminders and customize all templates</p></div>
-
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('reminders','remind')">🔔 Reminders</div>
-    <div class="tab" onclick="switchTab('reminders','templates');renderWATemplateEditor()">✏️ Message Templates</div>
-    <div class="tab" onclick="switchTab('reminders','custom')">📝 Custom Message</div>
-  </div>
-
-  <!-- REMINDERS TAB -->
-  <div class="tab-content active" id="reminders-remind">
+  <div class="section-header"><h2>💬 WhatsApp Reminder System</h2><p>Send payment reminders and order updates</p></div>
+  
+  <div class="grid-2">
     <div class="card">
-      <div class="card-header">
-        <span class="card-title">⏳ Pending Payment Reminders</span>
-        <button class="wa-btn" style="padding:5px 14px;font-size:0.78rem" onclick="sendAllReminders()">💬 Remind All</button>
+      <div class="card-header"><span class="card-title">📝 Custom Message</span></div>
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group"><label>Customer Name</label><input type="text" id="wa-name" placeholder="Customer name"></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="wa-phone" placeholder="+91XXXXXXXXXX"></div>
+        <div class="form-group"><label>Message Template</label>
+          <select id="wa-template" onchange="fillTemplate()">
+            <option value="pending">💰 Pending Payment Reminder</option>
+            <option value="order">📦 Order Ready Notification</option>
+            <option value="custom">✏️ Custom Message</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="wa-amount" placeholder="0" oninput="fillTemplate()"></div>
+        <div class="form-group"><label>Message Preview</label><textarea id="wa-message" rows="5" style="resize:vertical"></textarea></div>
       </div>
+      <div class="form-actions">
+        <button class="wa-btn" onclick="sendWhatsApp()">💬 Send WhatsApp</button>
+        <button class="btn btn-secondary" onclick="copyMessage()">📋 Copy</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">⏳ Bulk Pending Reminders</span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Customer</th><th>Phone</th><th>Pending (₹)</th><th>Days</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Customer</th><th>Pending (₹)</th><th>Days</th><th>Actions</th></tr></thead>
           <tbody id="bulk-remind-tbody"></tbody>
         </table>
       </div>
-    </div>
-  </div>
-
-  <!-- TEMPLATES TAB -->
-  <div class="tab-content" id="reminders-templates">
-    <div class="card">
-      <div class="card-header"><span class="card-title">✏️ Customize Message Templates</span></div>
-      <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:16px">Use <code>{name}</code>, <code>{biz}</code>, <code>{total}</code>, <code>{received}</code>, <code>{pending}</code>, <code>{pendingLine}</code>, <code>{date}</code>, <code>{items}</code>, <code>{invNo}</code> as placeholders.</p>
-      <div style="display:grid;gap:20px" id="wa-template-editor"></div>
-      <div class="form-actions" style="margin-top:16px">
-        <button class="btn btn-primary" onclick="saveWATemplates()">💾 Save All Templates</button>
-        <button class="btn btn-secondary" onclick="resetWATemplates()">↺ Reset to Default</button>
+      <div class="form-actions" style="margin-top:12px">
+        <button class="wa-btn" onclick="sendAllReminders()">💬 Remind All</button>
       </div>
     </div>
   </div>
 
-  <!-- CUSTOM MESSAGE TAB -->
-  <div class="tab-content" id="reminders-custom">
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><span class="card-title">📝 Custom Message</span></div>
-        <div class="form-grid" style="grid-template-columns:1fr">
-          <div class="form-group"><label>Customer Name</label><input type="text" id="wa-name" placeholder="Customer name"></div>
-          <div class="form-group"><label>Phone Number</label><input type="tel" id="wa-phone" placeholder="+91XXXXXXXXXX"></div>
-          <div class="form-group"><label>Message Template</label>
-            <select id="wa-template" onchange="fillTemplate()">
-              <option value="pending">💰 Pending Payment Reminder</option>
-              <option value="order">📦 Order Ready Notification</option>
-              <option value="custom">✏️ Custom Message</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Pending Amount (₹)</label><input type="number" id="wa-amount" placeholder="0" oninput="fillTemplate()"></div>
-          <div class="form-group"><label>Message Preview</label><textarea id="wa-message" rows="5" style="resize:vertical"></textarea></div>
-        </div>
-        <div class="form-actions">
-          <button class="wa-btn" onclick="sendWhatsApp()">💬 Send WhatsApp</button>
-          <button class="btn btn-secondary" onclick="copyMessage()">📋 Copy</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">📋 Quick Templates</span></div>
-        <div id="templates-list" style="display:grid;gap:12px"></div>
-      </div>
-    </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">📋 Message Templates</span></div>
+    <div id="templates-list" style="display:grid;gap:12px"></div>
   </div>
 </div>
 
@@ -1422,29 +1208,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
       <div id="cr-rules-table"></div>
       <div class="card" style="margin-top:12px;background:rgba(247,201,72,0.05);border:1px solid rgba(247,201,72,0.15)">
         <div class="card-header"><span class="card-title">➕ Add / Edit Rule</span></div>
-        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px">
-          💡 <strong>Qty-based mode:</strong> If customer buys 10 MCS PKV + 5 MCS Pure = 15 total → remind after 15 days.<br>
-          Set <strong>Days per Unit = 1</strong> for MCS (1 unit = 1 day). Set <strong>Fixed Days</strong> for fixed interval products like Tea.
-        </p>
         <div class="form-grid">
-          <div class="form-group"><label>Product / Category Name</label><input type="text" id="cr-rule-product" placeholder="e.g. MCS, Tea, Scrubber" list="product-list"></div>
-          <div class="form-group">
-            <label>Reminder Mode</label>
-            <select id="cr-rule-mode" onchange="onRuleModeChange()" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
-              <option value="fixed">Fixed Days (e.g. remind after 15 days)</option>
-              <option value="qty">Qty-Based (days = total qty bought)</option>
-            </select>
-          </div>
-          <div class="form-group" id="cr-rule-days-group"><label>Fixed Reminder Days</label><input type="number" id="cr-rule-days" placeholder="e.g. 15" min="1"></div>
-          <div class="form-group" id="cr-rule-dpq-group" style="display:none"><label>Days per Unit (e.g. 1 unit = 1 day)</label><input type="number" id="cr-rule-dpq" placeholder="e.g. 1" min="0.1" step="0.1"></div>
-          <div class="form-group"><label>Group by Category? (merge similar products)</label>
-            <select id="cr-rule-group" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
-              <option value="0">No — track each product separately</option>
-              <option value="1">Yes — group all products matching this name</option>
-            </select>
-          </div>
+          <div class="form-group"><label>Product Name</label><input type="text" id="cr-rule-product" placeholder="e.g. Tea 100g" list="product-list"></div>
+          <div class="form-group"><label>Reminder Interval (Days)</label><input type="number" id="cr-rule-days" placeholder="e.g. 8" min="1"></div>
         </div>
-        <button class="btn btn-primary" onclick="saveProductRule()">💾 Save Rule</button>
+        <button class="btn btn-primary" onclick="saveProductRule()">Save Rule</button>
       </div>
     </div>
   </div>
@@ -1756,8 +1524,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <div class="tab" onclick="switchLoyaltyTab('history')" id="ltab-history">🕐 Purchase History</div>
     <div class="tab" onclick="switchLoyaltyTab('birthdays')" id="ltab-birthdays">🎂 Birthdays</div>
     <div class="tab" onclick="switchLoyaltyTab('referrals')" id="ltab-referrals">👥 Referrals</div>
-    <div class="tab" onclick="switchLoyaltyTab('rewardpacks')" id="ltab-rewardpacks">🎁 Reward Packs</div>
-    <div class="tab" onclick="switchLoyaltyTab('redeem')" id="ltab-redeem">🔓 Redeem</div>
   </div>
   <!-- Leaderboard -->
   <div id="ltab-content-leaderboard">
@@ -1812,95 +1578,15 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
             <select id="ref-from" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%"><option value="">Select customer...</option></select>
           </div>
           <div class="form-group"><label>New Customer Referred</label><input type="text" id="ref-to" placeholder="New customer name"></div>
-          <div class="form-group"><label>Purchase Amount (₹) — min ₹250 for point</label><input type="number" id="ref-amount" placeholder="e.g. 300" min="0"></div>
           <div class="form-group"><label>Date</label><input type="date" id="ref-date"></div>
         </div>
-        <div class="form-actions"><button class="btn btn-primary" onclick="saveReferral()">💾 Save Referral</button></div>
+        <div class="form-actions"><button class="btn btn-primary" onclick="saveReferral()">Save Referral</button></div>
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title">🏅 Referral Champions</span></div>
         <div id="referral-list"></div>
       </div>
     </div>
-    <!-- Referral Codes per customer -->
-    <div class="card" style="margin-top:16px">
-      <div class="card-header">
-        <span class="card-title">🔑 Customer Referral Codes</span>
-        <button class="btn btn-secondary btn-sm" onclick="renderReferralCodes()">Refresh</button>
-      </div>
-      <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px">Each customer has a unique referral code. Share it to earn points when referred customers buy ≥ ₹250.</p>
-      <div class="search-bar"><input type="text" placeholder="🔍 Search customer..." onkeyup="renderReferralCodes(this.value)"></div>
-      <div id="referral-codes-table"></div>
-    </div>
-  </div>
-
-  <!-- Reward Packs (Admin) -->
-  <div id="ltab-content-rewardpacks" style="display:none">
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-header"><span class="card-title">🎁 Create Reward Pack</span></div>
-        <input type="hidden" id="rp-edit-id">
-        <div class="form-grid" style="grid-template-columns:1fr">
-          <div class="form-group"><label>Pack Name</label><input type="text" id="rp-name" placeholder="e.g. Referral Special Pack"></div>
-          <div class="form-group"><label>Description</label><input type="text" id="rp-desc" placeholder="e.g. Premium combo for loyal referrers"></div>
-          <div class="form-group"><label>Points Required</label><input type="number" id="rp-points" placeholder="e.g. 5" min="1"></div>
-          <div class="form-group"><label>Status</label>
-            <select id="rp-status" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px">
-              <option value="active">✅ Active</option>
-              <option value="inactive">⛔ Inactive</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Product Picker -->
-        <div style="margin-top:14px">
-          <div style="font-size:0.78rem;font-weight:700;color:var(--accent4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📦 Items Inside This Pack</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
-            <select id="rp-prod-select" style="flex:1;min-width:180px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
-              <option value="">— Select product —</option>
-            </select>
-            <input type="number" id="rp-prod-qty" placeholder="Qty" min="1" value="1"
-              style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center">
-            <button onclick="rpAddProduct()" class="btn btn-primary btn-sm">＋ Add</button>
-          </div>
-          <div id="rp-items-list" style="margin-bottom:10px"></div>
-          <input type="hidden" id="rp-items">
-        </div>
-
-        <div class="form-actions" style="margin-top:14px">
-          <button class="btn btn-primary" onclick="saveRewardPack()">💾 Save Pack</button>
-          <button class="btn btn-secondary btn-sm" onclick="clearRewardPackForm()">🗑 Clear</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">📦 Reward Pack Inventory</span></div>
-        <div id="reward-packs-list"></div>
-      </div>
-    </div>
-
-    <!-- Redemption Management -->
-    <div class="card" style="margin-top:16px">
-      <div class="card-header">
-        <span class="card-title">📋 Redemption Requests</span>
-        <span id="pending-redemptions-badge" style="background:rgba(253,121,168,0.2);color:var(--red);border:1px solid rgba(253,121,168,0.3);padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:700"></span>
-      </div>
-      <div id="redemptions-table"></div>
-    </div>
-  </div>
-
-  <!-- Redeem Tab (Customer View) -->
-  <div id="ltab-content-redeem" style="display:none">
-    <!-- Customer selector -->
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><span class="card-title">👤 Select Customer</span></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <select id="redeem-customer-select" onchange="renderRedeemDashboard()" style="flex:1;min-width:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px">
-          <option value="">— Choose customer —</option>
-        </select>
-        <button class="btn btn-secondary btn-sm" onclick="renderRedeemDashboard()">View</button>
-      </div>
-    </div>
-    <div id="redeem-dashboard"></div>
   </div>
 </div>
 
@@ -2082,26 +1768,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:0.5}
     <button id="pwa-install-btn" class="btn btn-primary" style="margin-top:12px;display:none" onclick="installPWA()">Install App</button>
   </div>
 
-  <!-- ══ CATEGORY MANAGER ══ -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">🏷️ Product Categories</span>
-      <button class="btn btn-primary btn-sm" onclick="showAddCategoryFromSettings()">＋ Add Category</button>
-    </div>
-    <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:14px">Manage categories shown in the product form. You can add new ones, rename existing ones, or delete unused ones.</p>
-    <!-- Inline add from settings -->
-    <div id="settings-cat-add" style="display:none;margin-bottom:14px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" id="settings-cat-input" placeholder="New category name..."
-          style="flex:1;background:var(--bg);color:var(--text);border:1px solid var(--accent4);border-radius:8px;padding:8px 12px;font-size:0.85rem"
-          onkeydown="if(event.key==='Enter')saveNewCategoryFromSettings()">
-        <button class="btn btn-primary" onclick="saveNewCategoryFromSettings()">Add</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('settings-cat-add').style.display='none'">Cancel</button>
-      </div>
-    </div>
-    <div id="cat-manager-list"></div>
-  </div>
-
   <div class="card">
     <div class="card-header"><span class="card-title">Data Management & Backup</span></div>
     <div style="margin-bottom:14px;padding:12px;background:rgba(78,205,196,0.07);border:1px solid rgba(78,205,196,0.2);border-radius:10px">
@@ -2259,43 +1925,8 @@ const SheetsAPI = {
 //  Invoices, Tea Shop, Tuition, Reminders, Reports
 // ═══════════════════════════════════════════════════════
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.0.0';
 const STORAGE_KEY = 'meenatchi_traders_data';
-
-// ── HARDCODED FALLBACK — WebView/APK data recovery ──
-// This URL is saved here permanently so even if localStorage clears,
-// the app can always reconnect and restore all data from Google Sheets.
-const SHEETS_URL_FALLBACK = 'https://script.google.com/macros/s/AKfycbw0nAmpqTiLULimMZX1wPXKARU5KKTKLwQQKYsg60OaiOZ1jMn63IzYXcle_jIaT5MV/exec';
-// Google Sheet URL fallback — set this once after connecting
-// Go to Settings → copy your Sheet URL → paste it here between the quotes
-const SHEET_URL_FALLBACK = 'https://docs.google.com/spreadsheets/d/19p7WYmC0mY-HH7u-8EUI0cVUzE2a7PR_7rm8kxE7iQ4/edit';
-
-// ── Persistent URL storage — uses all available mechanisms ──
-function getAppsScriptUrl() {
-  // Priority: 1) DB.settings 2) sessionStorage 3) hardcoded fallback
-  return DB.settings.appsScriptUrl ||
-         sessionStorage.getItem('mt_sheets_url') ||
-         SHEETS_URL_FALLBACK;
-}
-
-function persistAppsScriptUrl(url) {
-  if (!url) return;
-  DB.settings.appsScriptUrl = url;
-  try { sessionStorage.setItem('mt_sheets_url', url); } catch(e) {}
-  try { localStorage.setItem('mt_sheets_url_backup', url); } catch(e) {}
-}
-
-function persistSheetUrl(url) {
-  if (!url) return;
-  DB.settings.sheetUrl = url;
-  try { localStorage.setItem('mt_sheet_url_backup', url); } catch(e) {}
-}
-
-function getSheetUrl() {
-  return DB.settings.sheetUrl ||
-         localStorage.getItem('mt_sheet_url_backup') ||
-         SHEET_URL_FALLBACK || '';
-}
 
 // ─── DATA STORE ───────────────────────────────────────
 let DB = {
@@ -2309,8 +1940,6 @@ let DB = {
   suppliers: [],
   birthdays: {},
   referrals: [],
-  rewardPacks: [],
-  rewardRedemptions: [],
   settings: {
     bizName: 'Meenatchi Traders',
     bizOwner: '',
@@ -2326,23 +1955,13 @@ let DB = {
     sheetTabs: 'DAILY SALES,MCS,SCRUBER,Tuition,Tean31,Selling TEA'
   },
   invoiceCounter: 1001,
-  categories: ['Tea', 'Nattu Sakkarai', 'Scrubber', 'MCS', 'Other'],
   productRules: [],
-  profitTargets: [],
-  waTemplates: {
-    saleConfirm: 'Hi {name}! 🙏\nThank you for your purchase at {biz}.\n\n🛍️ *Order Summary:*\n{items}\n\n💰 Total: ₹{total}\n✅ Paid: ₹{received}\n{pendingLine}\n📅 Date: {date}\n\nThank you for shopping with us! 😊',
-    invoiceReady: 'Hi {name}! 📄\nYour invoice from *{biz}* is ready.\n\n🔖 Invoice No: {invNo}\n💰 Amount: ₹{total}\n📅 Date: {date}\n\nPlease find your invoice attached. Thank you! 🙏',
-    pendingReminder: 'Hi {name}! 👋\nThis is a gentle reminder from *{biz}*.\n\n💸 Pending Amount: ₹{pending}\n📅 Due Since: {date}\n\nKindly clear the payment at your earliest convenience. Thank you! 🙏',
-    orderReady: 'Hi {name}! 📦\nGreat news! Your order from *{biz}* is ready.\n\n🛍️ Items: {items}\n💰 Amount: ₹{total}\n\nPlease contact us to arrange delivery/pickup. Thank you! 😊',
-    birthdayWish: 'Happy Birthday {name}! 🎂🎉\n\nWishing you a wonderful day filled with joy and happiness!\n\nWith love,\n*{biz}* 🙏'
-  }
+  profitTargets: []
 };
 
 // ─── INIT ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
-  if (!DB.categories || !DB.categories.length) DB.categories = ['Tea','Nattu Sakkarai','Scrubber','MCS','Other'];
-  populateCategoryDropdown('p-cat');
   setDefaultDates();
   renderDashboard();
   renderProductTable();
@@ -2368,28 +1987,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 500);
 
-  // Banner: only show if truly no URL at all (SHEETS_URL_FALLBACK ensures this never happens)
-  // Keep banner hidden — app auto-connects via hardcoded URL
+  // Check if first load - show sheets banner if not connected
+  if (!DB.settings.appsScriptUrl) {
+    document.getElementById('sheets-banner').style.display = 'flex';
+  }
   // Auto backup on every app open (3 second delay)
   setTimeout(autoJsonBackup, 3000);
-  // Cloud restore: ALWAYS load from Google Sheets on startup
-  // Critical for WebView/APK — localStorage may have been cleared
-  const noLocalData = !DB.sales.length && !DB.products.length && !DB.customers.length;
-  if (noLocalData) {
-    // Show immediate feedback so user knows app is loading
-    const ind = document.getElementById('sync-indicator');
-    if (ind) { ind.textContent = 'Loading your data...'; ind.style.display = 'inline'; }
-    showToast('Connecting to Google Sheets...', 'info');
-  }
-  setTimeout(loadFromSheets, 1000);
-  // Retry after 10s if still empty (slow network)
-  setTimeout(() => {
-    const stillEmpty = !DB.sales.length && !DB.products.length && !DB.customers.length;
-    if (stillEmpty) {
-      console.log('No data yet — retrying cloud restore...');
-      loadFromSheets();
-    }
-  }, 10000);
+  // Cloud restore: load from Google Sheets on startup (2s delay so UI loads first)
+  setTimeout(loadFromSheets, 2000);
 });
 
 // ─── PERSISTENCE ──────────────────────────────────────
@@ -2428,7 +2033,7 @@ let _syncTimeout = null;
 
 async function autoSyncToSheets() {
   if (_isSyncing) return;
-  if (!getAppsScriptUrl()) return;
+  if (!DB.settings.appsScriptUrl) return;
   _isSyncing = true;
   // Safety: force reset after 15s so app never gets stuck
   if (_syncTimeout) clearTimeout(_syncTimeout);
@@ -2439,27 +2044,18 @@ async function autoSyncToSheets() {
   if (indicator) { indicator.textContent = 'Syncing...'; indicator.style.display = 'inline'; }
 
   try {
-    const res = await fetch(getAppsScriptUrl(), {
+    const res = await fetch(DB.settings.appsScriptUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' }, // Apps Script needs text/plain for CORS
       body: JSON.stringify({
         action: 'syncAll',
-        sales:            DB.sales,
-        products:         DB.products,
-        customers:        DB.customers,
-        invoices:         DB.invoices,
-        teaEntries:       DB.teaEntries,
-        students:         DB.students,
-        staff:            DB.staff,
-        suppliers:        DB.suppliers        || [],
-        referrals:        DB.referrals        || [],
-        rewardPacks:      DB.rewardPacks      || [],
-        rewardRedemptions:DB.rewardRedemptions|| [],
-        birthdays:        DB.birthdays        || {},
-        productRules:     DB.productRules     || [],
-        profitTargets:    DB.profitTargets    || [],
-        invoiceCounter:   DB.invoiceCounter   || 1001,
-        settings:         DB.settings         || {}
+        sales:      DB.sales,
+        products:   DB.products,
+        customers:  DB.customers,
+        invoices:   DB.invoices,
+        teaEntries: DB.teaEntries,
+        students:   DB.students,
+        staff:      DB.staff
       })
     });
     if (!res.ok) {
@@ -2494,25 +2090,6 @@ async function autoSyncToSheets() {
   if (_syncTimeout) { clearTimeout(_syncTimeout); _syncTimeout = null; }
 }
 
-function sanitizeData() {
-  // Remove corrupted values — phone numbers stored as money (>10 lakhs is impossible for single sale)
-  DB.sales = (DB.sales || []).map(s => {
-    if ((s.total    || 0) > 1000000) s.total    = 0;
-    if ((s.received || 0) > 1000000) s.received = 0;
-    if ((s.pending  || 0) > 1000000) s.pending  = 0;
-    if ((s.profit   || 0) > 1000000) s.profit   = 0;
-    if ((s.price    || 0) > 100000)  s.price    = 0;
-    if ((s.qty      || 0) > 10000)   s.qty      = 1;
-    return s;
-  });
-  DB.customers = (DB.customers || []).map(c => {
-    if ((c.total   || 0) > 10000000) c.total   = 0;
-    if ((c.paid    || 0) > 10000000) c.paid    = 0;
-    if ((c.pending || 0) > 10000000) c.pending = 0;
-    return c;
-  });
-}
-
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -2527,61 +2104,27 @@ function loadData() {
       DB.staff          = parsed.staff          || DB.staff;
       DB.suppliers      = parsed.suppliers      || DB.suppliers  || [];
       DB.birthdays      = parsed.birthdays      || DB.birthdays  || {};
-      DB.referrals         = parsed.referrals         || DB.referrals         || [];
-      DB.rewardPacks       = parsed.rewardPacks       || DB.rewardPacks       || [];
-      DB.rewardRedemptions = parsed.rewardRedemptions || DB.rewardRedemptions || [];
+      DB.referrals      = parsed.referrals      || DB.referrals  || [];
       DB.settings       = { ...DB.settings, ...(parsed.settings || {}) };
       DB.invoiceCounter = parsed.invoiceCounter || DB.invoiceCounter;
       DB.productRules   = parsed.productRules   || DB.productRules;
       DB.profitTargets  = parsed.profitTargets  || DB.profitTargets;
       if (!DB.products.length) seedDefaultProducts();
     } else {
-      // localStorage empty — don't seed demo data yet.
-      // loadFromSheets() will run next and restore real data from cloud.
-      // If cloud also fails (offline), we stay empty rather than show wrong demo data.
+      seedDefaultProducts();
+      seedDefaultCustomers();
     }
   } catch(e) {
     console.warn('Failed to load data:', e);
-  }
-
-  // ── Always restore Sheets URL — WebView/APK resilience ──
-  // If localStorage was cleared, recover URL from sessionStorage or hardcoded fallback
-  if (!DB.settings.appsScriptUrl) {
-    const recovered = sessionStorage.getItem('mt_sheets_url') ||
-                      localStorage.getItem('mt_sheets_url_backup') ||
-                      SHEETS_URL_FALLBACK;
-    if (recovered) {
-      DB.settings.appsScriptUrl = recovered;
-      console.log('Sheets URL recovered from fallback');
-    }
-  }
-  // Clean any corrupted values from old bad syncs
-  sanitizeData();
-
-  // Always persist URLs to all mechanisms for next time
-  if (DB.settings.appsScriptUrl) {
-    persistAppsScriptUrl(DB.settings.appsScriptUrl);
-  }
-  // Recover sheetUrl from backup if missing
-  if (!DB.settings.sheetUrl) {
-    const recoveredSheet = localStorage.getItem('mt_sheet_url_backup') || SHEET_URL_FALLBACK;
-    if (recoveredSheet) DB.settings.sheetUrl = recoveredSheet;
-  }
-  if (DB.settings.sheetUrl) {
-    persistSheetUrl(DB.settings.sheetUrl);
+    seedDefaultProducts();
   }
 }
 
 // ── Cloud Restore: loads data from Google Sheets on startup ──
 // After app reinstall or new device, this restores all data automatically
 async function loadFromSheets() {
-  const url = getAppsScriptUrl();
+  const url = DB.settings.appsScriptUrl;
   if (!url) return;
-  // Always ensure URL is set in settings (WebView recovery)
-  if (!DB.settings.appsScriptUrl) {
-    DB.settings.appsScriptUrl = url;
-    persistAppsScriptUrl(url);
-  }
   const indicator = document.getElementById('sync-indicator');
   if (indicator) { indicator.textContent = 'Loading from cloud...'; indicator.style.display = 'inline'; }
   try {
@@ -2593,16 +2136,8 @@ async function loadFromSheets() {
       return;
     }
     const d = json.data;
-    // localEmpty: no real user data (demo products have id starting with 'p1','p2' etc)
-    const hasRealSales = DB.sales.length > 0;
-    const hasRealCustomers = DB.customers.length > 0;
-    const hasRealProducts = DB.products.filter(p => !['p1','p2','p3','p4','p5','p6','p7','p8'].includes(p.id)).length > 0;
-    const localEmpty = !hasRealSales && !hasRealCustomers && !hasRealProducts;
-    const sheetsHasMore = (d.sales && d.sales.length > DB.sales.length) ||
-                          (d.products && d.products.length > DB.products.length);
-
-    // Always restore when local is empty (WebView cleared localStorage)
-    // Also restore if sheets has newer/more data
+    const localEmpty = !DB.sales.length && !DB.products.length;
+    const sheetsHasMore = d.sales && d.sales.length > DB.sales.length;
     if (localEmpty || sheetsHasMore) {
       let restored = false;
       if (d.products   && d.products.length)   { DB.products   = parseSheetProducts(d.products);   restored = true; }
@@ -2612,29 +2147,13 @@ async function loadFromSheets() {
       if (d.teaEntries && d.teaEntries.length)  { DB.teaEntries = parseSheetTea(d.teaEntries);      restored = true; }
       if (d.students   && d.students.length)    { DB.students   = parseSheetStudents(d.students);   restored = true; }
       if (d.staff      && d.staff.length)       { DB.staff      = parseSheetStaff(d.staff);         restored = true; }
-      if (d.suppliers  && d.suppliers.length)   { DB.suppliers  = parseSheetSuppliers(d.suppliers); restored = true; }
-      // Restore JSON-blob fields
-      if (d.referrals        ) { try { DB.referrals         = JSON.parse(d.referrals);         } catch(e){} restored = true; }
-      if (d.rewardPacks      ) { try { DB.rewardPacks       = JSON.parse(d.rewardPacks);       } catch(e){} restored = true; }
-      if (d.rewardRedemptions) { try { DB.rewardRedemptions = JSON.parse(d.rewardRedemptions); } catch(e){} restored = true; }
-      if (d.birthdays        ) { try { DB.birthdays         = JSON.parse(d.birthdays);         } catch(e){} restored = true; }
-      if (d.productRules     ) { try { DB.productRules      = JSON.parse(d.productRules);      } catch(e){} restored = true; }
-      if (d.profitTargets    ) { try { DB.profitTargets     = JSON.parse(d.profitTargets);     } catch(e){} restored = true; }
-      if (d.invoiceCounter   ) { DB.invoiceCounter = parseInt(d.invoiceCounter) || DB.invoiceCounter; restored = true; }
-      if (d.settings         ) { try { DB.settings = { ...DB.settings, ...JSON.parse(d.settings) }; persistAppsScriptUrl(DB.settings.appsScriptUrl); } catch(e){} }
       if (restored) {
         const maxInv = DB.invoices.reduce((a,i) => Math.max(a, parseInt(i.invNo)||0), 1000);
-        if (maxInv > 1000) DB.invoiceCounter = maxInv + 1;
-        // Sanitize restored sales — remove corrupted totals (phone numbers as totals)
-        DB.sales = DB.sales.map(s => {
-          if ((s.total||0) > 1000000) { s.total = 0; s.received = 0; s.pending = 0; s.profit = 0; }
-          if ((s.price||0) > 100000)  { s.price  = 0; }
-          return s;
-        });
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); } catch(e){}
+        DB.invoiceCounter = maxInv + 1;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
         refreshAllViews();
         if (indicator) { indicator.textContent = 'Data restored!'; setTimeout(() => { indicator.style.display = 'none'; }, 4000); }
-        showToast('✅ Data restored from Google Sheets!', 'success');
+        showToast('Data restored from Google Sheets!', 'success');
         return;
       }
     }
@@ -2661,45 +2180,12 @@ function parseSheetSales(rows) {
   return rows.map(r => {
     let items = [];
     try { items = JSON.parse(_s(r.Items||r.items||'[]')); } catch(e) {}
-    // Detect old sheet format (no Phone column) — phone number ends up as total
-    // Old headers: ID,Date,Customer,Product,Items,Qty,Price,Discount,Total,Received,Pending,Payment,Status,Profit
-    // New headers: ID,Date,Customer,Phone,Product,Items,Qty,Price,Discount,Total,Received,Pending,Payment,Status,Profit
-    const hasPhoneCol = r.Phone !== undefined || r.phone !== undefined;
-    let phone = '', product = '', total = 0, qty = 0, price = 0, disc = 0,
-        received = 0, pending = 0, payment = '', status = '', profit = 0;
-    if (hasPhoneCol) {
-      // New format — columns are correct
-      phone    = _s(r.Phone||r.phone||'');
-      product  = _s(r.Product||r.product||'');
-      qty      = _n(r.Qty);
-      price    = _n(r.Price);
-      disc     = _n(r.Discount);
-      total    = _n(r.Total);
-      received = _n(r.Received);
-      pending  = _n(r.Pending);
-      payment  = _s(r.Payment);
-      status   = _s(r.Status);
-      profit   = _n(r.Profit);
-    } else {
-      // Old format — phone is missing, everything shifted by 1
-      phone    = '';
-      product  = _s(r.Product||r.product||'');
-      qty      = _n(r.Qty);
-      price    = _n(r.Price);
-      disc     = _n(r.Discount||0);
-      total    = _n(r.Total);
-      received = _n(r.Received);
-      pending  = _n(r.Pending);
-      payment  = _s(r.Payment);
-      status   = _s(r.Status);
-      profit   = _n(r.Profit);
-    }
-    // Sanity check: total should never exceed 10 lakhs (1,000,000) for a single sale
-    // If it does, it's corrupted data (phone number in wrong column)
-    if (total > 1000000) { total = 0; received = 0; pending = 0; profit = 0; }
     return {
       id: _s(r.ID||r.id), date: _s(r.Date||r.date), customer: _s(r.Customer||r.customer),
-      phone, product, items, qty, price, disc, total, received, pending, payment, status, profit
+      phone: _s(r.Phone||r.phone||''), product: _s(r.Product||r.product),
+      items, qty: _n(r.Qty), price: _n(r.Price), disc: _n(r.Discount),
+      total: _n(r.Total), received: _n(r.Received), pending: _n(r.Pending),
+      payment: _s(r.Payment), status: _s(r.Status), profit: _n(r.Profit)
     };
   }).filter(r => r.customer);
 }
@@ -2746,15 +2232,19 @@ function parseSheetStaff(rows) {
   })).filter(r => r.name);
 }
 
-function parseSheetSuppliers(rows) {
-  return rows.map(r => ({
-    id: _s(r.ID||r.id), name: _s(r.Name||r.name), phone: _s(r.Phone||r.phone||''),
-    products: _s(r.Products||r.products||''), city: _s(r.City||r.city||''),
-    terms: _s(r.Terms||r.terms||''), minOrder: _n(r.MinOrder||r['Min Order']||0),
-    notes: _s(r.Notes||r.notes||''), totalPurchased: _n(r.TotalPurchased||r['Total Purchased']||0)
-  })).filter(r => r.name);
-}
+// ── Reload all UI whenever the tab becomes visible again ──
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    loadData();
+    refreshAllViews();
+  }
+});
 
+// ── Also reload when window gains focus ──
+window.addEventListener('focus', () => {
+  loadData();
+  refreshAllViews();
+});
 
 function refreshAllViews() {
   renderDashboard();
@@ -2772,27 +2262,13 @@ function refreshAllViews() {
 
 function seedDefaultProducts() {
   DB.products = [
-    // ── TEA n31 (10kg @ ₹275, Ship ₹200, Total ₹2950, CPU ₹295/kg) ──
-    // Sample 10g: cpu=2.95, sell=10
-    { id: 'p1', name: 'Tea n31 – Sample 10g', category: 'Tea', buyQty: 1000, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 2.95, sellPrice: 10, profitPerUnit: 7.05, stock: 100, sold: 0, balance: 100, alertAt: 20, unit: 'packs' },
-    // 100g: cpu=29.5, sell=55 (own price from sheet)
-    { id: 'p2', name: 'Tea n31 – 100g', category: 'Tea', buyQty: 100, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 29.5, sellPrice: 55, profitPerUnit: 25.5, stock: 40, sold: 0, balance: 40, alertAt: 10, unit: 'packs' },
-    // 250g: cpu=73.75, sell=135
-    { id: 'p3', name: 'Tea n31 – 250g', category: 'Tea', buyQty: 40, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 73.75, sellPrice: 135, profitPerUnit: 61.25, stock: 25, sold: 0, balance: 25, alertAt: 8, unit: 'packs' },
-    // 500g: cpu=147.5, sell=265
-    { id: 'p8', name: 'Tea n31 – 500g', category: 'Tea', buyQty: 20, buyPrice: 2750, shipCost: 200, totalCost: 2950, cpu: 147.5, sellPrice: 265, profitPerUnit: 117.5, stock: 20, sold: 0, balance: 20, alertAt: 5, unit: 'packs' },
-
-    // ── NATTU SAKKARAI (20kg @ ₹60, Ship ₹240, Total ₹1440, CPU ₹72/kg) ──
-    // 500g pack: cpu=36, sell=60 (SP from sheet row18)
-    { id: 'p4', name: 'Nattu Sakkarai 500g', category: 'Nattu Sakkarai', buyQty: 40, buyPrice: 1200, shipCost: 240, totalCost: 1440, cpu: 36, sellPrice: 60, profitPerUnit: 24, stock: 40, sold: 0, balance: 40, alertAt: 5, unit: 'packs' },
-    // 1kg pack: cpu=72, sell=110
-    { id: 'p7', name: 'Nattu Sakkarai 1kg', category: 'Nattu Sakkarai', buyQty: 20, buyPrice: 1200, shipCost: 240, totalCost: 1440, cpu: 72, sellPrice: 110, profitPerUnit: 38, stock: 20, sold: 0, balance: 20, alertAt: 4, unit: 'packs' },
-
-    // ── SCRUBBER (215 units @ ₹2, Ship ₹0, Total ₹430, CPU ₹2) ──
-    { id: 'p5', name: 'Scrubber', category: 'Scrubber', buyQty: 215, buyPrice: 430, shipCost: 0, totalCost: 430, cpu: 2, sellPrice: 10, profitPerUnit: 8, stock: 215, sold: 0, balance: 215, alertAt: 20, unit: 'pcs' },
-
-    // ── MCS (845 units @ ₹2, Ship ₹0, Total ₹1690, CPU ₹2) ──
-    { id: 'p6', name: 'MCS', category: 'MCS', buyQty: 845, buyPrice: 1690, shipCost: 0, totalCost: 1690, cpu: 2, sellPrice: 5, profitPerUnit: 3, stock: 845, sold: 0, balance: 845, alertAt: 50, unit: 'pcs' },
+    { id: 'p1', name: 'Tea n31 – Sample 10g', category: 'Tea', buyQty: 10, buyPrice: 500, shipCost: 50, totalCost: 550, cpu: 5.5, sellPrice: 10, profitPerUnit: 4.5, stock: 10, sold: 0, balance: 10, alertAt: 5, unit: 'packs' },
+    { id: 'p2', name: 'Tea n31 – 100g', category: 'Tea', buyQty: 10, buyPrice: 1800, shipCost: 50, totalCost: 1850, cpu: 18.5, sellPrice: 45, profitPerUnit: 26.5, stock: 40, sold: 12, balance: 28, alertAt: 10, unit: 'packs' },
+    { id: 'p3', name: 'Tea n31 – 250g', category: 'Tea', buyQty: 10, buyPrice: 2500, shipCost: 50, totalCost: 2550, cpu: 42.5, sellPrice: 110, profitPerUnit: 67.5, stock: 25, sold: 8, balance: 17, alertAt: 8, unit: 'packs' },
+    { id: 'p4', name: 'Nattu Sakkarai 500g', category: 'Nattu Sakkarai', buyQty: 20, buyPrice: 1400, shipCost: 80, totalCost: 1480, cpu: 27, sellPrice: 50, profitPerUnit: 23, stock: 20, sold: 5, balance: 15, alertAt: 5, unit: 'packs' },
+    { id: 'p5', name: 'Scrubber Pro', category: 'Scrubber', buyQty: 215, buyPrice: 1720, shipCost: 200, totalCost: 1920, cpu: 8.93, sellPrice: 20, profitPerUnit: 11.07, stock: 180, sold: 35, balance: 145, alertAt: 20, unit: 'pcs' },
+    { id: 'p6', name: 'MCS Item', category: 'MCS Items', buyQty: 845, buyPrice: 2535, shipCost: 300, totalCost: 2835, cpu: 3.35, sellPrice: 6, profitPerUnit: 2.65, stock: 700, sold: 145, balance: 555, alertAt: 50, unit: 'pcs' },
+    { id: 'p7', name: 'GNS Nattu Sakkarai 1kg', category: 'Nattu Sakkarai', buyQty: 20, buyPrice: 2600, shipCost: 100, totalCost: 2700, cpu: 135, sellPrice: 200, profitPerUnit: 65, stock: 18, sold: 2, balance: 16, alertAt: 4, unit: 'kg' },
   ];
   saveData();
 }
@@ -2850,7 +2326,6 @@ function showPage(id, el, isMobile = false) {
 
   // Built-in page renders
   if (id === 'dashboard')    { renderDashboard(); }
-  if (id === 'products')    { populateCategoryDropdown('p-cat'); renderProductTable(); populateProductDropdowns(); }
   if (id === 'reports')      { generateProductReport(); generateCustomerPendingReport(); generateTuitionReport(); }
 
   // New intelligence & CRM modules
@@ -2858,13 +2333,10 @@ function showPage(id, el, isMobile = false) {
   if (id === 'smartprofit')   { setTimeout(renderSmartProfit, 80); }
   if (id === 'demand')        { setTimeout(renderDemandPrediction, 80); }
   if (id === 'autoreport')    { setTimeout(generateDailyReport, 80); }
-  if (id === 'custrem')      { setTimeout(renderCustomerReminders, 80); }
-  if (id === 'loyalty')      { renderLoyalty(); }
-  if (id === 'sales')        { renderSalesTable(); populateProductDropdowns(); populateCustomerDatalist(); }
-  if (id === 'customers')    { renderCustomerTable(); populateCustomerDatalist(); }
+  if (id === 'custrem') { setTimeout(renderCustomerReminders, 80); }
   if (id === 'bulkwa')        { setTimeout(renderBulkWhatsApp, 80); }
   if (id === 'profittarget')  { setTimeout(renderProfitTarget, 80); }
-  if (id === 'settings')      { setTimeout(renderBackupStatus, 80); setTimeout(renderCategoryManager, 80); }
+  if (id === 'settings')      { setTimeout(renderBackupStatus, 80); }
 }
 
 function toggleSidebar() {
@@ -2933,7 +2405,6 @@ function switchDashTab(tab) {
 }
 
 function renderDashboard() {
-  sanitizeData(); // Always clean corrupted values before displaying
   const t = today();
   const thisMonth = t.substr(0, 7);
 
@@ -3103,408 +2574,222 @@ function renderRecentOrders() {
 }
 
 // ─── PRODUCTS ─────────────────────────────────────────
-// ── Wizard state ──
-let _packVariants = [];   // [{id,size,sizeUnit,sticker,cover,sellPrice,resellerPrice,stock,baseCpu,fullCpu,profit}]
-let _wzStep = 1;
-
-// ── Helpers ──
-function toGrams(qty, unit) {
-  if (unit === 'kg') return qty * 1000;
-  if (unit === 'l')  return qty * 1000;
-  if (unit === 'g' || unit === 'ml') return qty;
-  return qty; // pcs
-}
-function costPerGram() {
-  const qty  = +v('p-qty')  || 0;
-  const buy  = +v('p-buy')  || 0;
-  const ship = +v('p-ship') || 0;
-  const unit = v('p-bulk-unit') || 'kg';
-  const totalCost = buy + ship;
-  const totalG    = toGrams(qty, unit);
-  return totalG > 0 ? totalCost / totalG : 0;
-}
-function packBaseCpu(sizeVal, sizeUnit) {
-  const bulkUnit = v('p-bulk-unit') || 'kg';
-  if (bulkUnit === 'pcs') {
-    const qty = +v('p-qty') || 1;
-    const total = (+v('p-buy')||0) + (+v('p-ship')||0);
-    return total / qty;
-  }
-  const sizeG = toGrams(sizeVal, sizeUnit);
-  return costPerGram() * sizeG;
-}
-function recalcVariant(pv) {
-  pv.baseCpu = packBaseCpu(pv.size, pv.sizeUnit);
-  pv.fullCpu = pv.baseCpu + (pv.sticker||0) + (pv.cover||0);
-  pv.profit  = pv.sellPrice > 0   ? pv.sellPrice   - pv.fullCpu : 0;
-  pv.resellerProfit = pv.resellerPrice > 0 ? pv.resellerPrice - pv.fullCpu : 0;
-}
-
-// ── STEP 1 ──
-function wzCalcTotalCost() {
-  const qty     = +v('p-qty')      || 0;
-  const perUnit = +v('p-per-unit') || 0;
-  if (qty > 0 && perUnit > 0) {
-    const totalBuy = qty * perUnit;
-    const el = document.getElementById('p-buy');
-    if (el) { el.value = totalBuy.toFixed(2); el.style.color = 'var(--accent)'; }
-  }
-  wzStep1Calc();
-}
-
-function wzStep1Calc() {
-  const qty  = +v('p-qty')  || 0;
-  const buy  = +v('p-buy')  || 0;
-  const ship = +v('p-ship') || 0;
-  const unit = v('p-bulk-unit') || 'kg';
-  const total = buy + ship;
-  set2('p-total', total > 0 ? total.toFixed(2) : '');
-
-  // Update unit label in price field
-  const unitLabel = document.getElementById('p-unit-label');
-  if (unitLabel) unitLabel.textContent = unit === 'pcs' ? 'pc' : unit;
-
-  const preview = document.getElementById('wz-pack-preview');
-  const grid    = document.getElementById('wz-pack-preview-grid');
-  const label   = document.getElementById('wz-qty-label');
-  if (!preview || !grid) return;
-
-  if (qty <= 0 || total <= 0) { preview.style.display = 'none'; return; }
-  preview.style.display = 'block';
-  if (label) label.textContent = qty + ' ' + unit;
-
-  const totalG = toGrams(qty, unit);
-  const cpg    = total / totalG;
-
-  let sizes = [];
-  if (unit === 'pcs') {
-    sizes = [{s:1,u:'pcs',label:'1 pc'}];
-  } else {
-    const isPcs = (unit === 'pcs');
-    sizes = [
-      {s:10,  u:'g',  label:'10g'},
-      {s:20,  u:'g',  label:'20g'},
-      {s:50,  u:'g',  label:'50g'},
-      {s:100, u:'g',  label:'100g'},
-      {s:250, u:'g',  label:'250g'},
-      {s:500, u:'g',  label:'500g'},
-      {s:1000,u:'g',  label:'1kg'},
-    ].filter(x => toGrams(x.s, x.u) <= totalG);
-  }
-
-  grid.innerHTML = sizes.map(x => {
-    const sizeG  = toGrams(x.s, x.u);
-    const count  = Math.floor(totalG / sizeG);
-    const cpPack = cpg * sizeG;
-    return `<div class="pack-count-tile">
-      <div style="font-size:1rem;font-weight:800;color:var(--accent)">${count}</div>
-      <div style="font-size:0.78rem;font-weight:600;margin:2px 0">${x.label} packs</div>
-      <div style="font-size:0.7rem;color:var(--text-dim)">₹${cpPack.toFixed(2)}/pack</div>
-    </div>`;
-  }).join('');
-
-  // Recalc existing variants if bulk info changed
-  _packVariants.forEach(pv => { recalcVariant(pv); });
-  wzRenderStep2();
-  wzRenderStep3();
-}
-// keep old name working
-function calcProductCost() { wzStep1Calc(); }
-function calcProductProfit() {}
-
-function wzNext(step) {
-  if (step === 1) {
-    if (!v('p-name').trim()) { showToast('Enter product name!','error'); return; }
-    if (!+v('p-qty') || !+v('p-buy')) { showToast('Enter purchase quantity and price!','error'); return; }
-  }
-  if (step === 2) {
-    if (!_packVariants.length) { showToast('Add at least one pack size!','error'); return; }
-  }
-  if (step === 3) {
-    const missing = _packVariants.find(pv => !pv.sellPrice || pv.sellPrice <= 0);
-    if (missing) { showToast('Enter selling price for all packs!','error'); return; }
-  }
-  wzGo(step + 1);
-}
-function wzBack(step) { wzGo(step - 1); }
-
-function wzGo(step) {
-  _wzStep = step;
-  for (let i = 1; i <= 4; i++) {
-    const panel = document.getElementById('wz-panel-' + i);
-    const dot   = document.getElementById('wz-dot-'   + i);
-    const line  = document.getElementById('wz-line-'  + i);
-    if (panel) panel.style.display = i === step ? '' : 'none';
-    if (dot) {
-      dot.classList.toggle('active', i === step);
-      dot.classList.toggle('done',   i < step);
-    }
-    if (line) line.classList.toggle('done', i < step);
-  }
-  if (step === 2) wzRenderStep2();
-  if (step === 3) wzRenderStep3();
-  if (step === 4) wzRenderReview();
-  document.getElementById('products-add')?.scrollIntoView({behavior:'smooth'});
-}
-
-// ── STEP 2: pack size cards ──
-function wzAddPack(size, unit) {
-  const id = 'pv' + Date.now() + Math.random().toString(36).slice(2,5);
-  const pv = {id, size, sizeUnit: unit, sticker:0, cover:0, sellPrice:0, resellerPrice:0, stock:0};
-  recalcVariant(pv);
-  _packVariants.push(pv);
-  wzRenderStep2();
-  // scroll to new card
-  setTimeout(() => document.getElementById('pvc-'+id)?.scrollIntoView({behavior:'smooth',block:'center'}), 100);
-}
-
-function wzRemovePack(id) {
-  _packVariants = _packVariants.filter(pv => pv.id !== id);
-  wzRenderStep2();
-  wzRenderStep3();
-}
-
-function wzPackInput(id, field, val) {
-  const pv = _packVariants.find(x => x.id === id);
-  if (!pv) return;
-  pv[field] = (field === 'sizeUnit') ? val : (parseFloat(val) || 0);
-  recalcVariant(pv);
-  // Update CPU badge live
-  const cpuEl = document.getElementById('cpu-badge-'+id);
-  if (cpuEl) cpuEl.textContent = '₹' + pv.fullCpu.toFixed(2) + ' full CPU';
-  // Update profit badge in step3 if open
-  wzRenderStep3Inline(id);
-}
-
-function wzRenderStep2() {
-  const cont = document.getElementById('wz-packs-container');
-  if (!cont) return;
-  if (!_packVariants.length) {
-    cont.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:24px">No packs added yet. Use the Quick Add buttons above.</p>';
-    return;
-  }
-  const bulkUnit = v('p-bulk-unit') || 'kg';
-  const totalG   = toGrams(+v('p-qty')||0, bulkUnit);
-
-  cont.innerHTML = _packVariants.map(pv => {
-    const sizeG  = toGrams(pv.size||1, pv.sizeUnit||'g');
-    const maxPacks = sizeG > 0 && totalG > 0 ? Math.floor(totalG/sizeG) : '—';
-    return `<div class="wz-pack-card${(pv.sticker||pv.cover) ? ' has-data' : ''}" id="pvc-${pv.id}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <input type="number" value="${pv.size||''}" placeholder="Size"
-            onchange="wzPackInput('${pv.id}','size',this.value)"
-            style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:1rem;font-weight:700;text-align:center">
-          <select onchange="wzPackInput('${pv.id}','sizeUnit',this.value)"
-            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px">
-            ${['g','ml','kg','l','pcs'].map(u=>`<option${pv.sizeUnit===u?' selected':''}>${u}</option>`).join('')}
-          </select>
-          <span style="color:var(--text-dim);font-size:0.78rem">Max: <strong style="color:var(--accent3)">${maxPacks} packs</strong></span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="wz-cpu-badge" id="cpu-badge-${pv.id}">₹${pv.fullCpu.toFixed(2)} full CPU</span>
-          <button onclick="wzRemovePack('${pv.id}')"
-            style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:6px;padding:4px 10px;cursor:pointer">✕ Remove</button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-        <div class="form-group" style="margin:0">
-          <label style="font-size:0.72rem">Sticker Cost (₹/pack)</label>
-          <input type="number" value="${pv.sticker||''}" placeholder="0.00" step="0.01"
-            onchange="wzPackInput('${pv.id}','sticker',this.value)"
-            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label style="font-size:0.72rem">Cover / Box Cost (₹/pack)</label>
-          <input type="number" value="${pv.cover||''}" placeholder="0.00" step="0.01"
-            onchange="wzPackInput('${pv.id}','cover',this.value)"
-            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label style="font-size:0.72rem">Stock (packs you have)</label>
-          <input type="number" value="${pv.stock||''}" placeholder="e.g. 40" min="0"
-            onchange="wzPackInput('${pv.id}','stock',this.value)"
-            style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:100%">
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── STEP 3: pricing ──
-function wzRenderStep3() {
-  const cont = document.getElementById('wz-pricing-container');
-  if (!cont) return;
-  if (!_packVariants.length) {
-    cont.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:24px">Go back and add pack sizes first.</p>';
-    return;
-  }
-  cont.innerHTML = _packVariants.map(pv => {
-    const profitClass = (pv.profit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
-    const rProfitClass = (pv.resellerProfit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
-    return `<div class="wz-pack-card has-data" id="price-card-${pv.id}" style="margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
-        <strong style="font-size:0.95rem">${pv.size}${pv.sizeUnit} Pack</strong>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span class="wz-cpu-badge">Full CPU: ₹${pv.fullCpu.toFixed(2)}</span>
-          <span class="wz-profit-badge ${profitClass}" id="profit-badge-${pv.id}">Profit: ₹${(pv.profit||0).toFixed(2)}</span>
-          ${pv.resellerPrice > 0 ? `<span class="wz-profit-badge ${rProfitClass}" id="rprofit-badge-${pv.id}">Reseller: ₹${(pv.resellerProfit||0).toFixed(2)}</span>` : `<span id="rprofit-badge-${pv.id}"></span>`}
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-        <div class="form-group" style="margin:0">
-          <label style="font-size:0.72rem;color:var(--green)">Selling Price (₹) *</label>
-          <input type="number" value="${pv.sellPrice||''}" placeholder="e.g. 60" step="0.01"
-            oninput="wzPriceInput('${pv.id}','sellPrice',this.value)"
-            style="background:var(--bg);color:var(--green);border:1px solid rgba(85,239,196,0.3);border-radius:8px;padding:7px 10px;width:100%;font-weight:700">
-        </div>
-        <div class="form-group" style="margin:0">
-          <label style="font-size:0.72rem;color:var(--accent4)">Reseller Price (₹)</label>
-          <input type="number" value="${pv.resellerPrice||''}" placeholder="optional" step="0.01"
-            oninput="wzPriceInput('${pv.id}','resellerPrice',this.value)"
-            style="background:var(--bg);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:8px;padding:7px 10px;width:100%">
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function wzPriceInput(id, field, val) {
-  const pv = _packVariants.find(x => x.id === id);
-  if (!pv) return;
-  pv[field] = parseFloat(val) || 0;
-  recalcVariant(pv);
-  wzRenderStep3Inline(id);
-}
-
-function wzRenderStep3Inline(id) {
-  const pv = _packVariants.find(x => x.id === id);
-  if (!pv) return;
-  const pb = document.getElementById('profit-badge-'+id);
-  const rb = document.getElementById('rprofit-badge-'+id);
-  if (pb) {
-    const cls = (pv.profit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
-    pb.className = 'wz-profit-badge ' + cls;
-    pb.textContent = 'Profit: ₹' + (pv.profit||0).toFixed(2);
-  }
-  if (rb && pv.resellerPrice > 0) {
-    const cls = (pv.resellerProfit||0) >= 0 ? 'wz-profit-pos' : 'wz-profit-neg';
-    rb.className = 'wz-profit-badge ' + cls;
-    rb.textContent = 'Reseller: ₹' + (pv.resellerProfit||0).toFixed(2);
-  }
-}
-
-// ── STEP 4: review ──
-function wzRenderReview() {
-  const cont = document.getElementById('wz-review-content');
-  if (!cont) return;
-  const qty  = v('p-qty');
-  const unit = v('p-bulk-unit') || 'kg';
-  const buy  = +v('p-buy')  || 0;
+function calcProductCost() {
+  const qty = +v('p-qty') || 1;
+  const buy = +v('p-buy') || 0;
   const ship = +v('p-ship') || 0;
   const total = buy + ship;
+  const cpu = total / qty;
+  set2('p-total', total.toFixed(2));
+  set2('p-cpu', cpu.toFixed(2));
+  calcProductProfit();
+}
+
+function calcProductProfit() {
+  const cpu = +v('p-cpu') || 0;
+  const sell = +v('p-sell') || 0;
+  set2('p-profit', (sell - cpu).toFixed(2));
+}
+
+function saveProduct() {
   const name = v('p-name');
+  if (!name.trim()) { showToast('Product name required!', 'error'); return; }
+  const editId = v('p-edit-id');
+  const qty = +v('p-qty') || 0;
+  const buy = +v('p-buy') || 0;
+  const ship = +v('p-ship') || 0;
+  const total = buy + ship;
+  const cpu = qty ? total / qty : 0;
+  const sell = +v('p-sell') || 0;
 
-  let html = `<div style="margin-bottom:16px;padding:14px;background:rgba(247,201,72,0.06);border:1px solid rgba(247,201,72,0.2);border-radius:10px">
-    <div style="font-size:0.72rem;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Purchase Summary</div>
-    <div class="wz-review-row"><span>Product</span><strong>${name}</strong></div>
-    <div class="wz-review-row"><span>Quantity</span><strong>${qty} ${unit}</strong></div>
-    <div class="wz-review-row"><span>Purchase + Shipping</span><strong>₹${buy} + ₹${ship} = ₹${total.toFixed(2)}</strong></div>
-    <div class="wz-review-row"><span>Cost per gram/unit</span><strong>₹${costPerGram().toFixed(4)}</strong></div>
-  </div>`;
-
-  html += `<div style="font-size:0.72rem;color:var(--accent4);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Pack Variants (${_packVariants.length})</div>`;
-  _packVariants.forEach(pv => {
-    const profitColor = (pv.profit||0) >= 0 ? 'var(--green)' : 'var(--red)';
-    html += `<div style="margin-bottom:10px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
-        <strong style="font-size:0.92rem">${name} ${pv.size}${pv.sizeUnit}</strong>
-        <span class="wz-profit-badge ${(pv.profit||0)>=0?'wz-profit-pos':'wz-profit-neg'}">Profit ₹${(pv.profit||0).toFixed(2)}/pack</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:8px;font-size:0.78rem;color:var(--text-dim)">
-        <span>Base CPU: <strong style="color:var(--text)">₹${(pv.baseCpu||0).toFixed(3)}</strong></span>
-        <span>Sticker: <strong style="color:var(--text)">₹${(pv.sticker||0).toFixed(2)}</strong></span>
-        <span>Cover: <strong style="color:var(--text)">₹${(pv.cover||0).toFixed(2)}</strong></span>
-        <span>Full CPU: <strong style="color:var(--accent)">₹${(pv.fullCpu||0).toFixed(2)}</strong></span>
-        <span>Sell: <strong style="color:var(--green)">₹${(pv.sellPrice||0).toFixed(2)}</strong></span>
-        ${pv.resellerPrice>0?`<span>Reseller: <strong style="color:var(--accent4)">₹${pv.resellerPrice.toFixed(2)}</strong></span>`:''}
-        <span>Stock: <strong style="color:var(--text)">${pv.stock||0} packs</strong></span>
-      </div>
-    </div>`;
-  });
-  cont.innerHTML = html;
-
-  // show addstock row in edit mode
-  const asRow = document.getElementById('wz-addstock-row');
-  if (asRow) asRow.style.display = v('p-edit-id') ? 'block' : 'none';
+  if (editId) {
+    // UPDATE existing product
+    const idx = DB.products.findIndex(p => p.id === editId);
+    if (idx !== -1) {
+      const existing = DB.products[idx];
+      const addStock = +v('p-add-stock') || 0;
+      const newStock = existing.stock + addStock;
+      const newBalance = existing.balance + addStock;
+      DB.products[idx] = {
+        ...existing, name, category: v('p-cat'),
+        buyQty: qty, buyPrice: buy, shipCost: ship,
+        totalCost: total, cpu, sellPrice: sell,
+        profitPerUnit: sell - cpu,
+        stock: newStock,
+        balance: newBalance,
+        alertAt: +v('p-alert') || 10,
+        unit: v('p-unit') || 'pcs'
+      };
+      if (addStock > 0) {
+        showToast('✅ Product updated! +' + addStock + ' stock added', 'success');
+      } else {
+        showToast('✅ Product updated!', 'success');
+      }
+    }
+  } else {
+    // ADD new product
+    const prod = {
+      id: uid(), name, category: v('p-cat'),
+      buyQty: qty, buyPrice: buy, shipCost: ship,
+      totalCost: total, cpu, sellPrice: sell,
+      profitPerUnit: sell - cpu,
+      stock: qty, sold: 0, balance: qty,
+      alertAt: +v('p-alert') || 10,
+      unit: v('p-unit') || 'pcs'
+    };
+    DB.products.push(prod);
+    showToast('Product saved!', 'success');
+  }
+  saveData();
+  renderProductTable();
+  populateProductDropdowns();
+  clearProductForm();
+  switchTab('products', 'list');
 }
 
-// ── SAVE ──
+function editProduct(id) {
+  const p = DB.products.find(x => x.id === id);
+  if (!p) return;
+  set2('p-edit-id', p.id);
+  set2('p-name', p.name);
+  const cat = document.getElementById('p-cat');
+  if (cat) cat.value = p.category;
+  set2('p-qty', p.buyQty);
+  set2('p-buy', p.buyPrice);
+  set2('p-ship', p.shipCost);
+  set2('p-total', p.totalCost ? p.totalCost.toFixed(2) : '');
+  set2('p-cpu', p.cpu ? p.cpu.toFixed(2) : '');
+  set2('p-sell', p.sellPrice);
+  set2('p-profit', p.profitPerUnit ? p.profitPerUnit.toFixed(2) : '');
+  set2('p-alert', p.alertAt);
+  set2('p-add-stock', '');  // clear add-stock field
+  const unit = document.getElementById('p-unit');
+  if (unit) unit.value = p.unit;
+  // Show current stock info
+  const stockInfo = document.getElementById('p-stock-info');
+  if (stockInfo) {
+    stockInfo.style.display = 'block';
+    stockInfo.innerHTML = `<div class="alert alert-info" style="margin-top:8px">
+      📦
+      <div>Current Stock: <strong style="color:var(--accent)">${p.stock} ${p.unit}</strong> &nbsp;|&nbsp;
+      Sold: <strong style="color:var(--green)">${p.sold || 0}</strong> &nbsp;|&nbsp;
+      Balance: <strong style="color:${p.balance <= p.alertAt ? 'var(--red)' : 'var(--green)'}">${p.balance} ${p.unit}</strong>
+      </div></div>`;
+  }
+  // Show edit badge
+  const badge = document.getElementById('prod-edit-badge');
+  const title = document.getElementById('prod-form-title');
+  const btn = document.getElementById('prod-save-btn');
+  if (badge) badge.style.display = 'inline-block';
+  if (title) title.textContent = 'Edit Product';
+  if (btn) btn.innerHTML = '💾 Update Product';
+  switchTab('products', 'add');
+  setTimeout(() => document.getElementById('products-add').scrollIntoView({ behavior: 'smooth' }), 100);
+  showToast('✏️ Product loaded — edit details below', 'info');
+}
+
 function renderProductTable() {
   const tbody = document.getElementById('prod-tbody');
   if (!tbody) return;
-  if (!DB.products || !DB.products.length) {
-    tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--text-dim);padding:24px">No products yet. Click "Add Product" to get started.</td></tr>';
+  if (!DB.products.length) {
+    tbody.innerHTML = `<tr><td colspan="12" style="padding:32px"><div class="empty-state">📦<p>No products yet. Add your first product!</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = DB.products.map(p => {
-    const stockColor = p.balance <= 0 ? 'var(--red)' : p.balance <= p.alertAt ? '#fd9644' : 'var(--green)';
-    const status = p.balance <= 0 ? 'OUT' : p.balance <= p.alertAt ? 'LOW' : 'OK';
-    // For pack variants show a summary
-    let cpuDisplay = '—', sellDisplay = '—', resellerDisplay = '—', profitDisplay = '—';
-    if (p.packVariants && p.packVariants.length) {
-      const sizes = p.packVariants.map(pv => pv.size + (pv.sizeUnit||'g')).join(', ');
-      cpuDisplay    = p.packVariants.map(pv => '₹'+(pv.fullCpu||0).toFixed(2)).join(' / ');
-      sellDisplay   = p.packVariants.map(pv => '₹'+(pv.sellPrice||0).toFixed(2)).join(' / ');
-      resellerDisplay = p.packVariants.map(pv => pv.resellerPrice ? '₹'+pv.resellerPrice.toFixed(2) : '—').join(' / ');
-      profitDisplay = p.packVariants.map(pv => {
-        const liveProfit = (pv.sellPrice||0) - (pv.fullCpu||0);
-        const sign = liveProfit < 0 ? '-' : '+';
-        return sign + '₹' + Math.abs(liveProfit).toFixed(2);
-      }).join(' / ');
-    } else {
-      cpuDisplay      = p.cpu         ? '₹'+p.cpu.toFixed(2)         : '—';
-      sellDisplay     = p.sellPrice   ? '₹'+p.sellPrice.toFixed(2)   : '—';
-      resellerDisplay = p.resellerPrice ? '₹'+p.resellerPrice.toFixed(2) : '—';
-      const liveProfit2 = (p.sellPrice||0) - (p.cpu||0);
-      profitDisplay = p.cpu && p.sellPrice ? (liveProfit2 < 0 ? '-' : '+') + '₹' + Math.abs(liveProfit2).toFixed(2) : '—';
-    }
+    const isLow = p.balance <= p.alertAt;
     return `<tr>
-      <td><strong>${p.name}</strong><br><small style="color:var(--text-dim)">${p.category||''}</small></td>
-      <td>${p.buyQty||0} ${p.bulkUnit||''}</td>
-      <td>₹${(p.buyPrice||0).toFixed(2)}</td>
-      <td>₹${(p.shipCost||0).toFixed(2)}</td>
-      <td>₹${(p.stickerCost||0).toFixed(2)}</td>
-      <td>₹${(p.packCost||0).toFixed(2)}</td>
-      <td style="color:var(--accent);font-size:0.78rem">${cpuDisplay}</td>
-      <td style="color:var(--green);font-size:0.78rem">${sellDisplay}</td>
-      <td style="color:var(--accent4);font-size:0.78rem">${resellerDisplay}</td>
-      <td style="color:${profitDisplay.startsWith('-') ? 'var(--red,#e17055)' : 'var(--green)'};font-size:0.78rem;font-weight:600">${profitDisplay}</td>
-      <td>${p.stock||0}</td>
-      <td>${p.sold||0}</td>
-      <td style="color:${stockColor};font-weight:700">${p.balance||0} <small>${status}</small></td>
-      <td>${p.alertAt||5}</td>
-      <td style="display:flex;gap:4px;flex-wrap:wrap">
-        <button onclick="editProduct('${p.id}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem">✏️ Edit</button>
-        <button onclick="deleteProduct('${p.id}')" style="background:rgba(255,80,80,0.1);color:var(--red);border:1px solid rgba(255,80,80,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.72rem">🗑</button>
+      <td><strong>${p.name}</strong><br><span class="text-dim" style="font-size:0.7rem">${p.category}</span></td>
+      <td>${p.buyQty} ${p.unit}</td>
+      <td>${formatCurrency(p.buyPrice)}</td>
+      <td>${formatCurrency(p.shipCost)}</td>
+      <td>${formatCurrency(p.cpu)}</td>
+      <td class="text-green">${formatCurrency(p.sellPrice)}</td>
+      <td class="highlight">${formatCurrency(p.profitPerUnit)}</td>
+      <td>${p.stock}</td>
+      <td>${p.sold || 0}</td>
+      <td><strong>${p.balance}</strong></td>
+      <td>${isLow ? '<span class="badge badge-cancelled">LOW</span>' : '<span class="badge badge-delivered">OK</span>'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')" title="Edit Product" style="margin-right:4px;margin-bottom:2px">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')" title="Delete">Del</button>
       </td>
     </tr>`;
   }).join('');
+
+  renderStockHealthGrid();
 }
+
+
+// ─── ADD STOCK TO EXISTING PRODUCT ────────────────────
+function addStockToProduct(id, qty) {
+  const p = DB.products.find(x => x.id === id);
+  if (!p) return;
+  const add = parseInt(qty) || 0;
+  if (add <= 0) { showToast('Enter a valid quantity!', 'error'); return; }
+  p.stock += add;
+  p.balance += add;
+  p.buyQty += add;
+  saveData();
+  renderProductTable();
+  populateProductDropdowns();
+  showToast('✅ Stock added: +' + add + ' ' + p.unit, 'success');
+}
+
 
 function quickAddStock() {
   const editId = v('p-edit-id');
-  if (!editId) { showToast('Select a product to edit first!', 'error'); return; }
-  const addQty = parseInt(v('p-add-stock')) || 0;
-  if (addQty <= 0) { showToast('Enter quantity to add!', 'error'); return; }
-  const idx = DB.products.findIndex(p => p.id === editId);
-  if (idx === -1) { showToast('Product not found!', 'error'); return; }
-  DB.products[idx].stock   = (DB.products[idx].stock   || 0) + addQty;
-  DB.products[idx].balance = (DB.products[idx].balance || 0) + addQty;
+  if (!editId) {
+    showToast('Please click Edit on a product first!', 'error');
+    switchTab('products', 'list');
+    return;
+  }
+  const addQty = +v('p-add-stock') || 0;
+  if (addQty <= 0) {
+    showToast('Enter a quantity greater than 0!', 'error');
+    return;
+  }
+  const p = DB.products.find(x => x.id === editId);
+  if (!p) return;
+  p.stock += addQty;
+  p.balance += addQty;
   saveData();
-  renderProductTable();
+  // Refresh stock info display
+  const stockInfo = document.getElementById('p-stock-info');
+  if (stockInfo) {
+    stockInfo.innerHTML = `<div class="alert alert-success" style="margin-top:8px">
+      ✅
+      <div>Stock updated! New balance: <strong style="color:var(--green)">${p.balance} ${p.unit}</strong> &nbsp;|&nbsp;
+      Total stock: <strong style="color:var(--accent)">${p.stock} ${p.unit}</strong></div></div>`;
+  }
   set2('p-add-stock', '');
-  showToast('✅ Stock added: +' + addQty + ' units', 'success');
+  renderProductTable();
+  renderLowStockAlerts();
+  populateProductDropdowns();
+  showToast('✅ Added ' + addQty + ' ' + p.unit + ' to ' + p.name, 'success');
+}
+
+function promptAddStock(id) {
+  const p = DB.products.find(x => x.id === id);
+  if (!p) return;
+  const qty = prompt(`Add stock for "${p.name}"\nCurrent balance: ${p.balance} ${p.unit}\n\nEnter quantity to add:`);
+  if (qty === null) return;
+  addStockToProduct(id, qty);
+}
+
+function renderStockHealthGrid() {
+  const el = document.getElementById('stock-health-grid');
+  if (!el) return;
+  el.innerHTML = DB.products.map(p => {
+    const pct = p.stock ? Math.min((p.balance / p.stock) * 100, 100) : 0;
+    const color = pct < 20 ? 'red' : pct < 50 ? 'orange' : 'green';
+    const cls = pct < 20 ? 'badge-cancelled' : pct < 50 ? 'badge-pending' : 'badge-delivered';
+    return `<div class="stat-card ${color}">
+      <div class="label">${p.name.substr(0,20)}</div>
+      <div class="value">${p.balance}<span style="font-size:0.8rem"> ${p.unit}</span></div>
+      <div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:${pct}%;background:var(--${color === 'orange' ? 'accent2' : color === 'red' ? 'red' : 'green'})"></div></div>
+      <div class="sub">${p.sold || 0} sold • alert@${p.alertAt}</div>
+    </div>`;
+  }).join('');
 }
 
 function deleteProduct(id) {
@@ -3516,234 +2801,16 @@ function deleteProduct(id) {
   showToast('Product deleted', 'info');
 }
 
-function saveProduct() {
-  const name = v('p-name');
-  if (!name.trim()) { showToast('Product name required!','error'); return; }
-  const editId  = v('p-edit-id');
-  const qty     = +v('p-qty')  || 0;
-  const buy     = +v('p-buy')  || 0;
-  const ship    = +v('p-ship') || 0;
-  const bulkUnit = v('p-bulk-unit') || 'kg';
-  const totalCost = buy + ship;
-  // Recalc all variants fresh
-  _packVariants.forEach(recalcVariant);
-  const packVariants = _packVariants.map(pv => ({...pv}));
-
-  // For single-unit (pcs) products with no variants use simple cpu
-  const cpu = qty > 0 ? totalCost / qty : 0;
-  const sell = packVariants.length ? (packVariants[0].sellPrice||0) : 0;
-  const totalStock = packVariants.reduce((a,pv) => a+(pv.stock||0), 0) || qty;
-
-  const base = {
-    name, category: v('p-cat'),
-    buyQty: qty, buyPrice: buy, shipCost: ship, bulkUnit,
-    totalCost, cpu,
-    sellPrice: sell,
-    resellerPrice: packVariants.length ? (packVariants[0].resellerPrice||0) : 0,
-    profitPerUnit: packVariants.length ? (packVariants[0].profit||0) : 0,
-    stickerCost: 0, packCost: 0,
-    packVariants,
-    alertAt: +v('p-alert') || 5,
-    unit: packVariants.length ? 'packs' : 'pcs'
-  };
-
-  if (editId) {
-    const idx = DB.products.findIndex(p => p.id === editId);
-    if (idx !== -1) {
-      const existing = DB.products[idx];
-      const addStock = +v('p-add-stock') || 0;
-      DB.products[idx] = {
-        ...existing, ...base,
-        stock:   existing.stock   + addStock,
-        balance: existing.balance + addStock,
-        sold: existing.sold || 0
-      };
-      saveData(); renderProductTable(); populateProductDropdowns();
-      clearProductForm(); switchTab('products','list');
-      showToast('✅ Product updated!','success');
-      return;
-    }
-  }
-  DB.products.push({ id: uid(), ...base, stock: totalStock, sold: 0, balance: totalStock });
-  saveData(); renderProductTable(); populateProductDropdowns();
-  clearProductForm(); switchTab('products','list');
-  showToast('✅ Product saved!','success');
-}
-
-// ── EDIT ──
-function editProduct(id) {
-  const p = DB.products.find(x => x.id === id);
-  if (!p) return;
-  set2('p-edit-id', p.id);
-  set2('p-name', p.name);
-  const cat = document.getElementById('p-cat'); if (cat) cat.value = p.category;
-  set2('p-qty',  p.buyQty);
-  set2('p-buy',  p.buyPrice);
-  set2('p-ship', p.shipCost);
-  const bu = document.getElementById('p-bulk-unit'); if (bu) bu.value = p.bulkUnit || 'kg';
-  set2('p-total', p.totalCost ? p.totalCost.toFixed(2) : '');
-  set2('p-alert', p.alertAt || 5);
-  set2('p-add-stock','');
-
-  // Load pack variants
-  _packVariants = p.packVariants ? p.packVariants.map(pv => ({...pv})) : [];
-
-  // Edit badge
-  const badge = document.getElementById('prod-edit-badge');
-  const btn   = document.getElementById('prod-save-btn');
-  if (badge) { badge.style.display='inline-block'; badge.textContent='✏️ EDITING'; }
-  if (btn)   btn.innerHTML = '💾 Update Product';
-
-  // Stock info
-  const si = document.getElementById('p-stock-info');
-  if (si) {
-    si.style.display = 'block';
-    si.innerHTML = `<div class="alert alert-info">📦 Stock: <strong>${p.stock} ${p.unit}</strong> | Sold: <strong>${p.sold||0}</strong> | Balance: <strong style="color:${p.balance<=p.alertAt?'var(--red)':'var(--green)'}">${p.balance}</strong></div>`;
-  }
-
-  wzStep1Calc();
-  wzGo(1);
-  switchTab('products','add');
-  setTimeout(() => document.getElementById('products-add')?.scrollIntoView({behavior:'smooth'}), 100);
-  showToast('✏️ Product loaded — edit and save','info');
-}
-
-// ── CLEAR ──
 function clearProductForm() {
-  ['p-name','p-qty','p-buy','p-ship','p-total','p-cpu','p-sell','p-resell',
-   'p-profit','p-resprofit','p-sticker','p-pack','p-alert','p-edit-id','p-add-stock'].forEach(id => set2(id,''));
+  ['p-name','p-qty','p-buy','p-ship','p-total','p-cpu','p-sell','p-profit','p-alert','p-edit-id','p-add-stock'].forEach(id => set2(id, ''));
   const badge = document.getElementById('prod-edit-badge');
-  const btn   = document.getElementById('prod-save-btn');
-  const si    = document.getElementById('p-stock-info');
-  const asRow = document.getElementById('wz-addstock-row');
+  const title = document.getElementById('prod-form-title');
+  const btn = document.getElementById('prod-save-btn');
+  const stockInfo = document.getElementById('p-stock-info');
   if (badge) badge.style.display = 'none';
-  if (btn)   btn.innerHTML = '💾 Save Product';
-  if (si)    si.style.display = 'none';
-  if (asRow) asRow.style.display = 'none';
-  const bu = document.getElementById('p-bulk-unit'); if(bu) bu.value='kg';
-  _packVariants = [];
-  _wzStep = 1;
-  wzGo(1);
-  wzStep1Calc();
-  populateCategoryDropdown('p-cat');
-}
-
-// keep old names alive
-function addPackVariant() { wzAddPack(0,'g'); }
-function renderPackVariants() { wzRenderStep2(); }
-function recalcPackVariants() { _packVariants.forEach(recalcVariant); wzRenderStep2(); wzRenderStep3(); }
-function getPerGramCostForProduct(p) {
-  if (!p||!p.buyQty||!p.totalCost) return 0;
-  const bu = p.bulkUnit||'kg';
-  const g  = toGrams(p.buyQty, bu);
-  return g>0 ? p.totalCost/g : 0;
-}
-
-
-// ─── CATEGORIES ───────────────────────────────────────
-function populateCategoryDropdown(selectId, selectedVal) {
-  if (!DB.categories) DB.categories = ['Tea','Nattu Sakkarai','Scrubber','MCS','Other'];
-  const el = document.getElementById(selectId || 'p-cat');
-  if (!el) return;
-  const cur = selectedVal || el.value;
-  el.innerHTML = DB.categories.map(c => `<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
-  if (cur && DB.categories.includes(cur)) el.value = cur;
-}
-
-function showAddCategoryInline() {
-  const row = document.getElementById('new-cat-row');
-  if (row) { row.style.display = 'block'; document.getElementById('new-cat-input')?.focus(); }
-}
-
-function hideAddCategoryInline() {
-  const row = document.getElementById('new-cat-row');
-  if (row) row.style.display = 'none';
-  const inp = document.getElementById('new-cat-input');
-  if (inp) inp.value = '';
-}
-
-function saveNewCategory() {
-  const inp = document.getElementById('new-cat-input');
-  const name = (inp?.value || '').trim();
-  if (!name) { showToast('Enter a category name!', 'error'); return; }
-  if (!DB.categories) DB.categories = [];
-  if (DB.categories.map(c=>c.toLowerCase()).includes(name.toLowerCase())) {
-    showToast('Category already exists!', 'error'); return;
-  }
-  DB.categories.push(name);
-  saveData();
-  populateCategoryDropdown('p-cat', name);
-  hideAddCategoryInline();
-  renderCategoryManager();
-  showToast('✅ Category "' + name + '" added!', 'success');
-}
-
-function deleteCategory(name) {
-  const used = DB.products.some(p => p.category === name);
-  if (used) { showToast('Cannot delete — products use this category!', 'error'); return; }
-  DB.categories = DB.categories.filter(c => c !== name);
-  saveData();
-  populateCategoryDropdown('p-cat');
-  renderCategoryManager();
-  showToast('Category deleted', 'info');
-}
-
-function renameCategory(oldName) {
-  const newName = prompt('Rename "' + oldName + '" to:', oldName);
-  if (!newName || !newName.trim() || newName.trim() === oldName) return;
-  const n = newName.trim();
-  if (DB.categories.map(c=>c.toLowerCase()).includes(n.toLowerCase())) {
-    showToast('Name already taken!', 'error'); return;
-  }
-  DB.categories = DB.categories.map(c => c === oldName ? n : c);
-  DB.products.forEach(p => { if (p.category === oldName) p.category = n; });
-  saveData();
-  populateCategoryDropdown('p-cat');
-  renderCategoryManager();
-  showToast('✅ Renamed to "' + n + '"', 'success');
-}
-
-function showAddCategoryFromSettings() {
-  const el = document.getElementById('settings-cat-add');
-  if (el) { el.style.display = 'block'; document.getElementById('settings-cat-input')?.focus(); }
-}
-
-function saveNewCategoryFromSettings() {
-  const inp = document.getElementById('settings-cat-input');
-  const name = (inp?.value || '').trim();
-  if (!name) { showToast('Enter a category name!', 'error'); return; }
-  if (!DB.categories) DB.categories = [];
-  if (DB.categories.map(c=>c.toLowerCase()).includes(name.toLowerCase())) {
-    showToast('Already exists!', 'error'); return;
-  }
-  DB.categories.push(name);
-  saveData();
-  populateCategoryDropdown('p-cat', name);
-  if (inp) inp.value = '';
-  const el = document.getElementById('settings-cat-add');
-  if (el) el.style.display = 'none';
-  renderCategoryManager();
-  showToast('✅ Category "' + name + '" added!', 'success');
-}
-
-function renderCategoryManager() {
-  const el = document.getElementById('cat-manager-list');
-  if (!el) return;
-  if (!DB.categories) DB.categories = [];
-  el.innerHTML = DB.categories.map(cat => {
-    const count = DB.products.filter(p => p.category === cat).length;
-    const canDelete = count === 0;
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
-      <div>
-        <strong style="font-size:0.9rem">${cat}</strong>
-        <span style="font-size:0.75rem;color:var(--text-dim);margin-left:8px">${count} product${count!==1?'s':''}</span>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-secondary btn-sm" onclick="renameCategory('${cat.replace(/'/g,"\'")}')">✏️ Rename</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${cat.replace(/'/g,"\'")}')"          ${!canDelete?'disabled title="Products use this category" style=\"opacity:0.4;cursor:not-allowed\"':''}>🗑️</button>
-      </div>
-    </div>`;
-  }).join('') || '<p style="color:var(--text-dim);text-align:center;padding:20px">No categories yet.</p>';
+  if (title) title.textContent = 'Add Product';
+  if (btn) btn.innerHTML = '💾 Save Product';
+  if (stockInfo) stockInfo.style.display = 'none';
 }
 
 // ─── CUSTOMERS ────────────────────────────────────────
@@ -4010,57 +3077,15 @@ function renderSaleRows() {
   calcSaleSummary();
 }
 
-function onResellerToggle() {
-  const isReseller = document.getElementById('s-reseller')?.checked;
-  const badge = document.getElementById('s-reseller-badge');
-  if (badge) badge.style.display = isReseller ? 'inline-block' : 'none';
-  // Re-price all rows with reseller / normal price
-  _saleRows.forEach(r => {
-    if (!r.product) return;
-    const found = findProductVariant(r.product);
-    if (!found) return;
-    if (found.variant) {
-      r.price = isReseller && found.variant.resellerPrice > 0 ? found.variant.resellerPrice : found.variant.sellPrice;
-      r._cpu = found.variant.fullCpu || 0;
-    } else {
-      r.price = isReseller && found.prod.resellerPrice > 0 ? found.prod.resellerPrice : found.prod.sellPrice;
-      r._cpu = found.prod.cpu || 0;
-    }
-    r.total = Math.max((r.qty * r.price) - r.disc, 0);
-  });
-  renderSaleRows();
-}
-
-function findProductVariant(productLabel) {
-  // Returns { prod, variant } or { prod, variant:null } for single-unit
-  for (const p of DB.products) {
-    if (p.packVariants && p.packVariants.length) {
-      for (const pv of p.packVariants) {
-        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
-        if (label === productLabel) return { prod: p, variant: pv };
-      }
-    }
-    if (p.name === productLabel) return { prod: p, variant: null };
-  }
-  return null;
-}
-
 function onSaleRowProductChange(el, id) {
   const r = _saleRows.find(x => x.id === id);
   if (!r) return;
   r.product = el.value;
-  const found = findProductVariant(el.value);
-  if (found) {
-    const isReseller = document.getElementById('s-reseller')?.checked;
-    if (found.variant) {
-      r.price = isReseller && found.variant.resellerPrice > 0 ? found.variant.resellerPrice : found.variant.sellPrice;
-      r._cpu = found.variant.fullCpu || 0;
-    } else {
-      r.price = isReseller && found.prod.resellerPrice > 0 ? found.prod.resellerPrice : found.prod.sellPrice;
-      r._cpu = found.prod.cpu || 0;
-    }
+  const prod = DB.products.find(p => p.name === el.value);
+  if (prod) {
+    r.price = prod.sellPrice;
     r.disc = 0;
-    r.total = r.qty * r.price;
+    r.total = r.qty * prod.sellPrice;
     renderSaleRows();
   }
 }
@@ -4083,21 +3108,11 @@ function removeSaleRow(id) {
 function calcSaleSummary() {
   const subtotal = _saleRows.reduce((a, r) => a + (r.total || 0), 0);
   const profit = _saleRows.reduce((a, r) => {
-    // Use cached _cpu (set when product selected), or look up dynamically
-    let cpu = r._cpu;
-    if (cpu === undefined) {
-      const found = findProductVariant(r.product);
-      cpu = found ? (found.variant ? found.variant.fullCpu : found.prod.cpu) : 0;
-      r._cpu = cpu || 0;
-    }
-    const unitProfit = r.price - (cpu || 0);
-    return a + (r.qty * unitProfit) - (r.disc || 0);
+    const prod = DB.products.find(p => p.name === r.product);
+    return a + (prod ? (r.qty * prod.profitPerUnit) - r.disc : 0);
   }, 0);
   set2('s-total', subtotal.toFixed(2));
   set2('s-profit', profit.toFixed(2));
-  // Color profit red if negative, green if positive
-  const profitEl = document.getElementById('s-profit');
-  if (profitEl) profitEl.style.color = profit < 0 ? '#e17055' : 'var(--green)';
   const received = +v('s-received') || 0;
   set2('s-pending', Math.max(subtotal - received, 0).toFixed(2));
 }
@@ -4111,26 +3126,18 @@ function saveSale(andInvoice = false) {
   const invalidRow = _saleRows.find(r => !r.product);
   if (invalidRow) { showToast('Select product for all rows!', 'error'); return; }
 
-  // Stock check (supports pack variants)
+  // Stock check
   for (const r of _saleRows) {
-    const found = findProductVariant(r.product);
-    if (found && found.variant) {
-      const avail = found.variant.stock || 0;
-      if (avail < r.qty) { showToast(`Only ${avail} "${r.product}" in stock!`, 'error'); return; }
-    } else if (found && found.prod) {
-      if (found.prod.balance < r.qty) { showToast(`Only ${found.prod.balance} "${r.product}" in stock!`, 'error'); return; }
+    const prod = DB.products.find(p => p.name === r.product);
+    if (prod && prod.balance < r.qty) {
+      showToast(`Only ${prod.balance} "${r.product}" in stock!`, 'error'); return;
     }
   }
 
-  const isReseller = document.getElementById('s-reseller')?.checked || false;
   const total = _saleRows.reduce((a, r) => a + r.total, 0);
   const profit = _saleRows.reduce((a, r) => {
-    let cpu = r._cpu;
-    if (cpu === undefined) {
-      const found = findProductVariant(r.product);
-      cpu = found ? (found.variant ? found.variant.fullCpu : found.prod.cpu) : 0;
-    }
-    return a + (r.qty * (r.price - (cpu || 0))) - (r.disc || 0);
+    const prod = DB.products.find(p => p.name === r.product);
+    return a + (prod ? (r.qty * prod.profitPerUnit) - r.disc : 0);
   }, 0);
   const received = +v('s-received') || 0;
   const pending = Math.max(total - received, 0);
@@ -4146,24 +3153,17 @@ function saveSale(andInvoice = false) {
     price: total / Math.max(_saleRows.reduce((a,r) => a + r.qty, 0), 1),
     disc: _saleRows.reduce((a,r) => a + r.disc, 0),
     total, received, pending,
-    payment: v('s-payment'), status: v('s-status'), profit,
-    isReseller
+    payment: v('s-payment'), status: v('s-status'), profit
   };
 
   DB.sales.push(sale);
 
-  // Update stock (supports pack variants)
+  // Update stock
   _saleRows.forEach(r => {
-    const found = findProductVariant(r.product);
-    if (!found) return;
-    if (found.variant) {
-      found.variant.stock = Math.max((found.variant.stock || 0) - r.qty, 0);
-      found.prod.sold = (found.prod.sold || 0) + r.qty;
-      // Recalc parent balance as sum of all variants
-      found.prod.balance = found.prod.packVariants.reduce((a,pv) => a + (pv.stock||0), 0);
-    } else {
-      found.prod.sold = (found.prod.sold || 0) + r.qty;
-      found.prod.balance = Math.max(found.prod.balance - r.qty, 0);
+    const prod = DB.products.find(p => p.name === r.product);
+    if (prod) {
+      prod.sold = (prod.sold || 0) + r.qty;
+      prod.balance = Math.max(prod.balance - r.qty, 0);
     }
   });
 
@@ -4182,40 +3182,36 @@ function saveSale(andInvoice = false) {
     DB.customers.push(cust);
   }
 
-  // ─── CREATE INVOICE ONLY IF CHECKBOX TICKED ───────
-  const makeInvoice = document.getElementById('s-make-invoice')?.checked;
-  let invoice = null;
-  if (makeInvoice) {
-    const invNo = 'MT-' + (DB.invoiceCounter || 1001);
-    DB.invoiceCounter = (DB.invoiceCounter || 1001) + 1;
-    invoice = {
+  // ─── AUTO-CREATE INVOICE ───────────────────────────
+  const invNo = 'MT-' + (DB.invoiceCounter || 1001);
+  DB.invoiceCounter = (DB.invoiceCounter || 1001) + 1;
+  const invoice = {
+    id: uid(),
+    invNo,
+    date: saleDate,
+    customer,
+    phone: cust.phone || phone,
+    addr: cust.addr || '',
+    ref: '',
+    payment: v('s-payment'),
+    items: _saleRows.map(r => ({
       id: uid(),
-      invNo,
-      date: saleDate,
-      customer,
-      phone: cust.phone || phone,
-      addr: cust.addr || '',
-      ref: '',
-      payment: v('s-payment'),
-      items: _saleRows.map(r => ({
-        id: uid(),
-        name: r.product,
-        mrp: r.price,
-        sell: r.price - (r.disc > 0 ? r.disc / r.qty : 0),
-        disc: r.disc,
-        qty: r.qty,
-        total: r.total
-      })),
-      subtotal: total,
-      discTotal: _saleRows.reduce((a,r) => a + r.disc, 0),
-      total,
-      quote: 'Thank you for your purchase! 🙏',
-      status: 'Saved',
-      saleId: sale.id
-    };
-    DB.invoices.push(invoice);
-    sale.invoiceNo = invNo;
-  }
+      name: r.product,
+      mrp: r.price,
+      sell: r.price - (r.disc > 0 ? r.disc / r.qty : 0),
+      disc: r.disc,
+      qty: r.qty,
+      total: r.total
+    })),
+    subtotal: total,
+    discTotal: _saleRows.reduce((a,r) => a + r.disc, 0),
+    total,
+    quote: 'Thank you for your purchase! 🙏',
+    status: 'Auto-Generated',
+    saleId: sale.id
+  };
+  DB.invoices.push(invoice);
+  sale.invoiceNo = invNo;
   // ──────────────────────────────────────────────────
 
   saveData();
@@ -4226,17 +3222,13 @@ function saveSale(andInvoice = false) {
   renderInvoiceHistory();
   updateSalesQuickStats();
   updateDailySummary();
+  showToast(`✅ Sale saved! Invoice ${invNo} auto-created.`, 'success');
+  clearSaleForm();
+  populateCustomerDatalist();
 
-  if (makeInvoice && invoice) {
-    showToast(`✅ Sale saved! Invoice ${invoice.invNo} created.`, 'success');
-    clearSaleForm();
-    populateCustomerDatalist();
+  if (andInvoice) {
     prefillInvoiceFromSale(sale);
     showPage('invoices', null);
-  } else {
-    showToast('✅ Sale saved!', 'success');
-    clearSaleForm();
-    populateCustomerDatalist();
   }
 
   if (DB.settings.appsScriptUrl) syncSaleToSheet(sale);
@@ -4244,69 +3236,6 @@ function saveSale(andInvoice = false) {
 }
 
 function saveSaleAndInvoice() { saveSale(true); }
-
-function renderSalesPendingTable() {
-  const tbody = document.getElementById('sales-pending-tbody');
-  if (!tbody) return;
-  const pending = DB.customers.filter(c => c.pending > 0).sort((a,b) => (b.pending||0)-(a.pending||0));
-  if (!pending.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--green)">🎉 No pending payments! All clear.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = pending.map(c => {
-    const days = Math.floor((new Date() - new Date(c.lastSale || c.date || today())) / 86400000);
-    return `<tr>
-      <td><strong>${c.name}</strong></td>
-      <td><a href="tel:${c.phone}" style="color:var(--accent4)">${c.phone||'—'}</a></td>
-      <td>${formatCurrency(c.total||0)}</td>
-      <td class="text-green">${formatCurrency(c.paid||0)}</td>
-      <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
-      <td>${days}d ago</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <input type="number" id="sp-recv-${c.id}" placeholder="₹ Amount" step="0.01" min="0" max="${c.pending}"
-            style="width:95px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:0.8rem"
-            onkeyup="if(event.key==='Enter')receivePaymentFromSales('${c.id}')">
-          <button class="btn btn-success btn-sm" onclick="receivePaymentFromSales('${c.id}')">✅ Receive</button>
-          <button class="wa-btn" style="padding:4px 8px;font-size:0.72rem" onclick="sendSaleReminderWA('${c.id}')">💬</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function receivePaymentFromSales(custId) {
-  const c = DB.customers.find(x => x.id === custId);
-  if (!c) return;
-  const inputEl = document.getElementById('sp-recv-' + custId);
-  if (!inputEl) return;
-  const amount = parseFloat(inputEl.value);
-  if (!amount || amount <= 0) { showToast('Enter a valid amount!', 'error'); return; }
-  if (amount > c.pending) { showToast('Max: ' + formatCurrency(c.pending), 'error'); return; }
-
-  c.paid = (c.paid || 0) + amount;
-  c.pending = Math.max((c.pending || 0) - amount, 0);
-  if (c.pending === 0) c.status = 'Paid';
-
-  // Update matching sale records (most recent first)
-  let remaining = amount;
-  DB.sales.filter(s => s.customer.toLowerCase() === c.name.toLowerCase() && s.pending > 0)
-    .sort((a,b) => new Date(b.date) - new Date(a.date))
-    .forEach(sale => {
-      if (remaining <= 0) return;
-      const apply = Math.min(sale.pending, remaining);
-      sale.received = (sale.received || 0) + apply;
-      sale.pending  = Math.max(sale.pending - apply, 0);
-      remaining -= apply;
-    });
-
-  saveData();
-  renderSalesTable();
-  renderSalesPendingTable();
-  renderDashboard();
-  syncCustomerToSheet(c);
-  showToast('✅ ₹' + amount + ' received from ' + c.name + '!', 'success');
-}
 
 function renderSalesTable() {
   const tbody = document.getElementById('sales-tbody');
@@ -4324,18 +3253,16 @@ function renderSalesTable() {
     <td class="text-green">${formatCurrency(s.received)}</td>
     <td class="${s.pending > 0 ? 'text-red' : ''}">${s.pending > 0 ? formatCurrency(s.pending) : '—'}</td>
     <td>${s.payment}</td>
-    <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
+    <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
     <td class="text-green">${formatCurrency(s.profit)}</td>
     <td>
-      <button class="wa-btn" style="padding:4px 10px;font-size:0.72rem" onclick="sendSaleWhatsApp('${s.id}')">💬</button>
       <button class="btn btn-secondary btn-sm" onclick="prefillInvoiceAndGo('${s.id}')">📄</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">🗑️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.id}')">Del</button>
     </td>
   </tr>`).join('');
 
   updateSalesQuickStats();
   updateDailySummary();
-  renderSalesPendingTable();
 }
 
 function updateSalesQuickStats() {
@@ -4398,7 +3325,6 @@ function filterSalesByDate() {
 function clearSaleForm() {
   _saleRows = [];
   renderSaleRows();
-  const resellerCb = document.getElementById('s-reseller'); if(resellerCb) { resellerCb.checked = false; onResellerToggle(); }
   ['s-customer','s-qty','s-price','s-disc','s-total','s-received','s-pending','s-profit'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.value = id === 's-qty' ? 1 : id === 's-disc' ? 0 : ''; }
@@ -5156,14 +4082,7 @@ function fillTemplate() {
   const t = v('wa-template');
   const name = v('wa-name') || '[Customer Name]';
   const amount = v('wa-amount') || '[Amount]';
-  let msg = '';
-  if (t === 'pending') {
-    msg = applyWATpl('pendingReminder', { name, pending: amount, date: formatDate(today()) });
-  } else if (t === 'order') {
-    msg = applyWATpl('orderReady', { name, items: '[Products]', total: amount });
-  } else {
-    msg = TEMPLATES[t] ? TEMPLATES[t](name, amount) : '';
-  }
+  const msg = TEMPLATES[t] ? TEMPLATES[t](name, amount) : '';
   set2('wa-message', msg);
 }
 
@@ -5179,224 +4098,85 @@ function copyMessage() {
   navigator.clipboard.writeText(msg).then(() => showToast('Copied!', 'success'));
 }
 
-// (renderReminders, editReminderCustomer, sendAllReminders moved below)
-
-// ─── WA TEMPLATE HELPERS ──────────────────────────────
-function getWATpl(key) {
-  return (DB.waTemplates && DB.waTemplates[key]) || '';
-}
-
-function applyWATpl(key, vars) {
-  let msg = getWATpl(key);
-  const biz = DB.settings.bizName || 'Meenatchi Traders';
-  msg = msg.replace(/{biz}/g, biz);
-  Object.entries(vars).forEach(([k,v]) => { msg = msg.replace(new RegExp('{'+k+'}','g'), v||''); });
-  return msg;
-}
-
-function _buildSaleWAVars(s) {
-  const items = (s.items || []).map(i => `  • ${i.product} x${i.qty} = ₹${i.total}`).join('\n') || s.product;
-  const pendingLine = s.pending > 0 ? `⏳ Pending: ₹${s.pending}` : '';
-  return { name: s.customer, total: s.total, received: s.received,
-    pending: s.pending, pendingLine, date: formatDate(s.date), items, invNo: s.invoiceNo || '' };
-}
-
-function _refreshSaleWAPreview(saleId, tplKey) {
-  const s = DB.sales.find(x => x.id === saleId);
-  if (!s) return;
-  const vars = _buildSaleWAVars(s);
-  const msg = applyWATpl(tplKey, vars);
-  const ta = document.getElementById('wa-send-preview');
-  if (ta) ta.value = msg;
-}
-
-function sendSaleWhatsApp(saleId) {
-  const s = DB.sales.find(x => x.id === saleId);
-  if (!s) return;
-  const phone = (s.phone || '').replace(/\D/g,'');
-  if (!phone || phone.length < 10) { showToast('No phone number for this sale!', 'error'); return; }
-
-  const hasinvoice = !!s.invoiceNo;
-  const defaultTpl = hasinvoice ? 'invoiceReady' : 'saleConfirm';
-  const vars = _buildSaleWAVars(s);
-  const msg = applyWATpl(defaultTpl, vars);
-
-  showModal('💬 Send WhatsApp Message', `
-    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap">
-      <div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Customer</span><br><strong>${s.customer}</strong></div>
-      <div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Phone</span><br><strong style="color:var(--accent4)">${phone}</strong></div>
-      <div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Total</span><br><strong style="color:var(--green)">₹${s.total}</strong></div>
-      ${s.pending > 0 ? `<div><span style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Pending</span><br><strong style="color:var(--red)">₹${s.pending}</strong></div>` : ''}
-    </div>
-
-    <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <span style="font-size:0.78rem;color:var(--text-dim)">Template:</span>
-      <select id="wa-tpl-switcher" onchange="_refreshSaleWAPreview('${saleId}', this.value)"
-        style="background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:0.82rem;cursor:pointer">
-        <option value="saleConfirm" ${!hasinvoice?'selected':''}>🧾 Sale Confirmation</option>
-        <option value="invoiceReady" ${hasinvoice?'selected':''}>📄 Invoice Message</option>
-        <option value="pendingReminder" ${s.pending>0?'':''}> 💸 Payment Reminder</option>
-        <option value="orderReady">📦 Order Ready</option>
-      </select>
-      <button class="btn btn-secondary btn-sm" onclick="_refreshSaleWAPreview('${saleId}', document.getElementById('wa-tpl-switcher').value)">↺ Reset</button>
-    </div>
-
-    <label style="font-size:0.78rem;color:var(--text-dim);margin-bottom:4px;display:block">✏️ Edit message before sending:</label>
-    <textarea id="wa-send-preview" rows="11"
-      style="width:100%;background:rgba(37,211,102,0.04);border:1px solid rgba(37,211,102,0.25);border-radius:10px;padding:12px;color:var(--text);font-size:0.84rem;resize:vertical;line-height:1.7;font-family:inherit"
-    >${msg}</textarea>
-
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-      <button class="wa-btn" style="flex:1;justify-content:center" onclick="
-        const m=document.getElementById('wa-send-preview').value;
-        const p='${phone}';
-        window.open('https://wa.me/'+(p.startsWith('91')?p:'91'+p)+'?text='+encodeURIComponent(m),'_blank');
-        closeModal();
-      ">💬 Send on WhatsApp</button>
-      <button class="btn btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('wa-send-preview').value).then(()=>showToast('Copied! 📋','success'))">📋 Copy</button>
-      <button class="btn btn-secondary" onclick="closeModal()">✕</button>
-    </div>
-  `);
-}
-
-function sendSaleReminderWA(custId) {
-  const c = DB.customers.find(x => x.id === custId);
-  if (!c) return;
-  const phone = (c.phone||'').replace(/\D/g,'');
-  const msg = applyWATpl('pendingReminder', {
-    name: c.name, pending: c.pending || 0, date: formatDate(c.date || c.lastSale || '')
-  });
-  openWhatsApp(phone, msg);
-}
-
-function renderWATemplateEditor() {
-  const el = document.getElementById('wa-template-editor');
-  if (!el) return;
-  const defs = [
-    { key:'saleConfirm', label:'🧾 Sale Confirmation', desc:'Sent after saving a sale (no invoice)' },
-    { key:'invoiceReady', label:'📄 Invoice Message', desc:'Sent after saving a sale with invoice' },
-    { key:'pendingReminder', label:'💸 Pending Payment Reminder', desc:'Sent from Reminders tab' },
-    { key:'orderReady', label:'📦 Order Ready Notification', desc:'Sent when order is ready' },
-    { key:'birthdayWish', label:'🎂 Birthday Wish', desc:'Sent for customer birthdays' },
-  ];
-  el.innerHTML = defs.map(d => `
-    <div style="border:1px solid var(--border);border-radius:10px;padding:16px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div>
-          <strong style="font-size:0.92rem">${d.label}</strong>
-          <p style="font-size:0.75rem;color:var(--text-dim);margin:2px 0 0">${d.desc}</p>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="previewWATpl('${d.key}')">👁️ Preview</button>
-      </div>
-      <textarea id="watpl-${d.key}" rows="5" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:0.82rem;resize:vertical;font-family:inherit">${getWATpl(d.key)}</textarea>
-    </div>
-  `).join('');
-}
-
-function saveWATemplates() {
-  if (!DB.waTemplates) DB.waTemplates = {};
-  ['saleConfirm','invoiceReady','pendingReminder','orderReady','birthdayWish'].forEach(key => {
-    const el = document.getElementById('watpl-' + key);
-    if (el) DB.waTemplates[key] = el.value;
-  });
-  saveData();
-  showToast('✅ Templates saved!', 'success');
-}
-
-const DEFAULT_WA_TEMPLATES = {
-  saleConfirm: 'Hi {name}! 🙏\nThank you for your purchase at {biz}.\n\n🛍️ *Order Summary:*\n{items}\n\n💰 Total: ₹{total}\n✅ Paid: ₹{received}\n{pendingLine}\n📅 Date: {date}\n\nThank you for shopping with us! 😊',
-  invoiceReady: 'Hi {name}! 📄\nYour invoice from *{biz}* is ready.\n\n🔖 Invoice No: {invNo}\n💰 Amount: ₹{total}\n📅 Date: {date}\n\nPlease find your invoice attached. Thank you! 🙏',
-  pendingReminder: 'Hi {name}! 👋\nThis is a gentle reminder from *{biz}*.\n\n💸 Pending Amount: ₹{pending}\n📅 Due Since: {date}\n\nKindly clear the payment at your earliest convenience. Thank you! 🙏',
-  orderReady: 'Hi {name}! 📦\nGreat news! Your order from *{biz}* is ready.\n\n🛍️ Items: {items}\n💰 Amount: ₹{total}\n\nPlease contact us to arrange delivery/pickup. Thank you! 😊',
-  birthdayWish: 'Happy Birthday {name}! 🎂🎉\n\nWishing you a wonderful day filled with joy and happiness!\n\nWith love,\n*{biz}* 🙏'
-};
-
-function resetWATemplates() {
-  if (!confirm('Reset all templates to default? Your customizations will be lost.')) return;
-  DB.waTemplates = { ...DEFAULT_WA_TEMPLATES };
-  saveData();
-  renderWATemplateEditor();
-  showToast('Templates reset to default', 'info');
-}
-
-function previewWATpl(key) {
-  const el = document.getElementById('watpl-' + key);
-  const raw = el ? el.value : getWATpl(key);
-  const biz = DB.settings.bizName || 'Meenatchi Traders';
-  let preview = raw
-    .replace(/{biz}/g, biz)
-    .replace(/{name}/g, 'Sample Customer')
-    .replace(/{total}/g, '1250')
-    .replace(/{received}/g, '1000')
-    .replace(/{pending}/g, '250')
-    .replace(/{pendingLine}/g, '⏳ Pending: ₹250')
-    .replace(/{date}/g, formatDate(today()))
-    .replace(/{invNo}/g, 'MT-1001')
-    .replace(/{items}/g, '  • Product A x2 = ₹500\n  • Product B x3 = ₹750');
-  showModal('👁️ Message Preview', `<pre style="white-space:pre-wrap;font-family:inherit;font-size:0.85rem;color:var(--text);line-height:1.7">${preview}</pre>`);
-}
-
-// ─── REMINDERS REDESIGN ───────────────────────────────
 function renderReminders() {
+  // Bulk remind table
   const tbody = document.getElementById('bulk-remind-tbody');
   if (tbody) {
     const pending = DB.customers.filter(c => c.pending > 0);
     tbody.innerHTML = pending.length ? pending.map(c => {
-      const days = Math.floor((new Date() - new Date(c.lastSale || c.date || today())) / 86400000);
-      const phone = (c.phone||'').replace(/\D/g,'');
+      const days = Math.floor((new Date() - new Date(c.date || today())) / 86400000);
       return `<tr>
-        <td><strong>${c.name}</strong></td>
-        <td>${c.phone||'—'}</td>
+        <td><strong>${c.name}</strong><br><span style="font-size:0.7rem;color:var(--text-dim)">${c.phone || ''}</span></td>
         <td class="text-red"><strong>${formatCurrency(c.pending)}</strong></td>
-        <td>${days}d ago</td>
+        <td>${days}d</td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="editReminderCustomer('${c.id}')" style="margin-right:4px">✏️</button>
-          <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="sendSaleReminderWA('${c.id}')">💬 Remind</button>
+          <button class="btn btn-secondary btn-sm" onclick="editReminderCustomer('${c.id}')" style="margin-right:4px;margin-bottom:3px">Edit</button>
+          <button class="wa-btn" style="padding:4px 10px;font-size:0.75rem" onclick="quickRemind('${c.id}')">💬 Send</button>
         </td>
       </tr>`;
-    }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--green);padding:24px">🎉 No pending payments! All clear.</td></tr>';
+    }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--green);padding:20px">🎉 No pending payments!</td></tr>';
   }
+
+  // Templates list
   const tl = document.getElementById('templates-list');
   if (tl) {
     tl.innerHTML = [
-      { label: '💰 Pending Reminder', key: 'pendingReminder' },
-      { label: '📦 Order Ready', key: 'orderReady' },
-    ].map(t => `<div class="card" style="margin:0;padding:14px">
-      <strong style="font-size:0.85rem">${t.label}</strong>
-      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:8px;white-space:pre-wrap;line-height:1.5">${(getWATpl(t.key)||'').replace(/{biz}/g, DB.settings.bizName||'Meenatchi Traders').substring(0,120)}...</p>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="switchTab('reminders','templates');renderWATemplateEditor()">✏️ Customize</button>
+      { title: '💰 Pending Payment', msg: TEMPLATES.pending('[Customer]', '[Amount]') },
+      { title: '📦 Order Ready', msg: TEMPLATES.order('[Customer]') },
+    ].map(t => `<div class="card" style="margin:0">
+      <strong style="font-size:0.85rem">${t.title}</strong>
+      <p style="font-size:0.8rem;color:var(--text-dim);margin-top:8px;line-height:1.6">${t.msg}</p>
+      <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="useTemplate(\`${t.msg}\`)">📋 Use Template</button>
     </div>`).join('');
   }
 }
 
+
 function editReminderCustomer(id) {
   const c = DB.customers.find(x => x.id === id);
   if (!c) return;
+
+  // Pre-fill WhatsApp custom message form with this customer's details
   set2('wa-name', c.name);
   set2('wa-phone', c.phone || '');
   set2('wa-amount', c.pending || 0);
+
+  // Auto-fill the message
   const tmpl = document.getElementById('wa-template');
   if (tmpl) tmpl.value = 'pending';
   fillTemplate();
-  showPage('reminders', null);
-  switchTab('reminders','custom');
+
+  // Scroll to the custom message card
+  const waForm = document.querySelector('#page-reminders .card');
+  if (waForm) waForm.scrollIntoView({ behavior: 'smooth' });
+
   showToast('✏️ ' + c.name + ' loaded — edit & send below', 'info');
+
+  // Also highlight the form briefly
+  const nameEl = document.getElementById('wa-name');
+  if (nameEl) {
+    nameEl.style.border = '2px solid var(--accent)';
+    setTimeout(() => { nameEl.style.border = ''; }, 2000);
+  }
 }
 
 function sendAllReminders() {
   const pending = DB.customers.filter(c => c.pending > 0);
   if (!pending.length) { showToast('No pending payments!', 'info'); return; }
+  const biz = DB.settings.bizName || 'Meenatchi Traders';
   const queue = pending.map(c => {
     const ph = (c.phone || '').replace(/\D/g,'');
-    const msg = applyWATpl('pendingReminder', {
-      name: c.name, pending: c.pending || 0, date: formatDate(c.lastSale || c.date || today())
-    });
+    const msg = 'Hi ' + c.name + ', you have a pending payment of Rs.' + (c.pending || 0) + ' at ' + biz + '. Please clear when convenient. Thank you!';
     return { name: c.name, phone: ph, msg };
   }).filter(q => q.phone.length >= 10);
-  if (!queue.length) { showToast('No phone numbers found!', 'error'); return; }
+  if (!queue.length) { showToast('No phone numbers found! Add phone to customers first.', 'error'); return; }
   startWAQueue(queue);
 }
 
+function useTemplate(msg) {
+  set2('wa-message', msg);
+  showPage('reminders', null);
+}
 
 // ─── TEA SHOP ─────────────────────────────────────────
 function calcTeaProfit() {
@@ -5763,7 +4543,7 @@ function renderOrders() {
       <td>${(s.product||'').substr(0,16)}</td>
       <td style="text-align:center">${s.qty}</td>
       <td class="highlight">${formatCurrency(s.total)}</td>
-      <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
+      <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
       <td>
         <select onchange="updateOrderStatus('${s.id}',this.value,this)" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:0.75rem">
           ${['Pending','Processing','Ready','Delivered','Cancelled'].map(st => `<option ${s.status===st?'selected':''}>${st}</option>`).join('')}
@@ -6029,8 +4809,8 @@ function loadSettings() {
   if (DB.settings.bizAddr) set2('biz-addr', DB.settings.bizAddr);
   if (DB.settings.bizGstin) set2('biz-gstin', DB.settings.bizGstin);
   if (DB.settings.bizUpi) set2('biz-upi', DB.settings.bizUpi);
-  if (getSheetUrl()) set2('sheet-url', getSheetUrl()); // Always restore sheet URL
-  set2('apps-script-url', getAppsScriptUrl()); // Always show URL (uses fallback if needed)
+  if (DB.settings.sheetUrl) set2('sheet-url', DB.settings.sheetUrl);
+  if (DB.settings.appsScriptUrl) set2('apps-script-url', DB.settings.appsScriptUrl);
   setTimeout(renderLogoPreview, 80);
   // Load auto-backup toggle
   const abt = document.getElementById('auto-backup-toggle');
@@ -6078,8 +4858,6 @@ function connectSheets() {
   DB.settings.appsScriptUrl = url;
   DB.settings.sheetUrl = sheetUrl;
   DB.settings.sheetTabs = v('sheet-tabs') || DB.settings.sheetTabs;
-  persistAppsScriptUrl(url); // Save to all storage mechanisms
-  if (sheetUrl) persistSheetUrl(sheetUrl);
   saveData();
 
   const status = document.getElementById('sheets-status');
@@ -6121,13 +4899,8 @@ function disconnectSheets() {
 }
 
 function checkSheetsConnection() {
-  // Always hide banner — SHEETS_URL_FALLBACK ensures we always have a URL
-  const b = document.getElementById('sheets-banner');
-  if (b) b.style.display = 'none';
-  // Set URL from fallback if not yet in settings
   if (!DB.settings.appsScriptUrl) {
-    DB.settings.appsScriptUrl = getAppsScriptUrl();
-    persistAppsScriptUrl(DB.settings.appsScriptUrl);
+    document.getElementById('sheets-banner').style.display = 'flex';
   }
 }
 
@@ -6720,31 +5493,14 @@ function set(id, val) { const el = document.getElementById(id); if (el) el.textC
 function set2(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
 
 function populateProductDropdowns() {
-  // Build flat list: variants first, then single-unit products
-  const flatOptions = [];
-  DB.products.forEach(p => {
-    if (p.packVariants && p.packVariants.length) {
-      p.packVariants.forEach(pv => {
-        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
-        flatOptions.push({ value: label, stock: pv.stock || 0 });
-      });
-    } else {
-      flatOptions.push({ value: p.name, stock: p.balance || 0 });
-    }
-  });
   const dropdowns = ['s-product', 'inv-product', 'c-product'];
   dropdowns.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const current = el.value;
-    el.innerHTML = `<option value="">Select Product</option>` +
-      flatOptions.map(o => `<option value="${o.value}">${o.value} (${o.stock} left)</option>`).join('');
+    el.innerHTML = `<option value="">Select Product</option>` + DB.products.map(p => `<option value="${p.name}">${p.name} (${p.balance} left)</option>`).join('');
     if (current) el.value = current;
   });
-  // Also update sale row selects if any exist
-  const saleSelects = document.querySelectorAll('#sale-items-tbody select');
-  const opts = `<option value="">Select...</option>` + flatOptions.map(o => `<option value="${o.value}">${o.value} (${o.stock} left)</option>`).join('');
-  saleSelects.forEach(sel => { const cur = sel.value; sel.innerHTML = opts; if(cur) sel.value = cur; });
 }
 
 function populateCustomerDatalist() {
@@ -6838,14 +5594,13 @@ function installPWA() {
 // ─── DEFAULT PRODUCT RULES ────────────────────────────────
 const DEFAULT_RULES = [
   { product: 'Tea Rs.10',       days: 2  },
-  { product: 'Tea n31 – 100g',       days: 8,  mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
-  { product: 'Tea n31 – 250g',       days: 18, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
-  { product: 'Tea n31 – 500g',       days: 35, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
-  { product: 'Scrubber',             days: 25, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
-  { product: 'Nattu Sakkarai 500g',  days: 23, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
-  { product: 'Nattu Sakkarai 1kg',   days: 45, mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
-  { product: 'MCS',                  days: 15, mode: 'qty',   daysPerUnit: 1, groupByCategory: true  },
-  { product: 'Tea n31 – Sample 10g', days: 2,  mode: 'fixed', daysPerUnit: 1, groupByCategory: false },
+  { product: 'Tea n31 – 100g',  days: 8  },
+  { product: 'Tea n31 – 250g',  days: 18 },
+  { product: 'Scrubber Pro',    days: 25 },
+  { product: 'Nattu Sakkarai 500g', days: 23 },
+  { product: 'GNS Nattu Sakkarai 1kg', days: 23 },
+  { product: 'MCS Item',        days: 1  },
+  { product: 'Tea n31 – Sample 10g', days: 2 },
 ];
 
 function getProductRules() {
@@ -6884,124 +5639,30 @@ function daysDiff(dateStr) {
 }
 
 // ─── BUILD CUSTOMER REMINDERS FROM SALES ──────────────────
-function getMatchingRule(productName) {
-  const rules = getProductRules();
-  // Exact match first
-  let rule = rules.find(r => productName && productName.toLowerCase().startsWith(r.product.toLowerCase()));
-  if (!rule) rule = rules.find(r => productName && productName.toLowerCase().includes(r.product.toLowerCase()));
-  return rule || null;
-}
-
-function getRuleDays(productName) {
-  const rule = getMatchingRule(productName);
-  if (rule) return rule.days;
-  const pl = (productName || '').toLowerCase();
-  if (pl.includes('tea') && pl.includes('10')) return 2;
-  if (pl.includes('tea') && pl.includes('100')) return 8;
-  if (pl.includes('tea') && pl.includes('250')) return 18;
-  if (pl.includes('scrub')) return 25;
-  if (pl.includes('sakkarai') || pl.includes('sugar')) return 23;
-  if (pl.includes('mcs')) return 15;
-  return 7;
-}
-
 function buildCustomerReminders() {
-  const rules = getProductRules();
-  const todayStr = today();
-
-  // ── Step 1: collect all sales grouped by customer ──
-  const custSales = {};
+  // Group sales by customer+product → get latest purchase date per combination
+  const map = {};
   DB.sales.forEach(s => {
-    if (!s.customer) return;
-    const ck = s.customer.toLowerCase().trim();
-    if (!custSales[ck]) custSales[ck] = { name: s.customer, phone: '', salesList: [] };
-    const cust = DB.customers.find(c => c.name.toLowerCase() === ck);
-    custSales[ck].phone = s.phone || (cust ? cust.phone : '') || custSales[ck].phone;
-    // Expand multi-item sales
-    const items = s.items && s.items.length ? s.items : [{ product: s.product, qty: s.qty || 1 }];
-    items.forEach(item => {
-      if (!item.product) return;
-      custSales[ck].salesList.push({ product: item.product, qty: item.qty || 1, date: s.date || todayStr });
-    });
+    if (!s.customer || !s.product) return;
+    const key = s.customer.toLowerCase().trim() + '||' + s.product.trim();
+    const saleDate = s.date || '';
+    if (!map[key] || saleDate > map[key].lastDate) {
+      const cust = DB.customers.find(c => c.name.toLowerCase() === s.customer.toLowerCase().trim());
+      const phone = s.phone || (cust ? cust.phone : '') || '';
+      map[key] = {
+        customer: s.customer,
+        phone: phone,
+        product: s.product,
+        qty: s.qty,
+        lastDate: saleDate,
+        days: getRuleDays(s.product)
+      };
+    }
   });
-
-  const reminders = [];
-
-  Object.values(custSales).forEach(cust => {
-    // ── Step 2: find which rules apply in groupByCategory mode ──
-    const handledProducts = new Set();
-
-    // Process grouped (qty-based) rules first
-    rules.filter(r => r.groupByCategory && r.mode === 'qty').forEach(rule => {
-      // Find all sales matching this rule's product keyword
-      const matching = cust.salesList.filter(sl =>
-        sl.product.toLowerCase().includes(rule.product.toLowerCase())
-      );
-      if (!matching.length) return;
-
-      // Get the latest sale date among matching items
-      const latestDate = matching.reduce((best, sl) => sl.date > best ? sl.date : best, '');
-
-      // Sum qty from ALL matching sales on that latest date (same-day purchase grouping)
-      // Also consider total qty ever for a rolling window — use last 30 days
-      const thirtyAgo = new Date(todayStr); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
-      const thirtyAgoStr = thirtyAgo.toISOString().split('T')[0];
-      const recentQty = matching
-        .filter(sl => sl.date >= thirtyAgoStr)
-        .reduce((sum, sl) => sum + (sl.qty || 1), 0);
-
-      const reminderDays = Math.round(recentQty * (rule.daysPerUnit || 1));
-      const nextDate = addDays(latestDate, reminderDays);
-
-      // Collect product names for display
-      const productNames = [...new Set(matching.map(sl => sl.product))];
-      productNames.forEach(p => handledProducts.add(p.toLowerCase()));
-
-      reminders.push({
-        customer: cust.name,
-        phone: cust.phone,
-        product: productNames.join(' + '),
-        productGroup: rule.product,
-        qty: recentQty,
-        lastDate: latestDate,
-        days: reminderDays,
-        nextDate,
-        overdueDays: daysDiff(nextDate),
-        mode: 'qty',
-        ruleLabel: recentQty + ' units × ' + (rule.daysPerUnit || 1) + ' day = ' + reminderDays + ' days'
-      });
-    });
-
-    // ── Step 3: process remaining products with fixed rules ──
-    const map = {};
-    cust.salesList.forEach(sl => {
-      if (handledProducts.has(sl.product.toLowerCase())) return;
-      const key = sl.product.trim();
-      if (!map[key] || sl.date > map[key].lastDate) {
-        map[key] = { product: sl.product, qty: sl.qty, lastDate: sl.date };
-      }
-    });
-
-    Object.values(map).forEach(item => {
-      const rule = getMatchingRule(item.product);
-      const days = rule ? rule.days : getRuleDays(item.product);
-      const nextDate = addDays(item.lastDate, days);
-      reminders.push({
-        customer: cust.name,
-        phone: cust.phone,
-        product: item.product,
-        qty: item.qty,
-        lastDate: item.lastDate,
-        days,
-        nextDate,
-        overdueDays: daysDiff(nextDate),
-        mode: 'fixed',
-        ruleLabel: days + ' days'
-      });
-    });
+  return Object.values(map).map(r => {
+    const nextDate = addDays(r.lastDate, r.days);
+    return { ...r, nextDate, overdueDays: daysDiff(nextDate) };
   });
-
-  return reminders;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -7386,7 +6047,7 @@ function generateDailyReport() {
             <td>${s.customer}</td><td>${(s.product||'').substr(0,16)}</td>
             <td>${s.qty}</td><td>${formatCurrency(s.total)}</td>
             <td style="color:var(--green)">${formatCurrency(s.profit||0)}</td>
-            <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
+            <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
           </tr>`).join('')}</tbody>
         </table></div>
       </div>` : '<div style="padding:12px;color:var(--text-dim);text-align:center">No sales recorded for this date</div>'}
@@ -7482,24 +6143,17 @@ function renderCustomerReminders() {
       tt.innerHTML = '<div class="empty-state">🎉<p>No reminders due today!</p></div>';
     } else {
       tt.innerHTML = `<div class="table-wrap"><table>
-        <thead><tr><th>Customer</th><th>Phone</th><th>Product(s)</th><th>Qty / Rule</th><th>Last Buy</th><th>Due</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Customer</th><th>Phone</th><th>Product</th><th>Last Purchase</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>${dueToday.map(r => {
           const statusColor = r.overdueDays > 3 ? 'var(--red)' : r.overdueDays > 0 ? '#fd9644' : 'var(--green)';
           const statusText  = r.overdueDays > 0 ? r.overdueDays + 'd overdue' : 'Due today';
           const ph = (r.phone||'').replace(/\D/g,'');
           const phLink = ph ? (ph.startsWith('91') ? ph : '91'+ph) : '';
-          const biz = DB.settings.bizName||'Meenatchi Traders';
-          const msg = r.mode === 'qty'
-            ? 'Vanakkam ' + r.customer + '! 👋\n\nYour ' + r.product + ' stock may be running low.\nYou bought ' + r.qty + ' units — time to reorder! 📦\n\nContact us at ' + biz
-            : 'Vanakkam ' + r.customer + '! ' + r.product + ' fresh stock ready. Ungalukku thevai irukka? - ' + biz;
-          const qtyBadge = r.mode === 'qty'
-            ? `<span style="font-size:0.72rem;color:var(--accent4);background:rgba(162,155,254,0.12);padding:2px 8px;border-radius:10px">${r.ruleLabel}</span>`
-            : `<span style="font-size:0.72rem;color:var(--text-dim)">${r.ruleLabel}</span>`;
+          const msg = 'Vanakkam ' + r.customer + '! ' + r.product + ' fresh stock ready. Ungalukku thevai irukka? - ' + (DB.settings.bizName||'Meenatchi Traders');
           return `<tr>
             <td><strong>${r.customer}</strong></td>
             <td><a href="tel:${r.phone}" style="color:var(--accent4)">${r.phone||'—'}</a></td>
-            <td style="max-width:160px;font-size:0.82rem">${r.product||'—'}</td>
-            <td>${qtyBadge}</td>
+            <td>${r.product||'—'}</td>
             <td>${formatDate(r.lastDate)}</td>
             <td>${formatDate(r.nextDate)}</td>
             <td style="color:${statusColor};font-weight:600">${statusText}</td>
@@ -7548,75 +6202,43 @@ function filterCustReminders(q) {
   rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'; });
 }
 
-function onRuleModeChange() {
-  const mode = document.getElementById('cr-rule-mode')?.value;
-  const fixedGrp = document.getElementById('cr-rule-days-group');
-  const qtyGrp   = document.getElementById('cr-rule-dpq-group');
-  if (fixedGrp) fixedGrp.style.display = mode === 'qty' ? 'none' : '';
-  if (qtyGrp)   qtyGrp.style.display   = mode === 'qty' ? '' : 'none';
-}
-
 function renderProductRules() {
   const rules = getProductRules();
   const el = document.getElementById('cr-rules-table');
   if (!el) return;
   el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Product / Category</th><th>Mode</th><th>Interval</th><th>Grouped?</th><th>Action</th></tr></thead>
-    <tbody>${rules.map((r, i) => {
-      const modeLabel = r.mode === 'qty'
-        ? `<span style="color:var(--accent4);font-weight:600">📦 Qty-Based</span><br><span style="font-size:0.72rem;color:var(--text-dim)">${r.daysPerUnit||1} day/unit</span>`
-        : `<span style="color:var(--accent3);font-weight:600">📅 Fixed</span>`;
-      const intervalLabel = r.mode === 'qty'
-        ? `qty × ${r.daysPerUnit||1} days`
-        : `${r.days} days`;
-      return `<tr>
-        <td><strong>${r.product}</strong></td>
-        <td>${modeLabel}</td>
-        <td>${intervalLabel}</td>
-        <td>${r.groupByCategory ? '<span style="color:var(--green)">✅ Yes</span>' : '—'}</td>
-        <td>
-          <button onclick="editRule(${i})" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:4px">✏️</button>
-          <button onclick="deleteRule(${i})" style="background:rgba(253,121,168,0.12);color:var(--red);border:1px solid rgba(253,121,168,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Del</button>
-        </td>
-      </tr>`;
-    }).join('')}</tbody>
+    <thead><tr><th>Product</th><th>Reminder Days</th><th>Action</th></tr></thead>
+    <tbody>${rules.map((r, i) => `<tr>
+      <td><strong>${r.product}</strong></td>
+      <td>${r.days} days</td>
+      <td>
+        <button onclick="editRule(${i})" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-right:4px">✏️</button>
+        <button onclick="deleteRule(${i})" style="background:rgba(253,121,168,0.12);color:var(--red);border:1px solid rgba(253,121,168,0.2);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem">Del</button>
+      </td>
+    </tr>`).join('')}</tbody>
   </table></div>`;
 }
 
 function saveProductRule() {
   const product = document.getElementById('cr-rule-product').value.trim();
-  const mode = document.getElementById('cr-rule-mode')?.value || 'fixed';
-  const days = mode === 'fixed' ? parseInt(document.getElementById('cr-rule-days').value) : 15;
-  const daysPerUnit = mode === 'qty' ? parseFloat(document.getElementById('cr-rule-dpq').value) || 1 : 1;
-  const groupByCategory = document.getElementById('cr-rule-group')?.value === '1';
-  if (!product) { showToast('Enter product/category name!', 'error'); return; }
-  if (mode === 'fixed' && !days) { showToast('Enter reminder days!', 'error'); return; }
+  const days = parseInt(document.getElementById('cr-rule-days').value);
+  if (!product || !days) { showToast('Enter product name and days!', 'error'); return; }
   const rules = getProductRules();
   const existing = rules.findIndex(r => r.product.toLowerCase() === product.toLowerCase());
-  const newRule = { product, days: mode === 'fixed' ? days : Math.round(daysPerUnit * 10), mode, daysPerUnit, groupByCategory };
-  if (existing > -1) rules[existing] = newRule;
-  else rules.push(newRule);
+  if (existing > -1) rules[existing].days = days;
+  else rules.push({ product, days });
   DB.productRules = rules;
   saveData();
   renderProductRules();
   document.getElementById('cr-rule-product').value = '';
   document.getElementById('cr-rule-days').value = '';
-  if (document.getElementById('cr-rule-dpq')) document.getElementById('cr-rule-dpq').value = '';
-  showToast('✅ Rule saved!', 'success');
+  showToast('Rule saved!', 'success');
 }
 
 function editRule(i) {
   const r = getProductRules()[i];
   document.getElementById('cr-rule-product').value = r.product;
-  const modeEl = document.getElementById('cr-rule-mode');
-  if (modeEl) { modeEl.value = r.mode || 'fixed'; onRuleModeChange(); }
-  if (r.mode === 'qty') {
-    if (document.getElementById('cr-rule-dpq')) document.getElementById('cr-rule-dpq').value = r.daysPerUnit || 1;
-  } else {
-    document.getElementById('cr-rule-days').value = r.days;
-  }
-  const grpEl = document.getElementById('cr-rule-group');
-  if (grpEl) grpEl.value = r.groupByCategory ? '1' : '0';
+  document.getElementById('cr-rule-days').value = r.days;
 }
 
 function deleteRule(i) {
@@ -7660,7 +6282,7 @@ function renderCustomerHistory(query) {
           <td>${s.product||'—'}</td>
           <td>${s.qty}</td>
           <td>${formatCurrency(s.total)}</td>
-          <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span>${s.isReseller ? '<br><span style="font-size:0.65rem;color:var(--accent4);font-weight:600">🤝 RESELLER</span>' : ''}</td>
+          <td><span class="badge badge-${(s.status||'pending').toLowerCase()}">${s.status}</span></td>
         </tr>`).join('')}</tbody>
       </table></div>
     </div>`;
@@ -7868,18 +6490,6 @@ function closeWAQueue() {
 // ══════════════════════════════════════════════════════════
 // 7. PROFIT TARGET TRACKER
 // ══════════════════════════════════════════════════════════
-function getRewardExpense(monthPrefix) {
-  // Sum cost of all Delivered redemptions in the given month (or all if no prefix)
-  const redemptions = DB.rewardRedemptions || [];
-  return redemptions
-    .filter(r => r.status === 'Delivered' && (!monthPrefix || (r.date||'').startsWith(monthPrefix)))
-    .reduce((sum, r) => {
-      const pack = (DB.rewardPacks||[]).find(p => p.id === r.rewardPackId);
-      const cost = pack ? (pack.packCost != null ? pack.packCost : calcRewardPackCost(pack.itemsList)) : 0;
-      return sum + cost;
-    }, 0);
-}
-
 function renderProfitTarget() {
   const ptMonth = document.getElementById('pt-month');
   if (ptMonth && !ptMonth.value) ptMonth.value = today().substr(0, 7);
@@ -7891,11 +6501,9 @@ function renderProfitTarget() {
   const targets = DB.profitTargets || [];
   const currentTarget = targets.find(t => t.month === thisMonth);
   const monthlySales = DB.sales.filter(s => s.date && s.date.startsWith(thisMonth));
-  const actualSales   = monthlySales.reduce((a, s) => a + (s.total||0), 0);
-  const rawProfit     = monthlySales.reduce((a, s) => a + (s.profit||0), 0);
-  const rewardExp     = getRewardExpense(thisMonth);
-  const actualProfit  = rawProfit - rewardExp;
-  const actualOrders  = monthlySales.length;
+  const actualSales  = monthlySales.reduce((a, s) => a + (s.total||0), 0);
+  const actualProfit = monthlySales.reduce((a, s) => a + (s.profit||0), 0);
+  const actualOrders = monthlySales.length;
 
   if (!currentTarget) {
     el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-dim)">
@@ -7932,12 +6540,8 @@ function renderProfitTarget() {
           <div style="font-size:0.8rem;color:var(--text-dim)">Profit target achieved</div>
         </div>
         ${progressBar('💰 Sales', actualSales, currentTarget.sales||0, salesPct, 'var(--accent)')}
-        ${progressBar('📈 Profit (after rewards)', actualProfit, currentTarget.profit||0, profitPct, 'var(--green)')}
+        ${progressBar('📈 Profit', actualProfit, currentTarget.profit||0, profitPct, 'var(--green)')}
         ${progressBar('🛒 Orders', actualOrders, currentTarget.orders||0, ordersPct, 'var(--accent4)')}
-        ${rewardExp > 0 ? `<div style="font-size:0.78rem;padding:8px 10px;background:rgba(255,80,80,0.06);border:1px solid rgba(255,80,80,0.18);border-radius:8px;margin-top:4px">
-          🎁 Reward pack expense this month: <strong style="color:var(--red)">−₹${rewardExp.toFixed(2)}</strong>
-          <span style="color:var(--text-dim);font-size:0.7rem"> (raw profit was ₹${rawProfit.toFixed(2)})</span>
-        </div>` : ''}
       </div>`;
   }
 
@@ -7948,8 +6552,8 @@ function renderProfitTarget() {
       <thead><tr><th>Month</th><th>Sales Target</th><th>Sales Actual</th><th>Profit Target</th><th>Profit Actual</th><th>Achievement</th></tr></thead>
       <tbody>${targets.sort((a,b) => b.month.localeCompare(a.month)).map(t => {
         const mSales = DB.sales.filter(s => s.date && s.date.startsWith(t.month));
-        const aS  = mSales.reduce((a,s) => a+(s.total||0), 0);
-        const aP  = mSales.reduce((a,s) => a+(s.profit||0), 0) - getRewardExpense(t.month);
+        const aS = mSales.reduce((a,s) => a+(s.total||0), 0);
+        const aP = mSales.reduce((a,s) => a+(s.profit||0), 0);
         const pct = t.profit > 0 ? (aP/t.profit*100).toFixed(0) : 0;
         return `<tr>
           <td><strong>${t.month}</strong></td>
@@ -8264,13 +6868,10 @@ function filterSuppTable(q) {
 // ════════════════════════════════════════════════════════
 
 if (!DB.birthdays)  DB.birthdays  = {};
-if (!DB.referrals)          DB.referrals          = [];
-if (!DB.rewardPacks)        DB.rewardPacks        = [];
-if (!DB.rewardRedemptions)  DB.rewardRedemptions  = [];
-seedDefaultRewardPack();
+if (!DB.referrals)  DB.referrals  = [];
 
 function switchLoyaltyTab(tab) {
-  ['leaderboard','points','history','birthdays','referrals','rewardpacks','redeem'].forEach(t => {
+  ['leaderboard','points','history','birthdays','referrals'].forEach(t => {
     const btn = document.getElementById('ltab-' + t);
     const c   = document.getElementById('ltab-content-' + t);
     if (btn) btn.classList.toggle('active', t === tab);
@@ -8280,9 +6881,7 @@ function switchLoyaltyTab(tab) {
   if (tab === 'points')      renderLoyaltyPoints();
   if (tab === 'history')     populateHistoryDropdown();
   if (tab === 'birthdays')   renderBirthdays();
-  if (tab === 'referrals')   { renderReferrals(); renderReferralCodes(); }
-  if (tab === 'rewardpacks') { rpPopulateProductSelect(); rpRenderItems(); renderRewardPacksList(); renderRedemptionsTable(); }
-  if (tab === 'redeem')      { populateRedeemCustomerSelect(); renderRedeemDashboard(); }
+  if (tab === 'referrals')   renderReferrals();
 }
 
 function renderLoyalty() {
@@ -8311,13 +6910,11 @@ function renderLoyaltyCards() {
   const totalPoints = data.reduce((a,c) => a+c.points, 0);
   const totalReferrals = DB.referrals.length;
   const topCustomer = data[0];
-  const refPoints = (DB.referrals||[]).filter(r=>r.pointGiven).length;
-  const pendingRed = (DB.rewardRedemptions||[]).filter(r=>r.status==='Pending').length;
   el.innerHTML = `
     <div class="stat-card gold"><div class="icon">🏆</div><div class="label">Top Customer</div><div class="value" style="font-size:0.95rem">${topCustomer ? topCustomer.name.substring(0,14) : '—'}</div><div class="sub">${topCustomer ? formatCurrency(topCustomer.totalSpent) : ''}</div></div>
     <div class="stat-card purple"><div class="icon">⭐</div><div class="label">Total Points Issued</div><div class="value">${totalPoints.toLocaleString()}</div></div>
     <div class="stat-card green"><div class="icon">👥</div><div class="label">Total Referrals</div><div class="value">${totalReferrals}</div></div>
-    <div class="stat-card teal"><div class="icon">🎁</div><div class="label">Referral Points</div><div class="value">${refPoints}</div><div class="sub">${pendingRed} pending redeem</div></div>
+    <div class="stat-card teal"><div class="icon">🎂</div><div class="label">Birthdays Saved</div><div class="value">${Object.keys(DB.birthdays||{}).length}</div></div>
   `;
 }
 
@@ -8497,590 +7094,40 @@ function sendBirthdayWish(custId) {
   window.open(`https://wa.me/${ph.startsWith('91')?ph:'91'+ph}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-// ════════════════════════════════════════════════════════
-//  REFERRAL REWARD PACK SYSTEM
-// ════════════════════════════════════════════════════════
-
-// ── Referral Code ──
-function getReferralCode(customerId) {
-  return 'REF' + customerId.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5).padEnd(5,'0');
-}
-function findCustomerByRefCode(code) {
-  return DB.customers.find(c => getReferralCode(c.id) === code.toUpperCase());
-}
-
-// ── Points logic ──
-function getCustomerReferralPoints(custName) {
-  if (!DB.referrals) return 0;
-  return DB.referrals.filter(r => r.from === custName && r.pointGiven).length;
-}
-function getRedeemedPoints(custName) {
-  if (!DB.rewardRedemptions) return 0;
-  return DB.rewardRedemptions
-    .filter(r => r.customerName === custName && r.status !== 'Cancelled')
-    .reduce((s, r) => s + (r.pointsUsed || 0), 0);
-}
-function getAvailablePoints(custName) {
-  return Math.max(0, getCustomerReferralPoints(custName) - getRedeemedPoints(custName));
-}
-
-// ── Save Referral (extended) ──
 function saveReferral() {
-  const from   = v('ref-from');
-  const to     = v('ref-to').trim();
-  const amount = parseFloat(v('ref-amount')) || 0;
-  const date   = v('ref-date') || today();
+  const from = v('ref-from');
+  const to   = v('ref-to').trim();
+  const date = v('ref-date');
   if (!from || !to) { showToast('Fill both fields!', 'error'); return; }
-
-  const pointGiven = amount >= 250;
   if (!DB.referrals) DB.referrals = [];
-  DB.referrals.push({ id: uid(), from, to, amount, pointGiven, date });
+  DB.referrals.push({ id: uid(), from, to, date: date||today() });
   saveData();
   renderReferrals();
-  renderReferralCodes();
-  set2('ref-to', '');
-  set2('ref-amount', '');
-
-  const msg = pointGiven
-    ? `✅ Referral saved! +1 point awarded to ${from} (purchase ≥ ₹250)`
-    : `✅ Referral saved! No point — purchase was ₹${amount} (need ≥ ₹250)`;
-  showToast(msg, pointGiven ? 'success' : 'info');
-
-  // WhatsApp notify referrer
-  if (pointGiven) {
-    const cust = DB.customers.find(c => c.name === from);
-    if (cust && cust.phone) {
-      const pts = getAvailablePoints(from);
-      const ph  = (cust.phone.replace(/\D/g,'')).replace(/^(?!91)/, '91');
-      const biz = DB.settings.bizName || 'Meenatchi Traders';
-      const msg2 = `Vanakkam ${from}! 🎉\n\nYour referral (${to}) made a purchase of ₹${amount}.\n\n🌟 You earned 1 point!\nTotal available points: ${pts}\n\n5 points = 1 Special Reward Pack 🎁\n\nKeep referring to earn more! - ${biz}`;
-      const link = `<a href="https://wa.me/${ph}?text=${encodeURIComponent(msg2)}" target="_blank" style="color:#25d366">Notify ${from} on WhatsApp</a>`;
-      showToast('Point awarded! ' + link, 'success', 6000);
-    }
-  }
+  set2('ref-to','');
+  showToast(`✅ Referral saved! ${from} referred ${to}`, 'success');
 }
 
 function renderReferrals() {
   const el = document.getElementById('referral-list');
   if (!el) return;
-  if (!DB.referrals || !DB.referrals.length) {
-    el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No referrals yet.</div>';
-    return;
-  }
+  if (!DB.referrals || !DB.referrals.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.82rem;padding:8px">No referrals recorded yet.</div>'; return; }
+
   const counts = {};
-  const points = {};
-  DB.referrals.forEach(r => {
-    counts[r.from] = (counts[r.from]||0) + 1;
-    points[r.from] = (points[r.from]||0) + (r.pointGiven ? 1 : 0);
-  });
+  DB.referrals.forEach(r => { counts[r.from] = (counts[r.from]||0)+1; });
   const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const medals  = ['🥇','🥈','🥉'];
+  const medals = ['🥇','🥈','🥉'];
+
   el.innerHTML = `
     <div style="margin-bottom:12px">
-      ${ranked.map(([name, cnt], i) => {
-        const pts = getAvailablePoints(name);
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:6px">
-          <div>
-            <div>${medals[i]||'👤'} <strong>${name}</strong></div>
-            <div style="font-size:0.72rem;color:var(--text-dim)">${cnt} referral${cnt>1?'s':''}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:0.82rem;font-weight:700;color:var(--accent)">${points[name]||0} pts earned</div>
-            <div style="font-size:0.72rem;color:var(--green)">${pts} available</div>
-          </div>
-        </div>`;
-      }).join('')}
+      ${ranked.map(([name, cnt], i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px">
+          <span>${medals[i]||'  '} <strong>${name}</strong></span>
+          <span style="color:var(--accent);font-weight:700">${cnt} referral${cnt>1?'s':''}</span>
+        </div>`).join('')}
     </div>
     <div style="font-size:0.75rem;color:var(--text-dim);border-top:1px solid var(--border);padding-top:8px">
-      <strong style="color:var(--text-dim)">Recent Referrals:</strong><br>
-      ${DB.referrals.slice(-6).reverse().map(r =>
-        `<div style="padding:3px 0;display:flex;justify-content:space-between">
-          <span>${r.from} → ${r.to}</span>
-          <span>${r.pointGiven ? '<span style="color:var(--green)">+1pt</span>' : '<span style="color:var(--text-dim)">—</span>'} · ${formatDate(r.date)}</span>
-        </div>`
-      ).join('')}
+      ${DB.referrals.slice(-5).reverse().map(r=>`<div style="padding:3px 0">${r.from} → ${r.to} · ${formatDate(r.date)}</div>`).join('')}
     </div>`;
-}
-
-function renderReferralCodes(query) {
-  const el = document.getElementById('referral-codes-table');
-  if (!el) return;
-  let custs = DB.customers.slice();
-  if (query) custs = custs.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
-  if (!custs.length) { el.innerHTML = '<p style="color:var(--text-dim);padding:8px">No customers found.</p>'; return; }
-
-  el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr>
-      <th>Customer</th><th>Referral Code</th><th>Total Refs</th><th>Points Earned</th><th>Available</th><th>Share</th>
-    </tr></thead>
-    <tbody>${custs.map(c => {
-      const code    = getReferralCode(c.id);
-      const total   = DB.referrals.filter(r => r.from === c.name).length;
-      const earned  = getCustomerReferralPoints(c.name);
-      const avail   = getAvailablePoints(c.name);
-      const biz     = DB.settings.bizName || 'Meenatchi Traders';
-      const shareMsg = `Hi! 👋 I'm a customer at ${biz}.\n\nUse my referral code *${code}* when you make a purchase of ₹250+ to help me earn rewards! 🎁\n\nContact: ${biz}`;
-      const ph = c.phone ? (c.phone.replace(/\D/g,'')).replace(/^(?!91)/,'91') : '';
-      return `<tr>
-        <td><strong>${c.name}</strong><br><small style="color:var(--text-dim)">${c.phone||'—'}</small></td>
-        <td><span style="font-family:monospace;font-size:1rem;font-weight:800;color:var(--accent);background:rgba(247,201,72,0.1);padding:4px 10px;border-radius:8px;letter-spacing:1px">${code}</span></td>
-        <td>${total}</td>
-        <td><span style="color:var(--accent);font-weight:700">${earned} pts</span></td>
-        <td><span style="color:${avail>0?'var(--green)':'var(--text-dim)'};font-weight:700">${avail} pts</span></td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap">
-          ${ph ? `<a href="https://wa.me/${ph}?text=${encodeURIComponent(shareMsg)}" target="_blank"
-            style="background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3);padding:3px 9px;border-radius:6px;font-size:0.72rem;text-decoration:none">💬 WA</a>` : ''}
-          <button onclick="copyRefCode('${code}')"
-            style="background:rgba(162,155,254,0.12);color:var(--accent4);border:1px solid rgba(162,155,254,0.25);padding:3px 9px;border-radius:6px;font-size:0.72rem;cursor:pointer">📋 Copy</button>
-        </td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table></div>`;
-}
-
-function populateRedeemCustomerSelect() {
-  const el = document.getElementById('redeem-customer-select');
-  if (!el) return;
-  const cur = el.value;
-  el.innerHTML = '<option value="">— Choose customer —</option>' +
-    DB.customers.map(c => `<option value="${c.name}"${c.name===cur?' selected':''}>${c.name}</option>`).join('');
-  if (cur) el.value = cur;
-}
-
-function copyRefCode(code) {
-  navigator.clipboard.writeText(code).then(() => showToast('Referral code copied: ' + code, 'success'));
-}
-
-// ── Reward Packs (Admin) ──
-// ── Reward Pack product picker state ──
-let _rpItems = []; // [{productId, productName, qty}]
-
-function rpPopulateProductSelect() {
-  const sel = document.getElementById('rp-prod-select');
-  if (!sel) return;
-  const opts = DB.products.flatMap(p => {
-    const rows = [{id: p.id, label: p.name + (p.unit ? ' ('+p.unit+')' : '')}];
-    if (p.packVariants && p.packVariants.length) {
-      p.packVariants.forEach(pv => {
-        rows.push({ id: p.id + '||' + pv.id, label: p.name + ' ' + pv.size + pv.sizeUnit });
-      });
-    }
-    return rows;
-  });
-  sel.innerHTML = '<option value="">— Select product —</option>' +
-    opts.map(o => `<option value="${o.id}">${o.label}</option>`).join('');
-}
-
-function rpAddProduct() {
-  const sel = document.getElementById('rp-prod-select');
-  const qty = parseInt(document.getElementById('rp-prod-qty')?.value) || 1;
-  const val = sel?.value;
-  if (!val) { showToast('Select a product first!', 'error'); return; }
-
-  // Resolve label
-  let label = sel.options[sel.selectedIndex]?.text || val;
-  // Check duplicate
-  if (_rpItems.find(x => x.productId === val)) {
-    showToast('Already added! Change qty in the list.', 'info'); return;
-  }
-  _rpItems.push({ productId: val, productName: label, qty });
-  rpRenderItems();
-  sel.value = '';
-  document.getElementById('rp-prod-qty').value = 1;
-}
-
-function rpRemoveItem(productId) {
-  _rpItems = _rpItems.filter(x => x.productId !== productId);
-  rpRenderItems();
-}
-
-function rpQtyChange(productId, val) {
-  const item = _rpItems.find(x => x.productId === productId);
-  if (item) item.qty = parseInt(val) || 1;
-  rpSyncItemsHidden();
-}
-
-function rpRenderItems() {
-  const el = document.getElementById('rp-items-list');
-  if (!el) return;
-  if (!_rpItems.length) {
-    el.innerHTML = '<p style="color:var(--text-dim);font-size:0.78rem;padding:6px 0">No items added yet.</p>';
-    rpSyncItemsHidden();
-    return;
-  }
-  el.innerHTML = _rpItems.map(item => `
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(162,155,254,0.07);border:1px solid rgba(162,155,254,0.2);border-radius:8px;margin-bottom:6px;flex-wrap:wrap">
-      <span style="flex:1;font-size:0.85rem;font-weight:600;color:var(--text)">${item.productName}</span>
-      <div style="display:flex;align-items:center;gap:6px">
-        <label style="font-size:0.72rem;color:var(--text-dim)">Qty:</label>
-        <input type="number" value="${item.qty}" min="1"
-          onchange="rpQtyChange('${item.productId}', this.value)"
-          style="width:55px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 6px;text-align:center;font-weight:700">
-        <button onclick="rpRemoveItem('${item.productId}')"
-          style="background:rgba(255,80,80,0.12);color:#ff6b6b;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:0.72rem">✕</button>
-      </div>
-    </div>`).join('');
-  rpSyncItemsHidden();
-}
-
-function rpSyncItemsHidden() {
-  // Sync to hidden field for save
-  const summary = _rpItems.map(x => x.qty + '× ' + x.productName).join(', ');
-  set2('rp-items', summary);
-}
-
-function calcRewardPackCost(itemsList) {
-  // Sum up fullCpu × qty for each item in the pack
-  let total = 0;
-  (itemsList || []).forEach(item => {
-    const parts = item.productId.split('||');
-    const prod  = DB.products.find(p => p.id === parts[0]);
-    if (!prod) return;
-    let cpu = 0;
-    if (parts[1] && prod.packVariants) {
-      const pv = prod.packVariants.find(v => v.id === parts[1]);
-      cpu = pv ? (pv.fullCpu || 0) : (prod.cpu || 0);
-    } else {
-      cpu = prod.cpu || 0;
-    }
-    total += cpu * (item.qty || 1);
-  });
-  return total;
-}
-
-function saveRewardPack() {
-  const name   = v('rp-name').trim();
-  const desc   = v('rp-desc').trim();
-  const points = parseInt(v('rp-points')) || 0;
-  const status = v('rp-status') || 'active';
-  const editId = v('rp-edit-id');
-  if (!name || !points) { showToast('Pack name and points required!', 'error'); return; }
-  if (!_rpItems.length) { showToast('Add at least one product to the pack!', 'error'); return; }
-
-  rpSyncItemsHidden();
-  const items = v('rp-items');
-
-  // Calculate auto stock = min stock of included products
-  let autoStock = 999;
-  _rpItems.forEach(item => {
-    const pid = item.productId.split('||')[0];
-    const prod = DB.products.find(p => p.id === pid);
-    if (prod) {
-      const available = Math.floor((prod.balance || 0) / item.qty);
-      if (available < autoStock) autoStock = available;
-    }
-  });
-  const stock = autoStock === 999 ? 0 : Math.max(0, autoStock);
-
-  if (!DB.rewardPacks) DB.rewardPacks = [];
-  const packCost = calcRewardPackCost(_rpItems);
-  const packData = { name, desc, items, itemsList: _rpItems.map(x=>({...x})), pointsRequired: points, stock, status, packCost };
-  if (editId) {
-    const idx = DB.rewardPacks.findIndex(p => p.id === editId);
-    if (idx !== -1) DB.rewardPacks[idx] = { ...DB.rewardPacks[idx], ...packData };
-  } else {
-    DB.rewardPacks.push({ id: uid(), ...packData, created: today() });
-  }
-  saveData();
-  clearRewardPackForm();
-  renderRewardPacksList();
-  showToast('✅ Reward pack saved! Stock auto-set to ' + stock, 'success');
-}
-
-function clearRewardPackForm() {
-  ['rp-name','rp-desc','rp-items','rp-points','rp-edit-id'].forEach(id => set2(id,''));
-  const st = document.getElementById('rp-status'); if (st) st.value = 'active';
-  _rpItems = [];
-  rpRenderItems();
-}
-
-function editRewardPack(id) {
-  const p = DB.rewardPacks.find(x => x.id === id);
-  if (!p) return;
-  set2('rp-edit-id', p.id);
-  set2('rp-name',  p.name);
-  set2('rp-desc',  p.desc || '');
-  set2('rp-points', p.pointsRequired);
-  const st = document.getElementById('rp-status'); if (st) st.value = p.status || 'active';
-  // Restore items
-  _rpItems = p.itemsList ? p.itemsList.map(x=>({...x})) : [];
-  // Fallback: parse old string format
-  if (!_rpItems.length && p.items) {
-    p.items.split(',').forEach(seg => {
-      const m = seg.trim().match(/^(\d+)[x×]\s*(.+)$/i);
-      if (m) _rpItems.push({ productId: 'legacy_'+m[2], productName: m[2].trim(), qty: parseInt(m[1]) });
-    });
-  }
-  rpPopulateProductSelect();
-  rpRenderItems();
-  // Scroll to form
-  document.getElementById('rp-name')?.scrollIntoView({behavior:'smooth', block:'center'});
-  document.getElementById('rp-name')?.focus();
-  showToast('✏️ Editing pack — make changes and save', 'info');
-}
-
-function deleteRewardPack(id) {
-  if (!confirm('Delete this reward pack?')) return;
-  DB.rewardPacks = DB.rewardPacks.filter(p => p.id !== id);
-  saveData();
-  renderRewardPacksList();
-  showToast('Pack deleted', 'info');
-}
-
-function renderRewardPacksList() {
-  const el = document.getElementById('reward-packs-list');
-  if (!el) return;
-  if (!DB.rewardPacks || !DB.rewardPacks.length) {
-    el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:24px">No reward packs yet. Create one!</div>';
-    return;
-  }
-  el.innerHTML = DB.rewardPacks.map(p => {
-    const redeemCount = (DB.rewardRedemptions||[]).filter(r => r.rewardPackId === p.id).length;
-    const statusColor = p.status === 'active' ? 'var(--green)' : 'var(--red)';
-    const packCost = p.packCost != null ? p.packCost : calcRewardPackCost(p.itemsList);
-    const totalExpense = packCost * redeemCount;
-    return `<div style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-weight:700;font-size:0.95rem">🎁 ${p.name}</div>
-          ${p.desc ? `<div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px">${p.desc}</div>` : ''}
-          <div style="font-size:0.78rem;color:var(--accent4);margin-top:4px">📦 ${p.items||'Items not listed'}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:1.1rem;font-weight:800;color:var(--accent)">${p.pointsRequired} pts</div>
-          <div style="font-size:0.72rem;color:var(--text-dim)">to redeem</div>
-        </div>
-      </div>
-      <!-- Cost row -->
-      <div style="display:flex;gap:10px;margin-top:10px;padding:8px 10px;background:rgba(255,80,80,0.05);border:1px solid rgba(255,80,80,0.15);border-radius:8px;font-size:0.78rem;flex-wrap:wrap">
-        <span>💸 Cost/pack: <strong style="color:var(--red)">₹${packCost.toFixed(2)}</strong></span>
-        <span style="color:var(--text-dim)">|</span>
-        <span>📊 Total given away: <strong style="color:var(--red)">₹${totalExpense.toFixed(2)}</strong> (${redeemCount}×)</span>
-        ${redeemCount > 0 ? `<span style="color:var(--text-dim)">|</span><span style="color:#fd9644">⚠️ Profit impact: -₹${totalExpense.toFixed(2)}</span>` : ''}
-      </div>
-      <div style="display:flex;gap:12px;margin-top:8px;font-size:0.78rem;flex-wrap:wrap;align-items:center">
-        <span style="color:${statusColor}">● ${p.status==='active'?'Active':'Inactive'}</span>
-        <span style="color:var(--text-dim)">Stock: <strong style="color:var(--text)">${p.stock}</strong></span>
-        <span style="color:var(--text-dim)">Redeemed: <strong style="color:var(--text)">${redeemCount}×</strong></span>
-        <div style="margin-left:auto;display:flex;gap:6px">
-          <button onclick="editRewardPack('${p.id}')" style="background:rgba(247,201,72,0.12);color:var(--accent);border:1px solid rgba(247,201,72,0.2);padding:3px 10px;border-radius:6px;font-size:0.72rem;cursor:pointer">✏️ Edit</button>
-          <button onclick="deleteRewardPack('${p.id}')" style="background:rgba(255,80,80,0.1);color:var(--red);border:1px solid rgba(255,80,80,0.2);padding:3px 10px;border-radius:6px;font-size:0.72rem;cursor:pointer">🗑 Del</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderRedemptionsTable() {
-  const el = document.getElementById('redemptions-table');
-  const badge = document.getElementById('pending-redemptions-badge');
-  if (!el) return;
-  const redemptions = DB.rewardRedemptions || [];
-  const pending = redemptions.filter(r => r.status === 'Pending').length;
-  if (badge) badge.textContent = pending > 0 ? pending + ' pending' : '';
-
-  if (!redemptions.length) {
-    el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:24px">No redemptions yet.</div>';
-    return;
-  }
-  const sorted = [...redemptions].sort((a,b) => (b.date||'').localeCompare(a.date||''));
-  el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Customer</th><th>Pack</th><th>Points</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody>${sorted.map(r => {
-      const pack = (DB.rewardPacks||[]).find(p => p.id === r.rewardPackId);
-      const statusColor = r.status === 'Delivered' ? 'var(--green)' : r.status === 'Cancelled' ? 'var(--red)' : '#fd9644';
-      return `<tr>
-        <td><strong>${r.customerName}</strong></td>
-        <td>${pack ? pack.name : r.packName||'—'}</td>
-        <td style="color:var(--accent);font-weight:700">${r.pointsUsed} pts</td>
-        <td>${formatDate(r.date)}</td>
-        <td style="color:${statusColor};font-weight:600">${r.status}</td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap">
-          ${r.status === 'Pending' ? `
-            <button onclick="markRedemption('${r.id}','Delivered')" style="background:rgba(85,239,196,0.12);color:var(--green);border:1px solid rgba(85,239,196,0.3);padding:3px 9px;border-radius:6px;font-size:0.72rem;cursor:pointer">✅ Delivered</button>
-            <button onclick="markRedemption('${r.id}','Cancelled')" style="background:rgba(255,80,80,0.1);color:var(--red);border:1px solid rgba(255,80,80,0.2);padding:3px 9px;border-radius:6px;font-size:0.72rem;cursor:pointer">✕ Cancel</button>
-          ` : '—'}
-        </td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table></div>`;
-}
-
-function markRedemption(id, status) {
-  const r = (DB.rewardRedemptions||[]).find(x => x.id === id);
-  if (!r) return;
-  r.status = status;
-  if (status === 'Delivered') r.deliveredDate = today();
-  saveData();
-  renderRedemptionsTable();
-  renderRedeemDashboard();
-  // Notify customer
-  const cust = DB.customers.find(c => c.name === r.customerName);
-  if (cust && cust.phone && status === 'Delivered') {
-    const ph  = (cust.phone.replace(/\D/g,'')).replace(/^(?!91)/,'91');
-    const biz = DB.settings.bizName || 'Meenatchi Traders';
-    const msg = `Vanakkam ${r.customerName}! 🎉\n\nYour Reward Pack *${r.packName}* is ready for collection! 🎁\n\nCome visit us at ${biz}.\n\nThank you for being an amazing referrer! 🙏`;
-    window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`, '_blank');
-  }
-  showToast(`✅ Marked as ${status}`, 'success');
-}
-
-// ── Redeem Dashboard (Customer View) ──
-function renderRedeemDashboard() {
-  const custName = document.getElementById('redeem-customer-select')?.value;
-  const el = document.getElementById('redeem-dashboard');
-  if (!el) return;
-  if (!custName) { el.innerHTML = ''; return; }
-
-  const cust    = DB.customers.find(c => c.name === custName);
-  const code    = cust ? getReferralCode(cust.id) : '—';
-  const earned  = getCustomerReferralPoints(custName);
-  const redeemed= getRedeemedPoints(custName);
-  const avail   = getAvailablePoints(custName);
-  const activePacks = (DB.rewardPacks||[]).filter(p => p.status === 'active' && p.stock > 0);
-  const myRedemptions = (DB.rewardRedemptions||[]).filter(r => r.customerName === custName).reverse();
-
-  // Points bar
-  const bestPack = activePacks.sort((a,b) => a.pointsRequired - b.pointsRequired)[0];
-  const needed   = bestPack ? bestPack.pointsRequired : 5;
-  const pct      = Math.min((avail / needed) * 100, 100);
-
-  el.innerHTML = `
-    <!-- Stats Cards -->
-    <div class="cards-grid" style="margin-bottom:16px">
-      <div class="stat-card gold">
-        <div class="icon">🔑</div>
-        <div class="label">Referral Code</div>
-        <div class="value" style="font-size:1.2rem;font-family:monospace;letter-spacing:2px">${code}</div>
-        <div class="sub" onclick="copyRefCode('${code}')" style="cursor:pointer;color:var(--accent4)">📋 Copy</div>
-      </div>
-      <div class="stat-card teal">
-        <div class="icon">👥</div>
-        <div class="label">Total Referrals</div>
-        <div class="value">${DB.referrals.filter(r => r.from === custName).length}</div>
-        <div class="sub">friends referred</div>
-      </div>
-      <div class="stat-card orange">
-        <div class="icon">⭐</div>
-        <div class="label">Points Earned</div>
-        <div class="value">${earned}</div>
-        <div class="sub">${redeemed} redeemed</div>
-      </div>
-      <div class="stat-card ${avail >= needed ? 'green' : 'purple'}">
-        <div class="icon">🎁</div>
-        <div class="label">Available Points</div>
-        <div class="value">${avail}</div>
-        <div class="sub">${avail >= needed ? '✅ Can redeem!' : `Need ${needed - avail} more`}</div>
-      </div>
-    </div>
-
-    <!-- Progress bar -->
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><span class="card-title">🌟 Points Progress</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-dim);margin-bottom:6px">
-        <span>${avail} points available</span>
-        <span>${needed} needed for next reward</span>
-      </div>
-      <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:14px;overflow:hidden">
-        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent4));border-radius:20px;transition:.5s"></div>
-      </div>
-      <div style="font-size:0.72rem;color:var(--text-dim);margin-top:6px;text-align:center">
-        ${avail >= needed ? '🎉 You can redeem a reward pack!' : `${needed - avail} more point${needed-avail>1?'s':''} to go!`}
-      </div>
-    </div>
-
-    <!-- Available Reward Packs -->
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><span class="card-title">🎁 Available Reward Packs</span></div>
-      ${!activePacks.length
-        ? '<p style="color:var(--text-dim);text-align:center;padding:12px">No reward packs available right now.</p>'
-        : activePacks.map(p => {
-            const canRedeem = avail >= p.pointsRequired;
-            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:rgba(255,255,255,0.03);border:1px solid ${canRedeem?'rgba(85,239,196,0.3)':'var(--border)'};border-radius:12px;margin-bottom:10px;flex-wrap:wrap;gap:10px">
-              <div>
-                <div style="font-weight:700;font-size:0.9rem">🎁 ${p.name}</div>
-                ${p.desc ? `<div style="font-size:0.75rem;color:var(--text-dim)">${p.desc}</div>` : ''}
-                <div style="font-size:0.75rem;color:var(--accent4);margin-top:3px">📦 ${p.items||''}</div>
-                <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">Stock: ${p.stock}</div>
-              </div>
-              <div style="text-align:center">
-                <div style="font-size:1.2rem;font-weight:800;color:var(--accent)">${p.pointsRequired}<small style="font-size:0.7rem">pts</small></div>
-                <button onclick="redeemPack('${custName}','${p.id}')" ${canRedeem?'':'disabled'}
-                  style="margin-top:6px;padding:7px 16px;border-radius:8px;border:none;font-weight:700;font-size:0.8rem;cursor:${canRedeem?'pointer':'not-allowed'};background:${canRedeem?'linear-gradient(135deg,var(--accent),var(--accent4))':'rgba(255,255,255,0.08)'};color:${canRedeem?'#1a1a2e':'var(--text-dim)'}">
-                  ${canRedeem ? '🔓 Redeem' : '🔒 Not enough pts'}
-                </button>
-              </div>
-            </div>`;
-          }).join('')
-      }
-    </div>
-
-    <!-- My Redemption History -->
-    ${myRedemptions.length ? `
-    <div class="card">
-      <div class="card-header"><span class="card-title">📋 My Redemption History</span></div>
-      ${myRedemptions.map(r => {
-        const statusColor = r.status === 'Delivered' ? 'var(--green)' : r.status === 'Cancelled' ? 'var(--red)' : '#fd9644';
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;font-size:0.82rem;flex-wrap:wrap;gap:6px">
-          <div><strong>${r.packName}</strong><br><span style="color:var(--text-dim);font-size:0.72rem">${formatDate(r.date)}</span></div>
-          <div style="text-align:right">
-            <span style="color:var(--accent)">-${r.pointsUsed} pts</span><br>
-            <span style="color:${statusColor};font-weight:600;font-size:0.72rem">${r.status}</span>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>` : ''}
-
-    <!-- Share code options -->
-    <div class="card">
-      <div class="card-header"><span class="card-title">📤 Share Your Referral Code</span></div>
-      <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:12px">Earn 1 point every time a friend you referred buys ≥ ₹250. 5 points = 1 Reward Pack!</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        ${cust && cust.phone ? (() => {
-          const biz = DB.settings.bizName || 'Meenatchi Traders';
-          const shareMsg = `Hi! 👋 I shop at ${biz} and love it!\n\nUse my referral code *${code}* when you make a purchase ≥ ₹250 to help me earn a Reward Pack! 🎁\n\n- ${custName}`;
-          const ph = (cust.phone.replace(/\D/g,'')).replace(/^(?!91)/,'91');
-          return `<a href="https://wa.me/?text=${encodeURIComponent(shareMsg)}" target="_blank"
-            style="padding:9px 18px;background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3);border-radius:10px;font-weight:600;font-size:0.82rem;text-decoration:none">
-            💬 Share on WhatsApp</a>`;
-        })() : ''}
-        <button onclick="copyRefCode('${code}')"
-          style="padding:9px 18px;background:rgba(162,155,254,0.12);color:var(--accent4);border:1px solid rgba(162,155,254,0.3);border-radius:10px;font-weight:600;font-size:0.82rem;cursor:pointer">
-          📋 Copy Code: ${code}</button>
-      </div>
-    </div>`;
-}
-
-function redeemPack(custName, packId) {
-  const pack  = (DB.rewardPacks||[]).find(p => p.id === packId);
-  const avail = getAvailablePoints(custName);
-  if (!pack) { showToast('Pack not found!','error'); return; }
-  if (pack.stock <= 0) { showToast('Pack out of stock!','error'); return; }
-  if (avail < pack.pointsRequired) { showToast('Not enough points!','error'); return; }
-  if (!confirm(`Redeem "${pack.name}" for ${pack.pointsRequired} points?`)) return;
-  if (!DB.rewardRedemptions) DB.rewardRedemptions = [];
-  DB.rewardRedemptions.push({
-    id: uid(), customerName: custName, rewardPackId: packId, packName: pack.name,
-    pointsUsed: pack.pointsRequired, date: today(), status: 'Pending'
-  });
-  pack.stock = Math.max(0, pack.stock - 1);
-  saveData();
-  renderRedeemDashboard();
-  showToast(`🎉 Redemption requested! Admin will prepare your "${pack.name}" pack.`, 'success');
-}
-
-// Seed a default reward pack if none exist
-function seedDefaultRewardPack() {
-  if (!DB.rewardPacks) DB.rewardPacks = [];
-  if (!DB.rewardPacks.length) {
-    DB.rewardPacks.push({
-      id: uid(), name: 'Referral Special Pack',
-      desc: 'Exclusive combo for our best referrers!',
-      items: '50g Tea n31, 1 Sambrani Cup, 1 Scrubber',
-      pointsRequired: 5, stock: 20, status: 'active', created: today()
-    });
-    saveData();
-  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -9538,6 +7585,17 @@ function setLanguage(lang) {
 if (currentLang === 'ta') { setTimeout(() => setLanguage('ta'), 500); }
 
 // ════════════════════════════════════════════════════════
+//  SERVICE WORKER REGISTRATION
+// ════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+      .catch(err => console.warn('[PWA] SW registration failed:', err));
+  });
+}
+
+// ════════════════════════════════════════════════════════
 //  MULTI-DEVICE / SHARE LINK
 // ════════════════════════════════════════════════════════
 
@@ -9615,6 +7673,9 @@ populateCustomerDatalist = function() {
 };
 
 </script>
+
+<!-- ══ LOYALTY GIFT REDEMPTION MODULE ══ -->
+<script src="loyalty-gifts.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--
+  ═══════════════════════════════════════════════════════
+  MEENATCHI TRADERS — PWA Icon Generator
+  Open this file in a browser, then right-click each
+  icon and "Save Image As" into the icons/ folder.
+  ═══════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Generate PWA Icons — Meenatchi Traders</title>
+<style>
+  body { font-family: sans-serif; background: #0d0617; color: #f0e6ff; padding: 24px; }
+  h2 { color: #f7c948; margin-bottom: 4px; }
+  p  { color: #9b8caf; font-size: 0.85rem; margin-bottom: 20px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 20px; }
+  .icon-wrap { text-align: center; }
+  .icon-wrap span { display: block; font-size: 0.72rem; color: #9b8caf; margin-top: 6px; }
+  canvas { border-radius: 16px; cursor: pointer; display: block; }
+  .download-all { margin-top: 24px; padding: 10px 24px; background: #f7c948; color: #1a0a2e;
+    border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h2>🍵 Meenatchi Traders — PWA Icon Generator</h2>
+<p>Click any icon to download it. Save all into an <strong>icons/</strong> folder beside index.html.</p>
+<div class="grid" id="grid"></div>
+<button class="download-all" onclick="downloadAll()">⬇️ Download All Icons</button>
+
+<script>
+const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+
+function drawIcon(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width  = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, '#1a0a2e');
+  grad.addColorStop(1, '#0d0617');
+  ctx.fillStyle = grad;
+  ctx.roundRect(0, 0, size, size, size * 0.18);
+  ctx.fill();
+
+  // Gold accent ring
+  ctx.strokeStyle = '#f7c948';
+  ctx.lineWidth = size * 0.025;
+  ctx.beginPath();
+  ctx.roundRect(size*0.06, size*0.06, size*0.88, size*0.88, size*0.14);
+  ctx.stroke();
+
+  // Tea cup emoji (text)
+  ctx.font = `${size * 0.45}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🍵', size / 2, size * 0.42);
+
+  // "MT" text below
+  ctx.font = `bold ${size * 0.15}px 'Arial', sans-serif`;
+  ctx.fillStyle = '#f7c948';
+  ctx.fillText('MT', size / 2, size * 0.78);
+
+  return canvas;
+}
+
+function renderAll() {
+  const grid = document.getElementById('grid');
+  SIZES.forEach(size => {
+    const canvas = drawIcon(size);
+    canvas.title = `Click to download icon-${size}.png`;
+    canvas.style.width = Math.min(size, 96) + 'px';
+    canvas.style.height = Math.min(size, 96) + 'px';
+    canvas.onclick = () => downloadCanvas(canvas, `icon-${size}.png`);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'icon-wrap';
+    const label = document.createElement('span');
+    label.textContent = `${size}×${size}`;
+    wrap.appendChild(canvas);
+    wrap.appendChild(label);
+    grid.appendChild(wrap);
+  });
+}
+
+function downloadCanvas(canvas, filename) {
+  const a = document.createElement('a');
+  a.download = filename;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+function downloadAll() {
+  SIZES.forEach((size, i) => {
+    setTimeout(() => {
+      const canvas = drawIcon(size);
+      downloadCanvas(canvas, `icon-${size}.png`);
+    }, i * 200);
+  });
+}
+
+// Polyfill for roundRect
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r);
+    this.lineTo(x + w, y + h - r);
+    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    this.lineTo(x + r, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r);
+    this.lineTo(x, y + r);
+    this.quadraticCurveTo(x, y, x + r, y);
+    this.closePath();
+    return this;
+  };
+}
+
+renderAll();
+</script>
+</body>
+</html>

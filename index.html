@@ -4031,12 +4031,19 @@ function onResellerToggle() {
   renderSaleRows();
 }
 
+function buildVariantLabel(productName, pv) {
+  const sizeStr = `${pv.size}${pv.sizeUnit||''}`;
+  // Don't append size if product name already contains it
+  if (productName.includes(sizeStr)) return productName;
+  return `${productName} ${sizeStr}`;
+}
+
 function findProductVariant(productLabel) {
   // Returns { prod, variant } or { prod, variant:null } for single-unit
   for (const p of DB.products) {
     if (p.packVariants && p.packVariants.length) {
       for (const pv of p.packVariants) {
-        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
+        const label = buildVariantLabel(p.name, pv);
         if (label === productLabel) return { prod: p, variant: pv };
       }
     }
@@ -4083,11 +4090,14 @@ function removeSaleRow(id) {
 function calcSaleSummary() {
   const subtotal = _saleRows.reduce((a, r) => a + (r.total || 0), 0);
   const profit = _saleRows.reduce((a, r) => {
-    // Always look up fresh from DB — never use stale cached cpu
-    const found = findProductVariant(r.product);
-    const cpu = found ? (found.variant ? (found.variant.fullCpu || 0) : (found.prod.cpu || 0)) : 0;
-    r._cpu = cpu; // Update cache too
-    const unitProfit = r.price - cpu;
+    // Use cached _cpu (set when product selected), or look up dynamically
+    let cpu = r._cpu;
+    if (cpu === undefined) {
+      const found = findProductVariant(r.product);
+      cpu = found ? (found.variant ? found.variant.fullCpu : found.prod.cpu) : 0;
+      r._cpu = cpu || 0;
+    }
+    const unitProfit = r.price - (cpu || 0);
     return a + (r.qty * unitProfit) - (r.disc || 0);
   }, 0);
   set2('s-total', subtotal.toFixed(2));
@@ -4122,10 +4132,12 @@ function saveSale(andInvoice = false) {
   const isReseller = document.getElementById('s-reseller')?.checked || false;
   const total = _saleRows.reduce((a, r) => a + r.total, 0);
   const profit = _saleRows.reduce((a, r) => {
-    // Always fresh lookup — never stale cache
-    const found = findProductVariant(r.product);
-    const cpu = found ? (found.variant ? (found.variant.fullCpu || 0) : (found.prod.cpu || 0)) : 0;
-    return a + (r.qty * (r.price - cpu)) - (r.disc || 0);
+    let cpu = r._cpu;
+    if (cpu === undefined) {
+      const found = findProductVariant(r.product);
+      cpu = found ? (found.variant ? found.variant.fullCpu : found.prod.cpu) : 0;
+    }
+    return a + (r.qty * (r.price - (cpu || 0))) - (r.disc || 0);
   }, 0);
   const received = +v('s-received') || 0;
   const pending = Math.max(total - received, 0);
@@ -6651,8 +6663,7 @@ function syncData() {
   })
   .catch(err => {
     if (icon) icon.classList.remove('fa-spin');
-    console.error('Sync error detail:', err);
-    showToast('Sync failed: ' + (err.message || 'Network error — check Apps Script deployment'), 'error');
+    showToast('Sync failed — check connection', 'error');
   });
 }
 
@@ -6721,7 +6732,7 @@ function populateProductDropdowns() {
   DB.products.forEach(p => {
     if (p.packVariants && p.packVariants.length) {
       p.packVariants.forEach(pv => {
-        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
+        const label = buildVariantLabel(p.name, pv);
         flatOptions.push({ value: label, stock: pv.stock || 0 });
       });
     } else {
@@ -8658,7 +8669,7 @@ function rpPopulateProductSelect() {
     const rows = [{id: p.id, label: p.name + (p.unit ? ' ('+p.unit+')' : '')}];
     if (p.packVariants && p.packVariants.length) {
       p.packVariants.forEach(pv => {
-        rows.push({ id: p.id + '||' + pv.id, label: p.name + ' ' + pv.size + pv.sizeUnit });
+        rows.push({ id: p.id + '||' + pv.id, label: buildVariantLabel(p.name, pv) });
       });
     }
     return rows;

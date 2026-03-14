@@ -217,7 +217,7 @@ tr:last-child td{border-bottom:none}
 .toast-item.info{border-color:rgba(162,155,254,0.4);color:var(--accent4)}
 
 /* CONNECT BANNER */
-.connect-banner{background:linear-gradient(135deg,rgba(247,201,72,0.1),rgba(162,155,254,0.1));border:1px solid rgba(247,201,72,0.2);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap}
+.connect-banner{background:linear-gradient(135deg,rgba(247,201,72,0.1),rgba(162,155,254,0.1));border:1px solid rgba(247,201,72,0.2);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .connect-banner p{font-size:0.82rem;color:var(--text-dim)}
 .connect-banner strong{color:var(--accent)}
 
@@ -2212,7 +2212,7 @@ const SheetsAPI = {
     try {
       const res = await fetch(this.baseUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' }, // Apps Script needs text/plain for CORS
         body: JSON.stringify({ action, ...data })
       });
       return await res.json();
@@ -2426,8 +2426,8 @@ let _saveCount = 0;
 let _isSyncing = false;
 let _syncTimeout = null;
 
-async function autoSyncToSheets() {
-  if (_isSyncing) return;
+async function autoSyncToSheets(force = false) {
+  if (_isSyncing && !force) return;
   if (!getAppsScriptUrl()) return;
   _isSyncing = true;
   // Safety: force reset after 15s so app never gets stuck
@@ -3180,7 +3180,6 @@ function wzStep1Calc() {
   if (unit === 'pcs') {
     sizes = [{s:1,u:'pcs',label:'1 pc'}];
   } else {
-    const isPcs = (unit === 'pcs');
     sizes = [
       {s:10,  u:'g',  label:'10g'},
       {s:20,  u:'g',  label:'20g'},
@@ -3507,13 +3506,21 @@ function quickAddStock() {
   showToast('✅ Stock added: +' + addQty + ' units', 'success');
 }
 
-function deleteProduct(id) {
+async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
+
   DB.products = DB.products.filter(p => p.id !== id);
   saveData();
+
+  try {
+    await autoSyncToSheets(true);
+  } catch (e) {
+    console.warn('Delete sync failed:', e);
+  }
+
   renderProductTable();
   populateProductDropdowns();
-  showToast('Product deleted', 'info');
+  showToast('Product deleted permanently', 'success');
 }
 
 function saveProduct() {
@@ -5597,8 +5604,8 @@ function renderTuition() {
 }
 
 function renderTuitionSummary() {
-  const students = appData.tuition?.students || [];
-  const staff = appData.tuition?.staff || [];
+  const students = DB.students || [];
+  const staff = DB.staff || [];
 
   // --- Class Summary Table ---
   const classOrder = ['KG','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -6861,21 +6868,6 @@ function getProductRules() {
     saveData();
   }
   return DB.productRules;
-}
-
-function getRuleDays(productName) {
-  const rules = getProductRules();
-  const rule = rules.find(r => productName && productName.toLowerCase().includes(r.product.toLowerCase()));
-  if (rule) return rule.days;
-  // Default fallback by keyword
-  const pl = (productName || '').toLowerCase();
-  if (pl.includes('tea') && pl.includes('10')) return 2;
-  if (pl.includes('tea') && pl.includes('100')) return 8;
-  if (pl.includes('tea') && pl.includes('250')) return 18;
-  if (pl.includes('scrub')) return 25;
-  if (pl.includes('sakkarai') || pl.includes('sugar')) return 23;
-  if (pl.includes('mcs') || pl.includes('sambrani')) return 1;
-  return 7; // default 7 days
 }
 
 function addDays(dateStr, days) {
@@ -9595,14 +9587,18 @@ function shareViaWhatsApp() {
 // Patch saveCustomer to handle birthday/referrer
 const _origSaveCustomer = saveCustomer;
 saveCustomer = function() {
-  // Add birthday and referrer before calling original
+  // Capture name and editId BEFORE calling original (fields may be cleared after)
   const bday = v('c-birthday');
   const referrer = v('c-referrer');
+  const savedName = v('c-name');
+  const editIdEl = document.getElementById('c-edit-id');
+  const editId = editIdEl ? editIdEl.value : '';
   _origSaveCustomer();
-  // Find the just-saved customer and add extra fields
-  const name = document.getElementById('c-name') ? '' : v('c-name');
+  // Find the just-saved customer by id (edit) or by name (new)
   if (bday || referrer) {
-    const c = DB.customers[DB.customers.length - 1];
+    const c = editId
+      ? DB.customers.find(x => x.id === editId)
+      : DB.customers.find(x => x.name === savedName);
     if (c) {
       if (bday) { c.birthday = bday; if (!DB.birthdays) DB.birthdays={}; DB.birthdays[c.name] = bday; }
       if (referrer) { if (!DB.referrals) DB.referrals=[]; DB.referrals.push({id:uid(),from:referrer,to:c.name,date:today()}); }

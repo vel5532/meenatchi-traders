@@ -1,53 +1,77 @@
-// Meenatchi Traders Service Worker v1.1.0
-// Updates this version number forces all clients to get fresh files
+// Meenatchi Traders Service Worker v2.0.0
+const CACHE_NAME = 'meenatchi-v2.0.0';
 
-const CACHE_NAME = 'meenatchi-v1.1.0';
-const CACHE_URLS = ['/meenatchi-traders/', '/meenatchi-traders/index.html'];
+const STATIC_ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
 
-// On install: cache the app
+// On install: cache the app shell
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Activate immediately, don't wait
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_URLS)).catch(() => {})
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(STATIC_ASSETS))
+      .catch(err => console.warn('Cache addAll failed:', err))
   );
 });
 
-// On activate: delete ALL old caches
+// On activate: delete old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => {
-          console.log('Deleting old cache:', k);
-          return caches.delete(k);
-        })
+        keys
+          .filter(k => k !== CACHE_NAME)
+          .map(k => {
+            console.log('Deleting old cache:', k);
+            return caches.delete(k);
+          })
       )
-    ).then(() => self.clients.claim()) // Take control of all open tabs
+    ).then(() => self.clients.claim())
   );
 });
 
 // On fetch: Network first, fall back to cache
-// This ensures APK always gets the latest code from GitHub
 self.addEventListener('fetch', event => {
-  // Only handle same-origin requests
-  if (!event.request.url.includes('meenatchi-traders') &&
-      !event.request.url.includes('github.io')) {
+  // Skip non-GET requests and cross-origin requests to CDN (let browser handle those)
+  if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  // For CDN resources (fonts, scripts), use cache-first
+  if (
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com') ||
+    url.hostname.includes('cdnjs.cloudflare.com')
+  ) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        }).catch(() => cached);
+      })
+    );
     return;
   }
 
+  // For local assets: network first, cache fallback
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Got fresh from network — update cache
         if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => {
-        // Network failed — serve from cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });

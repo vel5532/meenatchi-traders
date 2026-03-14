@@ -2598,10 +2598,12 @@ async function loadFromSheets() {
     const hasRealCustomers = DB.customers.length > 0;
     const hasRealProducts = DB.products.filter(p => !['p1','p2','p3','p4','p5','p6','p7','p8'].includes(p.id)).length > 0;
     const localEmpty = !hasRealSales && !hasRealCustomers && !hasRealProducts;
-    
+    const sheetsHasMore = (d.sales && d.sales.length > DB.sales.length) ||
+                          (d.products && d.products.length > DB.products.length);
+
     // Always restore when local is empty (WebView cleared localStorage)
     // Also restore if sheets has newer/more data
-    if (localEmpty) {
+    if (localEmpty || sheetsHasMore) {
       let restored = false;
       if (d.products   && d.products.length)   { DB.products   = parseSheetProducts(d.products);   restored = true; }
       if (d.sales      && d.sales.length)       { DB.sales      = parseSheetSales(d.sales);         restored = true; }
@@ -4029,12 +4031,19 @@ function onResellerToggle() {
   renderSaleRows();
 }
 
+function buildVariantLabel(productName, pv) {
+  const sizeStr = `${pv.size}${pv.sizeUnit||''}`;
+  // Don't append size if product name already contains it
+  if (productName.includes(sizeStr)) return productName;
+  return `${productName} ${sizeStr}`;
+}
+
 function findProductVariant(productLabel) {
   // Returns { prod, variant } or { prod, variant:null } for single-unit
   for (const p of DB.products) {
     if (p.packVariants && p.packVariants.length) {
       for (const pv of p.packVariants) {
-        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
+        const label = buildVariantLabel(p.name, pv);
         if (label === productLabel) return { prod: p, variant: pv };
       }
     }
@@ -6723,7 +6732,7 @@ function populateProductDropdowns() {
   DB.products.forEach(p => {
     if (p.packVariants && p.packVariants.length) {
       p.packVariants.forEach(pv => {
-        const label = `${p.name} ${pv.size}${pv.sizeUnit}`;
+        const label = buildVariantLabel(p.name, pv);
         flatOptions.push({ value: label, stock: pv.stock || 0 });
       });
     } else {
@@ -8660,7 +8669,7 @@ function rpPopulateProductSelect() {
     const rows = [{id: p.id, label: p.name + (p.unit ? ' ('+p.unit+')' : '')}];
     if (p.packVariants && p.packVariants.length) {
       p.packVariants.forEach(pv => {
-        rows.push({ id: p.id + '||' + pv.id, label: p.name + ' ' + pv.size + pv.sizeUnit });
+        rows.push({ id: p.id + '||' + pv.id, label: buildVariantLabel(p.name, pv) });
       });
     }
     return rows;
